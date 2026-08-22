@@ -22,6 +22,8 @@ uncomfortable enough to be worth reading in full.
 | D11 | Cost matrix | The ablation contradicted itself | Medium — priced labels, not actions |
 | D12 | Changepoint detector | A failing unit test | **High** — segments stuck DEGRADED forever |
 | D13 | Claim scan | The gate failed overnight with no code change | **High** — a pre-registered threshold moved with the calendar |
+| D14 | Exploration design | The first bake-off produced negative AUUC for everything | **High** — 74% of exploration rows were treated |
+| D15 | Sign-recovery metric | Adding a trivial baseline | **High** — no learner beats a constant predictor on F1 |
 
 ---
 
@@ -402,3 +404,89 @@ than 0.13 — better, but still thin enough that the phase diagram in `docs/EVAL
 **The general lesson.** A discipline rule that names a mechanism (`datetime.now()`) rather
 than a property (determinism) leaves a gap exactly where someone obeys it literally. The
 clock-discipline test now has a sibling that checks the property directly.
+
+
+---
+
+## D14 · The exploration split was 74% treated
+
+**Symptom.** The first bake-off returned a **negative** AUUC for every learner, and
+`random` scored the *best* Qini of the six candidates. A random scorer beating four
+causal learners on a ranking metric is not a result, it is a broken instrument.
+
+**Root cause.** Exploration drew uniformly from the feasible action set, and that set
+was `{None, SMS, WhatsApp, Email, Voice}` — five options of which four are a contact.
+So `P(treated) = 0.8`, and the measured split came out at **74% treated**.
+
+Two things break at that balance. The untreated arm is too thin to fit an outcome model
+on (142 rows in a single batch), so the T-learner's control model is noise. And the
+Qini denominator `N_treated(k) / N_control(k)` degenerates when `N_control(k)` is near
+zero at the top of the ranking, which is exactly where the curve is most informative.
+
+**Fix.** Draw treatment first at 50/50, *then* a channel uniformly from the feasible
+contacts. The propensity stays exactly known — `P(treated) = 0.5`,
+`P(channel | treated) = 1/|feasible contacts|` — which is the property
+`docs/EVALUATION.md` §7.1.1 depends on. Measured balance afterwards: **46.2% treated**.
+
+**Effect.** AUUC went positive for every learner, `random` fell to a Qini of −0.108
+(correctly ~0 for a non-informative scorer), and `propensity` fell to the *worst* Qini
+of the set at −0.275 — which is the pedagogically important result `docs/EVALUATION.md`
+§8 predicts, and which the broken instrument had been hiding.
+
+**Note.** Uniform-over-actions is the natural reading of "a uniformly random
+intervention" in `docs/SIMULATOR_CARD.md` §7, and it is what we implemented. It is
+also a poor design for estimating a *contrast*. The card has been updated.
+
+---
+
+## D15 · No learner beats a constant predictor on sign recovery
+
+**The most uncomfortable finding in the build, and it is reported rather than fixed.**
+
+`docs/EVALUATION.md` §6.2 was amended before the bake-off to make negative-region sign
+F1 a co-primary selection criterion, on the reasoning that AUUC can look excellent while
+a model gets the sign wrong at the bottom of the ranking. That reasoning was right — the
+amendment disqualified `causal_forest`, which had the second-best AUUC and a sign recall
+of 0.006.
+
+But the F1 numbers looked suspiciously flat, all clustered around 0.17–0.25 at a
+prevalence of 0.15. So a trivial baseline was added: `always_abstain`, which declares
+every customer negative.
+
+| Model | sign F1 | abstention value |
+|---|---|---|
+| `always_abstain` (trivial) | **0.261** | **−₹43,668** |
+| `r_learner` | 0.254 | +₹24,137 |
+| `random` | 0.251 | −₹24,664 |
+| `t_learner` | 0.242 | +₹9,701 |
+| `x_learner` (selected) | 0.236 | +₹9,699 |
+| `causal_forest` | 0.173 | +₹14,010 |
+
+At prevalence *p*, a constant "everyone is negative" predictor scores precision *p*,
+recall 1.0, and therefore **F1 = 2p/(1+p) = 0.261**. It beats every learner we fitted.
+
+**What this means.** On the F1 metric, **the sign-recovery claim is not supported**. Our
+learners do not identify the sleeping-dogs population better than a predictor that
+identifies nothing.
+
+**What it does not mean.** The rupee-denominated abstention value separates them
+decisively, and in the right direction: `always_abstain` is the *worst* model by
+₹43,668 because abstaining on everybody forgoes every positive uplift in the batch,
+while `random` also loses money and the real learners all make it. A model with
+precision 0.17 still makes money if it abstains on the customers where the harm is
+*large* — F1 counts decisions, and money weighs them.
+
+**The methodological finding.** F1 on a rare, thin-signal region is a poor selection
+metric: a constant predictor sets a floor that a genuinely informative model can sit
+below. The rupee metric is the one that discriminates, and it is the one PLAN.md asked
+for in the first place.
+
+**What we did not do.** We did **not** re-run selection with the rupee metric as the
+co-primary. Doing so would have changed the winner from `x_learner` (+₹9,699) to
+`r_learner` (+₹24,137), and swapping the selection criterion after seeing which model
+it favours is precisely the behaviour `docs/EVALUATION.md` §1.1 exists to forbid. The
+pre-registered rule selected `x_learner` and `x_learner` is what goes to the holdout.
+
+The finding is logged as a candidate amendment for any future protocol, where it can be
+committed **before** the numbers exist. That is the only order in which it would mean
+anything.

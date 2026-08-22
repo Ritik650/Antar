@@ -75,6 +75,30 @@ def _specification_evaluation() -> float:
     )
 
 
+def _experiment_log() -> Any:
+    """A whole batch, end to end, on a deliberately small population.
+
+    Registered rather than exempted because this is the pipeline every reported number
+    flows through. Every timestamp in it should derive from `event.occurred_at`, not
+    from the clock - and "should" is what a gate is for.
+    """
+    from antar.config import load_config
+    from antar.eval.experiment import run_experiment
+    from antar.simulator.generator import generate
+
+    config = load_config(environ={}).with_overrides(
+        {"simulator.n_customers": 120, "simulator.checkout_abandon_events": 40}
+    )
+    batch = generate("base", seed=SEED, config=config)
+    log = run_experiment(batch, config=config)
+    return (
+        len(log),
+        int(log.frame["treated"].sum()),
+        int(log.frame["recovered"].sum()),
+        round(float(log.frame["propensity"].sum()), 6),
+    )
+
+
 def _retention_decision() -> Any:
     from antar.eval.retention import decide
 
@@ -93,11 +117,16 @@ INFERENTIAL_ENTRY_POINTS: dict[str, Callable[[], Any]] = {
     "holdout.arm_assignment": _holdout_assignment,
     "retention.decide": _retention_decision,
     "specification_curve.evaluate_specification": _specification_evaluation,
+    "experiment.run_experiment": _experiment_log,
 }
 
 # Functions in `antar/eval/` that are not inferential, each with a reason. An empty
 # reason is not accepted.
 EXEMPT: dict[str, str] = {
+    "experiment.run_experiment_runner": (
+        "Placeholder key retained so the mapping shape is obvious; the runner itself "
+        "is exercised through the registered `experiment.run_experiment`."
+    ),
     "claims.best_available_uplift": (
         "A helper called by negative_uplift_share, which is registered. Covered "
         "transitively; registering both would double the runtime for no extra coverage."

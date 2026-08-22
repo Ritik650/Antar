@@ -96,6 +96,39 @@ def test_no_production_layer_imports_the_evaluation_harness():
     assert not offenders, "\n".join(offenders)
 
 
+def _denylist_string_lines(tree: ast.AST) -> set[int]:
+    """Line numbers of string constants inside a `FORBIDDEN_*` assignment.
+
+    `antar/decide/features.py` deliberately names every latent in a denylist, so that
+    `build_frame` can raise if one ever appears. Naming a field in order to *reject*
+    it is the opposite of leaking it, and flagging that would train the reader to
+    ignore this test - which is how a guard stops working.
+
+    Scoped precisely to denylist assignments rather than exempting the file, because
+    `features.py` is the single module this test most needs to cover.
+    """
+    lines: set[int] = set()
+    for node in ast.walk(tree):
+        # Both forms. `FORBIDDEN_COLUMNS: frozenset[str] = frozenset({...})` is an
+        # AnnAssign, not an Assign, and handling only the latter silently exempted
+        # nothing while appearing to work.
+        if isinstance(node, ast.Assign):
+            names = {t.id for t in node.targets if isinstance(t, ast.Name)}
+            value = node.value
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            names = {node.target.id}
+            value = node.value
+        else:
+            continue
+
+        if value is None or not any(name.startswith("FORBIDDEN") for name in names):
+            continue
+        for child in ast.walk(value):
+            if isinstance(child, ast.Constant) and isinstance(child.value, str):
+                lines.add(child.lineno)
+    return lines
+
+
 def test_no_latent_field_name_appears_in_a_production_module():
     """Catches a latent copied across by hand rather than imported."""
     offenders: list[str] = []
@@ -103,10 +136,11 @@ def test_no_latent_field_name_appears_in_a_production_module():
         for path in (PACKAGE / layer).rglob("*.py"):
             source = path.read_text(encoding="utf-8")
             tree = ast.parse(source, filename=str(path))
+            allowed_lines = _denylist_string_lines(tree)
             for node in ast.walk(tree):
                 # String literals are how a feature column would be named.
                 if isinstance(node, ast.Constant) and isinstance(node.value, str):
-                    if node.value in LATENT_FIELDS:
+                    if node.value in LATENT_FIELDS and node.lineno not in allowed_lines:
                         offenders.append(
                             f"{path.relative_to(REPO)}:{node.lineno}: literal {node.value!r}"
                         )
@@ -152,6 +186,34 @@ def test_latents_are_only_reachable_through_the_store():
             if "as_row" in path.read_text(encoding="utf-8"):
                 callers.append(str(path.relative_to(REPO)))
     assert not callers, f"as_row() called from a production layer: {callers}"
+
+
+def test_the_denylist_exemption_is_narrow():
+    """The exemption above must not become a way to launder a real leak.
+
+    A latent name in an ordinary assignment - not a FORBIDDEN_* denylist - is still an
+    offence, and this proves the scan still sees it.
+    """
+    leaky = ast.parse("SOMETHING = {'p_self_heal_base'}")
+    assert _denylist_string_lines(leaky) == set()
+
+    denylist = ast.parse("FORBIDDEN_COLUMNS = {'p_self_heal_base'}")
+    assert _denylist_string_lines(denylist) == {1}
+
+    # The annotated form is what features.py actually uses, and handling only the
+    # plain form exempted nothing while appearing to work.
+    annotated = ast.parse("FORBIDDEN_COLUMNS: frozenset[str] = frozenset({'salary_day'})")
+    assert _denylist_string_lines(annotated) == {1}
+
+
+def test_the_feature_denylist_actually_names_the_latents():
+    """The exemption is only defensible if the denylist is doing its job."""
+    from antar.decide.features import FORBIDDEN_COLUMNS
+
+    assert FORBIDDEN_COLUMNS | {"channel_response"} >= LATENT_FIELDS, (
+        "a latent is missing from antar/decide/features.py FORBIDDEN_COLUMNS: "
+        f"{sorted(LATENT_FIELDS - FORBIDDEN_COLUMNS)}"
+    )
 
 
 def test_the_observable_allowlist_stays_small():

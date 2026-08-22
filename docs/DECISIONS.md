@@ -236,3 +236,52 @@ no module *outside* the executors package touches them at all.
 **Consequence.** An executor nobody told the test about is still covered. The decorator
 also enforces the invariant at run time, so a static-analysis gap does not become a live
 money path.
+
+---
+
+## ADR-0014 · 2026-08-23 · One `learners.py` rather than four modules · Accepted
+
+**Context.** PLAN.md section 6 sketches `uplift/t_learner.py`, `x_learner.py`,
+`r_learner.py`, `causal_forest.py`.
+
+**Decision.** Gather them in `uplift/learners.py`. Each is 30–50 lines and the
+interesting content is the *contrast* between them — which arm's data each leans on,
+which needs a propensity — and that reads better on one page than across four files.
+
+**Consequence.** A deviation from the specified layout, recorded rather than silent.
+`base.py` still holds the protocol, so the extension point is unchanged.
+
+---
+
+## ADR-0015 · 2026-08-23 · Exploration draws treatment first, then a channel · Accepted
+
+**Context.** `docs/SIMULATOR_CARD.md` §7 says exploration assigns "a uniformly random
+intervention from the feasible set". Read literally — uniform over
+`{None, SMS, WhatsApp, Email, Voice}` — that puts `P(treated)` at 0.8.
+
+**Decision.** Draw treatment at 50/50 first, then a channel uniformly from the feasible
+contacts. `P(treated) = 0.5`; `P(channel | treated) = 1/|feasible contacts|`.
+
+**Consequence.** The propensity remains exactly known, which is the property
+`docs/EVALUATION.md` §7.1.1 depends on, while the arms are balanced enough to estimate
+a contrast. The literal reading produced a 74%-treated exploration split, a degenerate
+Qini denominator, and a negative AUUC for every learner — POSTMORTEM D14. The simulator
+card has been updated.
+
+---
+
+## ADR-0016 · 2026-08-23 · The pre-registered winner stands, despite a better metric · Accepted
+
+**Context.** The bake-off revealed that negative-region sign F1 — half of the amended
+selection score — is beaten by a trivial "always abstain" predictor (F1 0.261 against
+the best learner's 0.254). The rupee-denominated abstention value discriminates
+properly where F1 does not. Selecting on the rupee metric would change the winner from
+`x_learner` to `r_learner`.
+
+**Decision.** Keep `x_learner`. The selection rule was fixed before the numbers existed
+and it is not re-opened because we now know which model it favours.
+
+**Consequence.** We ship a model that a better criterion would not have chosen, and say
+so. POSTMORTEM D15 records the methodological finding and flags it as a candidate
+amendment for a future protocol, where it can be committed before the numbers exist —
+which is the only order in which it would mean anything.

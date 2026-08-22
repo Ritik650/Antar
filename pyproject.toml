@@ -71,6 +71,16 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["ARG", "N802", "N806"]
 "scripts/**" = ["ARG"]
+# `X` for a design matrix and `y` for a target are the universal convention in the
+# scikit-learn/econml world these modules live in. Renaming them to `x_train` would
+# make the code *less* readable to anyone who works with estimators, so the naming
+# rule is scoped out here rather than fought line by line.
+"antar/decide/uplift/*" = ["N803", "N806"]
+# Estimators share one `fit(X, treatment, outcome, *, propensity)` signature so they
+# are interchangeable behind the protocol. Some learners genuinely do not use every
+# argument - a propensity-targeting baseline ignores treatment by definition - and
+# that is the point rather than an oversight.
+"antar/decide/uplift/learners.py" = ["N803", "N806", "ARG002"]
 
 # ---------------------------------------------------------------- mypy
 
