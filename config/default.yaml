@@ -128,8 +128,11 @@ policy:
     CREDIT_CARD_BILL: 10000000
   # RBI-EM-01
   pre_debit_notification_lead_hours: 24
-  # TRAI-01
-  contact_window: { start_hour: 9, end_hour: 21 }
+  # TRAI-01. Opens at 10:00, not 09:00: TCCCPR Schedule II makes the 08:00-10:00
+  # band default-OFF for every customer regardless of registration status. Verified
+  # against the gazette text on 2026-08-22; PLAN.md section 3.2 had it wrong, and the
+  # correction costs Antar an hour of daily contact capacity.
+  contact_window: { start_hour: 10, end_hour: 21 }
   # TRAI-04: explicit consent validity window.
   explicit_consent_validity_days: 7
 

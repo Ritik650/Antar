@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass, field
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -49,6 +49,19 @@ MIN_QUALIFYING_SCENARIOS = 2
 SCAN_AMOUNT_PAISE = 49_900
 SCAN_CUSTOMERS = 1500
 
+SCAN_REFERENCE = datetime(2026, 4, 28, 11, 4, tzinfo=clock.IST)
+"""The instant the population scan is evaluated at. **Fixed, never `clock.now()`.**
+
+This scan is a property of the simulator's parameters, not of today's date. An earlier
+version read the authoritative clock, and the consequence was that the reported
+negative-uplift share in the base scenario moved from 5.13% to 4.67% overnight - across
+a midnight, with no code change - because `next_balance_peak` landed on a different day
+of the month and a handful of customers crossed zero. A pre-registered threshold that a
+calendar day can flip is not a measurement.
+
+The date is inside the simulated horizon and is the same instant `tests/conftest.py`
+freezes to, so a scan run under test and a scan run by `make evaluate` agree."""
+
 
 @dataclass(frozen=True)
 class ClaimVerdict:
@@ -73,7 +86,7 @@ def best_available_uplift(
     channel" and "you asked at the wrong time" as explanations, so a customer who is
     still negative here is negative under any action Antar could have chosen.
     """
-    base = clock.now()
+    base = SCAN_REFERENCE
     next_cycle = base + timedelta(days=30)
     # RBI-EM-01 puts a 24-hour floor under any scheduled action, so the earliest
     # admissible peak is the first one at least a day out.

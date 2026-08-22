@@ -32,8 +32,9 @@ before they find the git log.
 
 On first measurement the shares were conservative 5.9%, base 0.5%, aggressive 0.0% -
 one qualifying scenario, so the finding was **not** supported. Investigating why
-surfaced four genuine defects, all fixed (docs/POSTMORTEM.md D1-D3 and D6). The final
-measured shares are **conservative 36.0%, base 5.1%, aggressive 0.1%**.
+surfaced five genuine defects, all fixed (docs/POSTMORTEM.md D1-D3, D6 and D13). The
+final measured shares, over five seeds with the scan pinned to a fixed instant, are
+**conservative 36.5%, base 5.8%, aggressive 0.1%**.
 
 Each fix is independently justified as a contradiction between the code and its own
 documented specification, and each is verifiable without reference to this test. But
@@ -54,16 +55,24 @@ be the exact behaviour this file exists to catch. Judge the fixes on their merit
     scan claimed to evaluate treatment at its most favourable timing while evaluating
     part of the population at its least favourable, inflating the negative share.
 
+  * **D13** evaluated the scan at `clock.now()`, so the base share moved from 5.13% to
+    4.67% across a single midnight - crossing the pre-registered threshold - with no
+    code change whatsoever. The scan is now pinned to a fixed instant inside the
+    simulated horizon.
+
 D1 and D3 move the result toward the finding; D2 moves `aggressive` away from it; D6
-moves every scenario away from it (conservative 38.6% -> 36.0%, base 5.3% -> 5.1%).
+moves every scenario away from it; D13 removed a dependence on the calendar that could
+have moved it either way on any given day.
 
 Two caveats that belong next to the result, not in a footnote:
 
-  * **base clears the threshold by 0.1 percentage points** - 5.13% against a 5.0%
-    bar, and 5.0-5.3% across three seeds. It clears on every seed, but a margin that
+  * **base clears the threshold by 0.8 percentage points** - 5.83% against a 5.0%
+    bar, ranging 5.3-6.2% across five seeds. It clears on every seed, but a margin that
     thin is not a robust finding; a different defensible choice of
-    `BASE_OPTOUT_HAZARD` would flip it. The README reports base as **marginal**.
-  * **aggressive shows essentially none** (0.07%). In the easy regime sleeping dogs do
+    `BASE_OPTOUT_HAZARD` would flip it. The README reports base as **marginal**, and
+    docs/EVALUATION.md 9.4 replaces the threshold crossing with a phase diagram, which
+    is what a boundary this soft actually deserves.
+  * **aggressive shows essentially none** (0.12%). In the easy regime sleeping dogs do
     not exist. That is a genuine boundary on the claim and is reported as one, not
     buried.
 
@@ -147,6 +156,37 @@ def test_conservative_is_the_hardest_scenario(shares):
     assert shares["conservative"] > shares["base"] > shares["aggressive"], (
         f"scenario ordering does not follow from the axes: {shares}"
     )
+
+
+def test_the_scan_does_not_depend_on_the_wall_clock():
+    """docs/POSTMORTEM.md D13. The regression guard for a genuinely alarming bug.
+
+    The scan once read `clock.now()`, so the reported negative-uplift share in the
+    base scenario moved from 5.13% to 4.67% across a single midnight - crossing the
+    pre-registered 5% threshold - with no code change at all. A gate a calendar day
+    can flip is not a gate.
+
+    Runs the scan under three wildly different installed clocks and requires an
+    identical answer.
+    """
+    from datetime import datetime
+
+    from antar.eval.claims import SCAN_REFERENCE
+
+    results = []
+    for when in (
+        datetime(2026, 1, 1, 3, 0, tzinfo=clock.IST),
+        datetime(2026, 8, 23, 23, 59, tzinfo=clock.IST),
+        datetime(2027, 6, 15, 12, 0, tzinfo=clock.IST),
+    ):
+        with clock.use_clock(clock.FrozenClock(when)):
+            results.append(negative_uplift_share("base", seed=SEED, n_customers=400))
+
+    assert len(set(results)) == 1, (
+        f"the population scan moved with the wall clock: {results}. It is a property "
+        "of the simulator's parameters, not of today's date."
+    )
+    assert SCAN_REFERENCE.tzinfo is not None
 
 
 def test_the_verdict_is_stable_across_seeds():

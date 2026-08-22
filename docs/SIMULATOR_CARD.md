@@ -284,20 +284,28 @@ claim the verdict does not support.
 
 | Scenario | Share of customers whose **best available action** still has negative uplift |
 |---|---|
-| `conservative` | **36.0%** |
-| `base` | **5.1%** — clears the 5% bar by 0.13 points. Marginal, and reported as marginal |
-| `aggressive` | **0.07%** — effectively none |
+| `conservative` | **36.5%** |
+| `base` | **5.8%** — clears the 5% bar by 0.8 points, ranging 5.3–6.2% over five seeds. Marginal, and reported as marginal |
+| `aggressive` | **0.12%** — effectively none |
+
+Measured over five seeds with the scan pinned to a fixed instant (`claims.SCAN_REFERENCE`).
+It was not always pinned — see POSTMORTEM D13, where the base figure moved across a
+midnight and crossed the threshold on its own.
 
 Two things a reader should take from this rather than from the headline:
 
 1. **The finding is regime-dependent.** It dominates under conservative assumptions,
    is marginal under reference assumptions, and is absent under optimistic ones. The
    defensible claim is exactly that sentence, and nothing stronger.
-2. **The gate did not pass on the first run.** It failed, four genuine defects were found
+2. **The gate did not pass on the first run.** It failed, five genuine defects were found
    and fixed, and it then passed. The full before-and-after, including which fixes moved
    the result toward the finding and which moved it away, is disclosed at the top of
-   `tests/statistical/test_anti_circularity.py` and in `docs/POSTMORTEM.md` D1–D3 and D6.
-   That ordering is uncomfortable and is published rather than buried.
+   `tests/statistical/test_anti_circularity.py` and in `docs/POSTMORTEM.md` D1–D3, D6 and
+   D13. That ordering is uncomfortable and is published rather than buried.
+3. **A threshold this soft should not be the headline.** `docs/EVALUATION.md` §9.4
+   pre-registers a phase diagram over `mean_self_heal` × `mean_optout_sensitivity`,
+   reporting the boundary where uplift allocation stops beating propensity targeting.
+   A boundary is a statement about mechanism; a 0.8-point threshold crossing is not.
 
 ### 6.4 The honest caveat
 

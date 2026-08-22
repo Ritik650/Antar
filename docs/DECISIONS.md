@@ -161,3 +161,78 @@ and how much of it that detector actually catches is now a measurement rather th
 assumption — currently 26 of 212 windows, which `docs/LIMITATIONS.md` L9 reports
 honestly. It is also simply more realistic: a downtime feed lags reality and misses
 smaller regional incidents.
+
+---
+
+## ADR-0010 · 2026-08-22 · Regulations verified against primary sources at encoding time · Accepted
+
+**Context.** PLAN.md section 3 deferred verification to "before the final commit". Deferring
+it means the constraint compiler, the allocator, and every downstream number are built on
+thresholds nobody has checked — and a threshold that moves changes the constraint rows.
+
+**Decision.** Verify before encoding. Every rule in `regulations.py` carries a
+`Verification` status, and `Regulation.__post_init__` **raises** if a `BLOCKING` rule rests
+on anything weaker than a primary document or a full-text gazette reproduction. The
+constraint is structural, not a test that could be deleted.
+
+**Consequence.** Verification found six errors in our own specification, one of them
+material: the TCCCPR contact window opens at **10:00**, not 09:00, because the 08:00–10:00
+band is default-OFF for every customer. Antar has an hour a day less contact capacity than
+planned, which *raises* the shadow price on a contact slot. Three rules dropped to
+`ADVISORY` for want of a primary source. `TRAI-06` as written in the plan would have
+encoded wrong law — an unconditional DND block on transactional messaging.
+
+The corrections are annotated inline in PLAN.md rather than silently edited out, because
+the plan having been wrong is the argument for verifying early.
+
+---
+
+## ADR-0011 · 2026-08-22 · Infeasible candidates are removed, not constrained · Accepted
+
+**Context.** A regulation could be expressed either as an LP constraint row or as a filter
+that removes the candidate before the solver runs.
+
+**Decision.** Per-candidate regulatory predicates remove the candidate. Only genuinely
+shared resources — the contact budget, the margin budget — become LP rows.
+
+**Consequence.** A solver can trade a constraint row against the objective if the
+objective coefficient is large enough. It cannot trade against a candidate that is not in
+the problem. Anything a solver could be tempted to violate for sufficient gain is placed
+out of its reach entirely, and the rows that remain are the ones whose duals are
+meaningful as shadow prices.
+
+---
+
+## ADR-0012 · 2026-08-22 · A second, naive constraint validator, written in M4 not M6 · Accepted
+
+**Context.** PLAN.md M6 asks for an independent validator that the LP solution must also
+satisfy. The bugs it catches are *compiler* bugs.
+
+**Decision.** Write it in M4, alongside the compiler, sharing no code with it:
+`antar/policy/validator.py` re-derives every threshold from the regulation objects and
+checks solutions the slow, obvious way. A hypothesis property test asserts the two agree
+on 1,000 generated candidate sets.
+
+**Consequence.** Off-by-one errors on a threshold — `>` where the regulation says "at
+least" — are found by disagreement between two implementations rather than by a test
+written by the same person who wrote the bug. The validator is deliberately O(n²) and
+does not care.
+
+---
+
+## ADR-0013 · 2026-08-22 · Gate coverage is discovered, not enumerated · Accepted
+
+**Context.** N2 requires that every money action passes through `PolicyGate`. The obvious
+test lists the executors and checks each. That test passes forever and silently stops
+covering the executor added in M7 — the same failure shape as POSTMORTEM D10, where a
+check kept passing while the thing it guarded drifted out from under it.
+
+**Decision.** `tests/unit/test_gate_coverage.py` discovers its own scope. It derives the
+set of money-moving client methods by introspecting `RazorpayClient` for calls that
+require an idempotency key, walks `antar/act/executors/` at run time, and asserts every
+function reaching one of those methods carries `@requires_gate`. A separate check asserts
+no module *outside* the executors package touches them at all.
+
+**Consequence.** An executor nobody told the test about is still covered. The decorator
+also enforces the invariant at run time, so a static-analysis gap does not become a live
+money path.

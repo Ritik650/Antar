@@ -21,6 +21,7 @@ uncomfortable enough to be worth reading in full.
 | D10 | Detection pipeline | Detection report | **High** — L2 read the answer key |
 | D11 | Cost matrix | The ablation contradicted itself | Medium — priced labels, not actions |
 | D12 | Changepoint detector | A failing unit test | **High** — segments stuck DEGRADED forever |
+| D13 | Claim scan | The gate failed overnight with no code change | **High** — a pre-registered threshold moved with the calendar |
 
 ---
 
@@ -352,3 +353,52 @@ its own docstring.** Not subtle logic errors — parameters that did not mean wh
 said they meant. In a system whose entire claim is measurement discipline, that is the
 failure mode to watch for, and prose that has drifted from the code it describes is
 where it hides.
+
+---
+
+## D13 · The pre-registered gate moved across a midnight
+
+**Symptom.** `test_negative_uplift_population_emerges_in_at_least_two_scenarios` failed
+on a morning when the only changes since the previous green run were in the policy layer
+— nothing that touches the simulator, the response model, or the scan.
+
+The base scenario's negative-uplift share had gone from **5.13% to 4.67%**, crossing the
+pre-registered 5% threshold and withdrawing the headline finding.
+
+**Root cause.** `antar/eval/claims.py::best_available_uplift` evaluated the population at
+`clock.now()`:
+
+```python
+base = clock.now()
+peak = latents.next_balance_peak(base + timedelta(hours=24))
+```
+
+The scan places each customer's action at their next balance peak. Move the reference
+instant by one day and the peak lands on a different day of the month for part of the
+population, their `balance_fraction` changes, the persuasion term changes, and a handful
+of customers cross zero. Nothing about the simulator changed. The calendar did.
+
+**Why it is worse than it looks.** The number in question is the one a pre-registered
+threshold is applied to. A gate that a date can flip is not a gate — and had this run at
+a different hour it might have flipped the other way and *confirmed* the finding, which
+is the same defect wearing a friendlier face.
+
+It also violates the project's own clock discipline. `tests/unit/test_clock.py` forbids
+`datetime.now()` outside `antar/clock.py`, and this code obeyed the letter of that rule
+by calling `clock.now()` instead. The rule was written to stop *scheduling* logic drifting
+with a skewed worker clock; it did not occur to me that a *measurement* would read the
+clock at all.
+
+**Fix.** `SCAN_REFERENCE`, a fixed instant inside the simulated horizon, and the same one
+`tests/conftest.py` freezes to. `test_the_scan_does_not_depend_on_the_wall_clock` runs the
+scan under three installed clocks a year and a half apart and requires an identical
+answer.
+
+**Effect on the reported numbers.** Pinned and averaged over five seeds: conservative
+36.5%, base 5.83% (range 5.3–6.2%), aggressive 0.12%. The base margin is 0.8 points rather
+than 0.13 — better, but still thin enough that the phase diagram in `docs/EVALUATION.md`
+§9.4, not the threshold crossing, is the right way to report it.
+
+**The general lesson.** A discipline rule that names a mechanism (`datetime.now()`) rather
+than a property (determinism) leaves a gap exactly where someone obeys it literally. The
+clock-discipline test now has a sibling that checks the property directly.

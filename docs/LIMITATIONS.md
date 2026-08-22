@@ -170,6 +170,43 @@ component would perform in production, in either direction.
 
 ---
 
+## L11 · Antar honours no per-customer communication preferences
+
+`TRAI-08`. Beyond the default-OFF time bands, TCCCPR Schedule II lets a customer
+register preferences on specific two-hour bands, on days of the week, and on public and
+national holidays. Those narrow the permitted window below the 10:00–21:00 default.
+
+**Antar consumes no preference feed**, so none of them is honoured. The rule is encoded
+as `ADVISORY` rather than `BLOCKING` for exactly that reason: marking it blocking would
+claim a compliance check the system does not perform.
+
+A production deployment must consume the preference feed before any of this can be
+called compliant. What Antar demonstrates is the *mechanism* — that a registered
+preference would compile into a per-candidate constraint and remove infeasible actions
+before the solver sees them — not a working compliance posture.
+
+Related: `TRAI-05` (number series) can never be exercised because Antar places no real
+calls, and no template here is registered with an access provider.
+
+---
+
+## L12 · Three regulatory rules rest on secondary sources
+
+Of 18 encoded rules, **3 are `ADVISORY` solely because we could not reach a primary
+document**: `TRAI-02` (message classification), `TRAI-05` (number series), `TRAI-06`
+(DND scope). They are reported and priced but cannot block an action, enforced by
+`Regulation.__post_init__` rather than by convention.
+
+This is the honest state, not a target. Reaching the TRAI gazette PDF for the
+definitional clauses would move at least `TRAI-02` and `TRAI-06` to `BLOCKING` and
+would change the constraint set.
+
+Verification did find six errors in PLAN.md's own statement of the rules — see
+`docs/REGULATORY_REGISTER.md` § Corrections. The most material: the contact window
+opens at **10:00**, not 09:00.
+
+---
+
 ## L10 · The LLM path is off by default
 
 `act.llm.enabled` defaults to `false`, so the drafter uses the deterministic template
