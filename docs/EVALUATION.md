@@ -173,19 +173,86 @@ All reported with CIs. All produced by `make evaluate`.
 T-learner, X-learner, R-learner, CausalForestDML, plus two baselines: random targeting and
 propensity targeting.
 
-### 6.2 Selection rule
+### 6.2 Selection rule — **amended 23 Aug 2026, before the bake-off ran**
+
+**The amendment, and why it had to happen before the run.** The original rule selected on
+validation AUUC alone. AUUC and Qini are *ranking* metrics: they reward a model that orders
+customers well. But the claim this entire system rests on is not about ordering — it is that
+a population exists whose uplift is **negative**, and that abstaining on them makes money.
+
+A model can have excellent AUUC and get the *sign* wrong at the bottom of the ranking, which
+is precisely where the sleeping dogs live. Selecting on AUUC alone could therefore pick the
+learner that is worst at the one thing the product does. It is entirely possible that
+`CausalForestDML` wins on AUUC and loses on sign recovery.
+
+Amended now, before any model is fitted, because after seeing the bake-off this change is not
+available. Logged in §13.
 
 1. Split the exploration data into train / validation by **customer**, 70/30, stratified as §3.3.
 2. Fit all four learners with a fixed, pre-specified hyperparameter grid (committed in
    `config/default.yaml` before the run).
-3. Select on **validation AUUC**.
-4. **Tie-break, in order:** (a) higher Qini at the top 20% of the ranking, (b) narrower bootstrap
-   CI on validation AUUC, (c) simpler model, using the order T-learner < X-learner < R-learner <
-   CausalForestDML.
-5. The selected learner is then, and only then, evaluated against the control holdout.
+3. **Disqualification floor.** Any learner whose recall on `sign(uplift) < 0` in the validation
+   set is below **0.10** is removed from the candidate set regardless of its AUUC. A model that
+   cannot find the negative-uplift population at all cannot support the claim Antar is built
+   on, and no amount of ranking quality substitutes for that.
+4. **Co-primary selection score**, computed across the surviving candidates:
 
-Step 5 happens once. If the holdout result disappoints, the correct response is to report it,
+   ```
+   score = 0.5 · z(validation AUUC) + 0.5 · z(negative-region sign F1)
+   ```
+
+   where `z(·)` standardises each metric across the candidate set. Highest score wins. The
+   two halves are weighted equally because the system needs both: ranking quality allocates a
+   scarce contact budget, and sign recovery decides who to leave alone.
+5. **Tie-break, in order:** (a) higher Qini at the top 20% of the ranking, (b) narrower
+   bootstrap CI on validation AUUC, (c) simpler model, using the order T-learner < X-learner <
+   R-learner < CausalForestDML.
+6. The selected learner is then, and only then, evaluated against the control holdout for the
+   **single pre-registered inferential claim**.
+
+Step 6 happens once. If the holdout result disappoints, the correct response is to report it,
 not to reselect.
+
+### 6.2.1 What is reported per learner
+
+Selection uses steps 3–5. Reporting is wider, because the interesting failure is a model that
+wins on one axis and loses on the other:
+
+| Metric | Role |
+|---|---|
+| Qini coefficient, AUUC | Ranking quality. Selection input |
+| **Precision / recall / F1 on `sign(uplift) < 0`** | Sign recovery. Selection input |
+| **Calibration in the negative region** — predicted vs realised uplift, restricted to the decile the model ranks lowest | Reported. This is where the mass is thin and every learner is least reliable |
+| **Net rupee value of abstention** — rupees saved by correctly abstaining, minus rupees lost by abstaining on a customer whose true uplift was positive | Reported. Converts sign recovery into money |
+| Population identified vs population that exists | Reported. `5.83%` of customers have negative uplift in the base scenario; the fraction the model *finds* is the number that matters commercially |
+
+**The distinction being drawn.** "5.83% of customers have negative uplift" is a claim about
+our simulator. "5.83% have negative uplift, the estimator recovers them at precision p and
+recall r, and abstaining on them is worth ₹X net" is a claim about a system. Only the second
+is a product, and only the second goes in the README.
+
+### 6.2.2 The winner's curse — stated before the winner is known
+
+Four learners × a hyperparameter grid, all selected on validation performance, means **the
+selected model's validation score is optimistically biased**. It won partly on merit and
+partly on noise, and with a base effect as thin as ours the noise component is not small.
+
+Two commitments:
+
+1. The results section states plainly that **validation AUUC of the selected model is not an
+   unbiased estimate of its performance**, and that only the control holdout is inferential.
+2. **All four learners are evaluated on the holdout**, not only the winner. The selected
+   model's holdout result is the single pre-registered inferential claim. The other three are
+   reported alongside it, **labelled descriptive-not-inferential**, with
+   Benjamini–Hochberg-adjusted intervals.
+
+This resolves a tension in the original rule: evaluating only the winner gives a clean
+inferential number but no evidence the selection was robust. Reporting all four as descriptive
+adds the evidence without contaminating the pre-registered claim.
+
+**If the four holdout numbers are indistinguishable, we say so.** That would mean the choice
+of learner does not matter much and the constraint layer is doing the work — a finding about
+where the value in this system actually sits, and a more useful one than a bake-off winner.
 
 ### 6.3 Timebox
 
@@ -201,6 +268,37 @@ operational reason is fine. Dropping it because it won is not.
 
 IPS, self-normalised IPS, and doubly-robust. DR is the headline; the other two are reported for
 comparison so the reader can see how much the estimate depends on the estimator.
+
+### 7.1.1 Propensities are **known**, not estimated
+
+On the exploration split the action is drawn uniformly from the feasible set, so
+
+```
+propensity = 1 / |feasible_set at assignment time|
+```
+
+exactly. It is a design parameter, not a quantity to be recovered. **Antar therefore fits no
+propensity model on the exploration split and uses the logged value directly.**
+
+This matters more than it looks. Off-policy evaluation usually goes wrong through propensity
+misspecification, and every diagnostic in §7.2 exists to detect that failure. Removing it
+entirely makes the §7.3 consistency check sharp: if DR and the on-policy holdout disagree, the
+problem is in the **outcome model**, because the propensity side is exact by construction.
+
+Two constraints that follow, and are enforced in code:
+
+- **The propensity is logged at assignment time and never recomputed.** `|feasible_set|` varies
+  per event because the constraint set varies per event, and it also varies over time as
+  regulations change. Recomputing a weight later against a different constraint state would
+  silently corrupt every importance weight in the batch — and would do so invisibly, because
+  the recomputed number would look perfectly reasonable.
+  `tests/statistical/test_propensity_logging.py` asserts every event carries a propensity in
+  (0, 1], that it matches `1/|feasible|` as recorded, and that no code path recomputes one.
+- A propensity model **is** fitted for the non-exploration treatment events, where the action
+  was chosen by policy rather than at random. Those weights are estimated and carry the usual
+  risks; the two populations are reported separately and never pooled without saying so.
+
+Recorded in `docs/MODEL_CARD.md`.
 
 ### 7.2 Diagnostics — mandatory
 
@@ -267,6 +365,57 @@ interesting than a uniformly positive result.
 Five seeds per scenario. Report the across-seed standard deviation of the primary metric. If
 seed variance is comparable to the treatment effect, the effect is not established and must be
 described that way.
+
+### 9.5 The specification curve — pre-registered 23 Aug 2026
+
+**Reporting our own measurement instability as data, rather than as a series of apologies.**
+
+The base-scenario negative-uplift share has been reported, during this build, as 5.13%, then
+4.67%, then 5.83%. **None of that movement came from changing the simulator.** It came from a
+reference instant (POSTMORTEM D13), a peak-finding bug (D6), and a seed protocol. Roughly 1.2
+percentage points of movement against a 5.0-point threshold, from analytic choices alone.
+
+Each move has been disclosed individually. That is not enough. A reader is entitled to ask
+"what if you had chosen differently?" about every decision we made, and the honest answer is
+to enumerate the choices and run all of them.
+
+#### The specification space
+
+Every dimension is a defensible choice we made or could have made. The cross product is run in
+full.
+
+| Dimension | Values | Why it is a real choice |
+|---|---|---|
+| Reference instant | 6 instants across the simulated horizon | D13 showed this moves the answer |
+| Seed | 5 seeds | Sampling noise |
+| Measurement window | 15 / 30 / 60 days | §4.1 fixed 30; the others are defensible |
+| Control share | 10% / 20% / 30% | §3.2 fixed 20% |
+| Exploration ε | 0.10 / 0.20 / 0.30 | §7 fixed 0.20 |
+| Negative-uplift definition | `uplift < 0` / `uplift < -0.005` / CI upper bound < 0 | "Negative" admits more than one operationalisation |
+| Action evaluated | best available / reference channel (SMS) / policy-chosen | The scan takes the best case; that is a choice |
+| Resampling | clustered on customer / unclustered | §4 fixed clustered |
+
+#### What is reported
+
+1. The **full specification curve**: every specification's estimate, sorted, with the
+   pre-registered specification marked.
+2. The **median** across specifications, and the interquartile range.
+3. The **fraction of specifications clearing the 5% bar**. This is the number that says whether
+   the base result is a finding or a coin flip.
+4. **Which dimensions move the result most** — a decomposition of variance across specification
+   dimensions, so a reader can see whether the wobble is seeds (noise, unavoidable) or the
+   negative-uplift definition (a judgement call we should own).
+
+#### Fixed now, before it runs
+
+- The pre-registered specification stays the headline. The curve is context, not a replacement.
+- **If fewer than half of specifications clear the bar, the base-scenario claim is reported as
+  unsupported**, regardless of what the pre-registered specification says. A result that
+  survives only its own analytic choices is not a result.
+- The curve is reported whatever shape it takes. A wide curve is a finding about our own
+  uncertainty and is more useful to a reader than a narrow one we selected into.
+
+Implemented in `antar/eval/specification_curve.py`, produced by `make evaluate`.
 
 ### 9.4 The phase diagram — pre-registered 22 Aug 2026
 
@@ -431,6 +580,10 @@ entry.
 
 | Date | Section | Deviation | Reason |
 |---|---|---|---|
+| 2026-08-23 | §6.2 | Selection is no longer on validation AUUC alone. A disqualification floor (negative-region recall ≥ 0.10) plus a co-primary score `0.5·z(AUUC) + 0.5·z(negative-region sign F1)`. | AUUC is a ranking metric. A model can rank well and get the *sign* wrong at the bottom of the ranking, which is exactly where the sleeping-dogs population lives — the one thing the product does. Selecting on AUUC alone could pick the learner that is worst at the claim the system rests on. **Amended before the bake-off was run**; after seeing results this change would not have been available. |
+| 2026-08-23 | §6.2.2 | All four learners are evaluated on the control holdout, not only the selected one. The winner's result remains the single pre-registered inferential claim; the other three are reported as descriptive-not-inferential with BH-adjusted intervals. | Evaluating only the winner gives a clean inferential number but no evidence that the selection was robust, and the winner's validation score is optimistically biased by the selection itself. More information, no contamination of the pre-registered claim. |
+| 2026-08-23 | §7.1.1 | No propensity model is fitted on the exploration split; the logged `1/\|feasible_set\|` is used directly. | The propensity is a design parameter there, not an unknown. Using the known value removes propensity misspecification from the DR estimate entirely and makes the §7.3 consistency check diagnostic: a DR/holdout disagreement then localises to the outcome model. |
+| 2026-08-23 | §9.5 | Added a full specification curve over 8 analytic dimensions, with a pre-committed rule that the base claim is reported unsupported if fewer than half of specifications clear the bar. | Our own reported figure moved 5.13% → 4.67% → 5.83% from analytic choices alone. Disclosing each move individually is insufficient; the movement should be quantified and reported as data. |
 | 2026-08-22 | §11, SIMULATOR_CARD §6.3 | The pre-registered sleeping-dogs test is a **binary** gate: negative-uplift mass ≥ 5% in ≥ 2 of 3 scenarios. It was met (conservative 36.0%, base 5.1%, aggressive 0.07%). We are **additionally** reporting the continuous result — the negative-uplift share as a function of `p_self_heal_base` and `optout_sensitivity` across a parameter grid — and leading with the conditional claim rather than the threshold crossing. | The binary framing was the wrong instrument. It compresses a continuous, mechanism-driven finding into a pass/fail and leaves the headline resting on a 0.13-percentage-point margin in the base scenario, which invites "so, noise" and deserves it. The bar is **not** retired: it was pre-registered, it was met, and it is still reported. The addition is strictly more information, and it moves the claim from "uplift targeting wins" to "uplift targeting wins in this region of parameter space, and here is the boundary" — which is a statement about mechanism rather than magnitude, and is the honest thing a simulator can support. See §9.4. |
 
 ---

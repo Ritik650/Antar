@@ -292,6 +292,45 @@ Measured over five seeds with the scan pinned to a fixed instant (`claims.SCAN_R
 It was not always pinned — see POSTMORTEM D13, where the base figure moved across a
 midnight and crossed the threshold on its own.
 
+### 6.3.2 The specification curve — is the base result a finding or a coin flip?
+
+Our own reported figure moved 5.13% → 4.67% → 5.83% during this build, from analytic
+choices alone. Rather than apologise for each move, `docs/EVALUATION.md` §9.5
+pre-registered a sweep over **every** defensible analytic choice. All 540 of them were run.
+
+| | |
+|---|---|
+| Specifications | **540** (6 reference instants × 5 seeds × 3 measurement windows × 3 definitions of "negative" × 2 action sets) |
+| Median share | **9.50%** (IQR 6.00%–16.83%, range 1.67%–30.33%) |
+| **Clearing the 5% bar** | **83%** of specifications |
+| Pre-registered specification | 5.67%, at the **21.7th percentile** of its own distribution |
+
+**The base-scenario result is a finding, not a coin flip.** 83% of the analytic choices we
+could defensibly have made clear the bar, and the majority rule in §9.5 is satisfied.
+
+**We did not pick a flattering specification.** The pre-registered choice sits in the
+bottom quartile of the distribution it generated — it is one of the *least* favourable
+specifications to our own claim. That is not a virtue we planned; it falls out of having
+chosen `best_available` (maximise over channels, most generous to treatment) and the
+`strict` definition before seeing any of this.
+
+Which choices actually moved the answer, most to least:
+
+| Dimension | Spread (sd of level means) | What it says |
+|---|---|---|
+| **Action set** | 0.054 | `best_available` 6.3% vs `reference_sms` **17.2%**. Much the largest effect. A merchant with one SMS integration — i.e. most merchants — sees roughly three times the harmed population we report |
+| Definition of "negative" | 0.028 | strict 14.7% → margin 12.6% → conservative_ci 8.1%. Monotone, as it must be |
+| Reference instant | 0.011 | 10.5%–13.6%. The D13 axis. Real but modest once pinned |
+| Seed | 0.005 | 10.9%–12.3%. Sampling noise is **not** what moved our headline |
+| Measurement window | 0.003 | 11.5%–12.2%. Essentially irrelevant |
+
+The last two rows matter for the postmortem: the 1.2-point wobble during the build was
+**not** seed noise. It was a bug (D6) and an unpinned instant (D13), both now fixed and
+both now guarded.
+
+Regenerate with `python tasks.py evaluate`; the artifact is
+`artifacts/specification_curve_base.json`.
+
 Two things a reader should take from this rather than from the headline:
 
 1. **The finding is regime-dependent.** It dominates under conservative assumptions,
