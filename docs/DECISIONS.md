@@ -121,3 +121,43 @@ and prints every structural divergence. `tests/conftest.py` prefers `recorded/` 
 tested, and the repo says so rather than implying otherwise. The M1 acceptance
 criterion "document every test-mode divergence" is recorded as **not measured**, not
 as zero. This is the single largest known gap in the build.
+
+---
+
+## ADR-0008 · 2026-08-22 · Detection cost is denominated in actions, not labels · Accepted
+
+**Context.** PLAN.md M3 asks for per-class precision and recall reported with "the
+false-positive cost in rupees". The first implementation indexed that cost by predicted
+label, which produced a self-contradictory ablation: adding evidence appeared to raise
+total cost, because converting an `UNKNOWN` into a wrong `ISSUER_DOWN` was charged more
+than leaving it unresolved — although both recommend `WAIT` and the merchant does the
+same thing either way.
+
+**Decision.** Cost is `ACTION_COST[(InterventionClass, FailureClass)]` — the price of
+the action the diagnosis recommends, given the true cause. Every cell carries a written
+rationale and a test asserts none is unpriced.
+
+**Consequence.** A detector is graded on what its output causes to happen, not on the
+name it assigns. The `UNKNOWN` class stops being artificially cheap, which is the point:
+`UNKNOWN` routes to `WAIT`, and `WAIT` is genuinely expensive when the instrument is
+broken. See POSTMORTEM D11.
+
+---
+
+## ADR-0009 · 2026-08-22 · 30% of simulated outages are never declared · Accepted
+
+**Context.** The detection layer cross-checks failures against the Downtime API. In the
+simulator, the same registry decided which debits failed. Handing the detector the
+generator's own bookkeeping produced an `ISSUER_DOWN` recall near 1.00 that measured
+nothing.
+
+**Decision.** `simulator.downtime.declared_share` (0.70) splits injected outages into a
+declared registry, which is all `antar/detect` may see, and a full one used to decide
+failures and to grade the detector afterwards. `SimulatedBatch.downtime` is the former;
+`SimulatedBatch.all_downtime` is the latter and is evaluation-only.
+
+**Consequence.** The undeclared 30% is what the changepoint detector exists to catch,
+and how much of it that detector actually catches is now a measurement rather than an
+assumption — currently 26 of 212 windows, which `docs/LIMITATIONS.md` L9 reports
+honestly. It is also simply more realistic: a downtime feed lags reality and misses
+smaller regional incidents.

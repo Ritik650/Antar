@@ -108,7 +108,69 @@ Named because each is real and material in India and none is modelled:
 
 ---
 
-## L7 · The LLM path is off by default
+## L7 · Two detection components do not currently pay for themselves
+
+**Reported because it is against us.** `artifacts/detection_base.json` contains a
+leave-one-out ablation of the detection layer, scored in rupees on the control arm:
+
+| Configuration | Wrong-action cost |
+|---|---|
+| Full system | ₹98,837 |
+| Full **minus** the changepoint detector | ₹76,337 |
+| Full **minus** the downtime cross-check | **₹64,410** |
+
+Under the action-cost matrix in `antar/detect/root_cause.py`, both the Downtime API
+cross-check and the EWMA/CUSUM changepoint detector make the system *more* expensive,
+not less. The mandate FSM contributes nothing at all at first failure (correctly — it
+cannot know about a cancellation that has not happened yet). Only the classifier
+clearly earns its place, cutting cost by roughly 6x.
+
+**Why.** Both components push ambiguous events toward `ISSUER_DOWN`, which recommends
+`WAIT`. But `UNKNOWN` already recommends `WAIT`, so on the events they resolve they
+change the label without changing the action — while the events they get *wrong* turn
+a recoverable `TECHNICAL_DECLINE` into a wait, which the matrix prices at 0.60x the
+cycle.
+
+**The honest caveat on the caveat.** This ablation scores L2 *in isolation*, and that
+understates the components' value, because the expensive consequence of contacting
+during an outage is not in this matrix at all — it is in the L3 objective, where an
+induced opt-out is priced at `decide.optout_loss_multiplier` (6x) the cycle amount.
+The number to trust is the end-to-end one from `make evaluate`, not this one.
+
+**Status: open.** The end-to-end comparison is the deciding measurement and it does
+not exist yet. Until it does, the claim "the downtime cross-check earns its place" is
+**not supported by anything measured**, and this document says so rather than the
+README implying otherwise.
+
+---
+
+## L8 · The failure classifier trains on labels that would not exist in production
+
+In this build the classifier's labels come from the simulator's ground truth
+(restricted to the treatment arm, so no control event is used for fitting). A real
+merchant has no such column. They would have to construct labels from eventual outcome
+plus manual review of a sample — slower, noisier, and subject to its own selection
+effects, since the cases a human bothers to review are not a random sample.
+
+Every per-class precision and recall figure Antar reports should be read as an
+upper bound for this reason.
+
+---
+
+## L9 · Changepoint detection has little power at simulated volume
+
+The simulated merchant produces roughly 5 attempts per issuer×method segment per day.
+A four-hour outage therefore contains about one attempt, and the detector reports
+**26 of 212** windows detected, with a median delay of 2.6 hours.
+
+That is a property of the simulated volume, not of the algorithm: a real merchant with
+thousands of daily attempts per segment would give the same detector far more to work
+with. It does mean the changepoint numbers in this build say little about how the
+component would perform in production, in either direction.
+
+---
+
+## L10 · The LLM path is off by default
 
 `act.llm.enabled` defaults to `false`, so the drafter uses the deterministic template
 filler unless an `ANTHROPIC_API_KEY` is present and the flag is set. Every draft

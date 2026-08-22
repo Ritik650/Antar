@@ -84,7 +84,17 @@ class SimulatedBatch:
     customers: dict[str, CustomerContext] = field(default_factory=dict)
     latents: LatentStore | None = None
     downtime: DowntimeRegistry = field(default_factory=DowntimeRegistry)
+    """What the Downtime API declared. This is all the detection layer may see."""
+    all_downtime: DowntimeRegistry = field(default_factory=DowntimeRegistry)
+    """Ground truth, declared and undeclared. Evaluation only - never L2."""
     observations: list[SegmentObservation] = field(default_factory=list)
+    lifecycle_events: list[tuple[str, str, datetime]] = field(default_factory=list)
+    """Observable subscription webhooks: (subscription_id, event_name, occurred_at).
+
+    This is what the mandate FSM is allowed to consume. Building the FSM from
+    `true_failure_class` instead would let L2 read the answer key - see
+    docs/POSTMORTEM.md D10.
+    """
 
     # --- ground truth, keyed by event id. Never passed to a feature builder. ---
     true_failure_class: dict[str, FailureClass] = field(default_factory=dict)
@@ -150,7 +160,7 @@ class Generator:
         segments = self._segment_keys()
         health = self._run_segment_health(segments)
         batch.segment_state = health
-        batch.downtime = self._inject_downtime(segments)
+        batch.downtime, batch.all_downtime = self._inject_downtime(segments)
 
         for customer in self._customers():
             self._run_mandate(batch, customer, health)
@@ -159,6 +169,7 @@ class Generator:
 
         batch.events.sort(key=lambda e: (e.occurred_at, e.event_id))
         batch.observations.sort(key=lambda o: (o.at, o.segment_key))
+        batch.lifecycle_events.sort(key=lambda row: (row[2], row[0]))
         return batch
 
     # -------------------------------------------------------------- customers
@@ -260,19 +271,33 @@ class Generator:
 
     # ---------------------------------------------------------------- downtime
 
-    def _inject_downtime(self, segments: list[str]) -> DowntimeRegistry:
+    def _inject_downtime(self, segments: list[str]) -> tuple[DowntimeRegistry, DowntimeRegistry]:
+        """Returns `(declared, all)`.
+
+        `declared` is what Antar's detection layer gets to see - the Downtime API's
+        view. `all` is the truth, used to decide whether a debit fails and to grade
+        the detector afterwards.
+
+        Keeping them apart is the anti-circularity guard for the detection result.
+        Handing the detector the same registry the generator wrote would produce an
+        `ISSUER_DOWN` recall near 1.00 that measures our bookkeeping rather than the
+        detector. The undeclared remainder is exactly what the changepoint detector
+        exists to find.
+        """
         rate = float(self.sim.get("downtime.windows_per_100_days"))
         rate *= self.scenario.downtime_multiplier
         expected = rate * self.horizon_days / 100.0
         durations = self.sim.get("downtime.duration_hours")
         severity_mix = self.sim.get("downtime.severity_mix")
+        declared_share = float(self.sim.get("downtime.declared_share"))
         severities = [DowntimeSeverity(s) for s in severity_mix]
         weights = np.array(list(severity_mix.values()), dtype=float)
         weights = weights / weights.sum()
 
-        registry = DowntimeRegistry()
+        declared = DowntimeRegistry()
+        everything = DowntimeRegistry()
         if expected <= 0:
-            return registry
+            return declared, everything
 
         for segment in segments:
             rng = substream(self.seed, "downtime", segment)
@@ -285,20 +310,22 @@ class Generator:
                 )
                 hours = float(durations[severity.value]) * float(rng.uniform(0.6, 1.6))
                 end = begin + timedelta(hours=hours)
-                registry.upsert(
-                    DowntimeWindow(
-                        downtime_id=deterministic_id("down", segment, index),
-                        method=PaymentMethod(method_name),
-                        issuer=issuer,
-                        severity=severity,
-                        status=(
-                            DowntimeStatus.RESOLVED if end < self.end else DowntimeStatus.STARTED
-                        ),
-                        begin=begin,
-                        end=end,
-                    )
+                is_declared = bool(rng.random() < declared_share)
+                window = DowntimeWindow(
+                    downtime_id=deterministic_id("down", segment, index),
+                    method=PaymentMethod(method_name),
+                    issuer=issuer,
+                    severity=severity,
+                    status=(
+                        DowntimeStatus.RESOLVED if end < self.end else DowntimeStatus.STARTED
+                    ),
+                    begin=begin,
+                    end=end,
                 )
-        return registry
+                everything.upsert(window)
+                if is_declared:
+                    declared.upsert(window)
+        return declared, everything
 
     # ----------------------------------------------------------------- cycles
 
@@ -335,7 +362,8 @@ class Generator:
 
             rng = substream(self.seed, "cycle", customer.customer_id, cycle)
             segment_health = self._health_on(health, segment, charge_at)
-            outage = batch.downtime.overlap_for(charge_at, customer.method, customer.issuer)
+            # Failure is decided by the *truth*, declared or not.
+            outage = batch.all_downtime.overlap_for(charge_at, customer.method, customer.issuer)
 
             p_fail = self._failure_probability(
                 latents_balance=latents.balance_fraction(charge_at),
@@ -390,6 +418,13 @@ class Generator:
             batch.next_cycle_at[event.event_id] = charge_at + timedelta(days=30)
 
             if cause is FailureClass.MANDATE_REVOKED:
+                # The webhook Razorpay would send. Timestamped at the failure, so a
+                # detector asking "what was the state when this failed?" correctly
+                # gets ACTIVE - we learn of the revocation from this event, not
+                # before it.
+                batch.lifecycle_events.append(
+                    (customer.subscription_id, "subscription.cancelled", charge_at)
+                )
                 state = MandateState.REVOKED
                 batch.customers[customer.customer_id] = batch.customers[
                     customer.customer_id
@@ -550,7 +585,8 @@ def batch_summary(batch: SimulatedBatch) -> dict[str, Any]:
         "at_risk_events": len(batch.events),
         "mandate_failures": loss.get("MANDATE_FAILURE", 0),
         "checkout_abandons": loss.get("CHECKOUT_ABANDON", 0),
-        "downtime_windows": len(batch.downtime),
+        "downtime_windows": len(batch.all_downtime),
+        "downtime_windows_declared": len(batch.downtime),
         "mandate_failure_class_shares": {
             cls.value: round(count / total, 4) for cls, count in sorted(mandate_classes.items())
         },

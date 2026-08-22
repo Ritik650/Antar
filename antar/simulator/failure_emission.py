@@ -45,15 +45,23 @@ EMISSION: dict[FailureClass, dict[str, float]] = {
         "payment_failed": 0.03,
     },
     FailureClass.TECHNICAL_DECLINE: {
-        "card_expired": 0.20,
-        "card_blocked": 0.13,
-        "invalid_vpa": 0.11,
-        "account_does_not_exist": 0.09,
-        "invalid_account": 0.09,
-        "account_frozen": 0.07,
-        "incorrect_otp": 0.08,
-        "authentication_failed": 0.08,
-        "gateway_technical_error": 0.09,
+        "card_expired": 0.14,
+        "card_blocked": 0.09,
+        "invalid_vpa": 0.08,
+        "account_does_not_exist": 0.08,
+        "invalid_account": 0.08,
+        "account_frozen": 0.06,
+        "incorrect_otp": 0.07,
+        "authentication_failed": 0.07,
+        "gateway_technical_error": 0.11,
+        # Timeouts, network errors and 5xx are not the exclusive property of an
+        # outage. A broken instrument produces them too - a card that the issuer's
+        # tokenisation service cannot resolve times out exactly like a bank that is
+        # down. Emitting them only from ISSUER_DOWN made them a perfect tell and
+        # handed the classifier a 98% recall it had not earned. POSTMORTEM D9.
+        "payment_timed_out": 0.07,
+        "network_error": 0.05,
+        "server_error": 0.04,
         "payment_failed": 0.06,
     },
     FailureClass.RISK_DECLINE: {

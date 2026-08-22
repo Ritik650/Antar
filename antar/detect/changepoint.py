@@ -42,6 +42,7 @@ numbers go in the README rather than the tuning being asserted.
 from __future__ import annotations
 
 import math
+from collections import deque
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -63,6 +64,16 @@ class SegmentTracker:
     recovery_observations: int = 10
 
     # --- state ---------------------------------------------------------------
+    baseline_window: int = 200
+    """How much recent history the baseline is re-estimated from after a recovery.
+
+    Long, on purpose. An earlier version re-estimated it from the EWMA, which with
+    alpha=0.2 is effectively a five-observation average; one lucky window set the
+    baseline to 0.967 on a rail whose true rate was 0.75, after which the CUSUM
+    drifted upward forever and the segment was stuck DEGRADED for the rest of the
+    horizon. POSTMORTEM D12.
+    """
+
     n: int = 0
     successes: int = 0
     ewma: float = field(default=1.0)
@@ -71,6 +82,7 @@ class SegmentTracker:
     state: SegmentHealth = SegmentHealth.HEALTHY
     since_recovery: int = 0
     last_at: datetime | None = None
+    recent: deque[float] = field(default_factory=lambda: deque(maxlen=200))
 
     @property
     def warm(self) -> bool:
@@ -81,11 +93,14 @@ class SegmentTracker:
     def sigma(self) -> float:
         """Bernoulli standard deviation at the baseline rate.
 
-        Floored, because a segment with a near-perfect baseline has sigma near zero
-        and would otherwise alarm on its first failure.
+        Floored well above zero. A segment whose warm-up happened to contain no
+        failures at all has an empirical baseline of exactly 1.0 and a true sigma of
+        0, which would make its very first failure an infinitely large deviation.
+        Laplace smoothing (below) keeps the baseline off the boundary; this floor
+        catches what is left.
         """
         p = min(max(self.baseline, 1e-6), 1 - 1e-6)
-        return max(math.sqrt(p * (1.0 - p)), 0.05)
+        return max(math.sqrt(p * (1.0 - p)), 0.15)
 
     def observe(self, success: bool, at: datetime) -> SegmentHealth:
         """Fold in one attempt and return the resulting state."""
@@ -93,26 +108,44 @@ class SegmentTracker:
         self.n += 1
         self.successes += int(success)
         self.last_at = at
+        if self.recent.maxlen != self.baseline_window:
+            self.recent = deque(self.recent, maxlen=self.baseline_window)
+        self.recent.append(value)
 
         if not self.warm:
             # Learn the baseline before judging anything against it. During warm-up
             # the EWMA tracks the running mean so it starts somewhere sensible.
-            self.baseline = self.successes / self.n
+            #
+            # Laplace-smoothed - a Beta(1,1) prior - rather than the raw empirical
+            # mean. A warm-up that happens to contain no failures would otherwise
+            # give a baseline of exactly 1.0, a true sigma of 0, and an alarm on the
+            # segment's very first failure. The prior costs a little sensitivity on
+            # genuinely perfect rails and buys immunity to a degenerate start.
+            self.baseline = (self.successes + 1.0) / (self.n + 2.0)
             self.ewma = self.baseline
             self.state = SegmentHealth.HEALTHY
             return self.state
 
         self.ewma = self.ewma_alpha * value + (1 - self.ewma_alpha) * self.ewma
 
-        # One-sided lower CUSUM: accumulate evidence that the rate has fallen.
-        # k is the allowance - the size of shift we agree to ignore.
-        allowance = self.cusum_k * self.sigma
-        self.cusum = max(0.0, self.cusum + (self.baseline - value - allowance))
+        # One-sided lower CUSUM on the **standardised** deviation. Both the
+        # allowance `k` and the thresholds are in units of sigma, so they have to be
+        # compared against a standardised increment. An earlier version accumulated
+        # raw probability deviations and compared them against sigma-scaled
+        # thresholds, which made two consecutive failures enough to declare a
+        # segment degrading and produced an 80% false-alarm rate. POSTMORTEM D8.
+        z = (self.baseline - value) / self.sigma
+        # Capped as well as floored. An unbounded CUSUM that has drifted high takes
+        # proportionally longer to come back, so a transient cannot lock the segment
+        # out for the rest of the horizon.
+        self.cusum = min(
+            max(0.0, self.cusum + z - self.cusum_k), 3.0 * self.degraded_threshold
+        )
 
         return self._transition()
 
     def _transition(self) -> SegmentHealth:
-        scaled = self.cusum / self.sigma
+        scaled = self.cusum
         previous = self.state
 
         if scaled >= self.degraded_threshold:
@@ -133,16 +166,23 @@ class SegmentTracker:
         elif previous is SegmentHealth.RECOVERING:
             self.since_recovery += 1
             if self.since_recovery >= self.recovery_observations:
-                # Sustained normality. Reset the baseline to what the segment is
-                # actually doing now, so a permanently worse rail becomes the new
-                # normal rather than alarming forever.
+                # Sustained normality. Re-estimate the baseline from a long window of
+                # recent history, so a permanently worse rail becomes the new normal
+                # rather than alarming forever - but from enough observations that a
+                # lucky run cannot poison it. POSTMORTEM D12.
                 self.state = SegmentHealth.HEALTHY
-                self.baseline = self.ewma
+                self.baseline = self._recent_rate()
                 self.cusum = 0.0
         else:
             self.state = SegmentHealth.HEALTHY
 
         return self.state
+
+    def _recent_rate(self) -> float:
+        """Laplace-smoothed success rate over the recent window."""
+        if not self.recent:
+            return self.baseline
+        return (sum(self.recent) + 1.0) / (len(self.recent) + 2.0)
 
     def report(self, at: datetime | None = None) -> SegmentHealthReport:
         return SegmentHealthReport(

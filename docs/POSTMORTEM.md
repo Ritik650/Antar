@@ -16,6 +16,11 @@ uncomfortable enough to be worth reading in full.
 | D5 | Circuit breaker | Test authoring | Low |
 | D6 | Anti-circularity scan | A failing invariant test | **High** — inflated the headline finding |
 | D7 | Simulator generator | `test_no_leakage` | Medium — destroyed a real signal |
+| D8 | Changepoint detector | Detection report | **High** — 80% false-alarm rate |
+| D9 | Failure emission | Detection report | **High** — a free 98% recall |
+| D10 | Detection pipeline | Detection report | **High** — L2 read the answer key |
+| D11 | Cost matrix | The ablation contradicted itself | Medium — priced labels, not actions |
+| D12 | Changepoint detector | A failing unit test | **High** — segments stuck DEGRADED forever |
 
 ---
 
@@ -209,6 +214,119 @@ without an ADR, the other asserts every observable field equals the latent it mi
 **Note on the allowlist.** An allowlist is the obvious way to defeat a leakage test,
 so it is deliberately hostile to use: one entry, a length-checked justification
 string, and a size assertion that fails on the second addition.
+
+---
+
+## D8 · The CUSUM compared unstandardised increments to standardised thresholds
+
+`cusum_k` and the decision thresholds are documented as being in units of the
+segment's baseline standard deviation. The accumulator was adding raw probability
+deviations. With a 25% baseline failure rate, two consecutive failures crossed the
+"degrading" line — and consecutive failures at a 25% rate are ordinary weather, not
+an outage. **Measured false-alarm rate: 80%.**
+
+**Fix.** Accumulate `z = (baseline - value) / sigma` so the increment and the
+threshold share units. Guarded by `test_cusum_is_standardised`.
+
+---
+
+## D9 · Three error codes were emitted only by outages, handing the classifier a free 98% recall
+
+`payment_timed_out`, `network_error`, and `server_error` appeared in `ISSUER_DOWN`'s
+emission table and nowhere else. The taxonomy table marked them *ambiguous*, correctly
+— but the data made them a perfect tell, and the classifier learned it. `ISSUER_DOWN`
+recall came out at 0.98 on evidence that does not exist outside this simulator.
+
+Real timeouts are not the exclusive property of an outage: a card the issuer's
+tokenisation service cannot resolve times out exactly like a bank that is down.
+
+**Fix.** `TECHNICAL_DECLINE` now emits all three. The recall it earns afterwards is a
+recall it earned.
+
+---
+
+## D10 · The detection pipeline read the answer key
+
+The worst of the batch. `build_detector` constructed the mandate FSM like this:
+
+```python
+lifecycle = [
+    (event.subscription_id, "subscription.cancelled", event.occurred_at)
+    for event in batch.events
+    if batch.true_failure_class.get(event.event_id) is FailureClass.MANDATE_REVOKED
+]
+```
+
+L2 was reading `true_failure_class` — the ground truth — to decide which mandates were
+revoked, and then being graded on how well it identified revoked mandates. Reported
+recall: **1.000.** Actual information used: the answer.
+
+There was a second, subtler half. Even with an honest lifecycle stream, the analyser
+called `state_of()` — the *current* state — while diagnosing a *historical* failure.
+A cancellation webhook is timestamped at the moment of cancellation, which is the same
+moment the debit failed, so `state_of()` let the detector see a cancellation it could
+not have known about.
+
+**Fix.** The generator emits an observable `lifecycle_events` stream, the FSM consumes
+only that, and the analyser calls `state_at(subscription_id, when)`. `MANDATE_REVOKED`
+recall fell from 1.000 to 0.960 and precision rose to 1.000, both now earned from the
+error payload rather than from hindsight.
+
+**Why the leakage tests did not catch it.** `test_no_leakage` checks that no production
+layer *imports* the simulator, and `antar/detect/pipeline.py` does not — it receives the
+batch as an argument and reads a ground-truth attribute off it. A static import check
+cannot see that. The lesson is that a leak travels by data as easily as by import, and
+the test that caught this one was a *plausibility* check on a suspiciously perfect
+metric, not a structural check.
+
+---
+
+## D11 · The cost matrix priced labels instead of actions
+
+The ablation study produced a contradiction: adding the downtime feed to a table-only
+detector *increased* the total rupee cost. That made no sense, and the cost function
+was the reason.
+
+Cost was indexed by predicted *label*, so converting an `UNKNOWN` into a wrong
+`ISSUER_DOWN` looked more expensive than leaving it unresolved — even though both
+recommend `WAIT` and the merchant does exactly the same thing in each case. A detector
+is not graded on the name it assigns. It is graded on what the name causes to happen.
+
+**Fix.** `ACTION_COST[(InterventionClass, FailureClass)]` in `root_cause.py`, indexed by
+the recommended action. Every cell carries a one-line rationale, and
+`test_the_cost_matrix_covers_every_action_and_cause` asserts none is left unpriced.
+
+---
+
+## D12 · A lucky window poisoned a segment's baseline permanently
+
+Symptom: `test_tracker_stays_healthy_through_ordinary_noise` failed with a **92%**
+alarm rate at thresholds that a hand-calculation said should alarm about 0.1% of the
+time.
+
+Instrumenting the CUSUM trajectory showed it climbing monotonically to 148 and never
+returning:
+
+```
+i= 40 state=HEALTHY   cusum=  0.000 base=0.936 ewma=0.967
+i=100 state=DEGRADED  cusum= 39.901 base=0.936
+i=599 state=DEGRADED  cusum=148.911 base=0.936
+```
+
+On returning to `HEALTHY` the tracker re-estimated its baseline as `self.ewma`. With
+`alpha=0.2` the EWMA is effectively a five-observation average, and one lucky window
+set the baseline to 0.967 on a rail whose true success rate was 0.75. Every subsequent
+observation then looked like a deviation, the CUSUM drifted up forever, and the segment
+was locked in `DEGRADED` for the remaining 560 observations.
+
+**Fix.** Re-estimate from a 200-observation rolling window, Laplace-smoothed, and cap
+the CUSUM at 3x the degraded threshold so no transient can lock a segment out.
+
+**Effect.** False-alarm rate 92% → 0.5% *at the same thresholds*, with detection still
+inside 8 observations. The thresholds had never been the problem, and the two rounds
+of threshold-raising that preceded this discovery were treating a symptom. Worth
+remembering: when a tuning parameter seems to need an implausible value, the parameter
+is usually not the bug.
 
 ---
 
