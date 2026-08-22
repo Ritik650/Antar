@@ -1,0 +1,65 @@
+{
+  "account_id": "acc_ANTARtestacct",
+  "contains": [
+    "invoice"
+  ],
+  "created_at": 1777000360,
+  "entity": "event",
+  "event": "invoice.expired",
+  "payload": {
+    "invoice": {
+      "entity": {
+        "amount": 189900,
+        "created_at": 1776913600,
+        "currency": "INR",
+        "customer_id": "cust_ANTAR00000007",
+        "entity": "invoice",
+        "id": "inv_ANTAR00000001",
+        "notes": {
+          "merchant_id": "mer_antar_ott"
+        },
+        "status": "expired"
+      }
+    },
+    "payment": {
+      "entity": {
+        "acquirer_data": {
+          "rrn": "220134228362"
+        },
+        "amount": 189900,
+        "amount_refunded": 0,
+        "bank": "PAYTM",
+        "captured": false,
+        "card_id": null,
+        "contact": "+919900000000",
+        "created_at": 1777000000,
+        "currency": "INR",
+        "customer_id": "cust_ANTAR00000007",
+        "description": "Monthly subscription",
+        "email": "customer@example.com",
+        "entity": "payment",
+        "error_code": "BAD_REQUEST_ERROR",
+        "error_description": "The customer cancelled the payment.",
+        "error_reason": "payment_cancelled",
+        "error_source": "customer",
+        "error_step": "payment_authentication",
+        "fee": null,
+        "id": "pay_ABANDONED00001",
+        "international": false,
+        "invoice_id": null,
+        "method": "upi",
+        "notes": {
+          "customer_id": "cust_ANTAR00000007",
+          "cycle_number": "0",
+          "issuer": "PAYTM",
+          "merchant_id": "mer_antar_ott"
+        },
+        "order_id": "order_ABANDONED00001",
+        "status": "failed",
+        "tax": null,
+        "vpa": "customer@okhdfcbank",
+        "wallet": null
+      }
+    }
+  }
+}

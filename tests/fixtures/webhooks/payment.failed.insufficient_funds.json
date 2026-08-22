@@ -1,0 +1,52 @@
+{
+  "account_id": "acc_ANTARtestacct",
+  "contains": [
+    "payment"
+  ],
+  "created_at": 1777000000,
+  "entity": "event",
+  "event": "payment.failed",
+  "payload": {
+    "payment": {
+      "entity": {
+        "acquirer_data": {
+          "rrn": "220134228362"
+        },
+        "amount": 49900,
+        "amount_refunded": 0,
+        "bank": "HDFC",
+        "captured": false,
+        "card_id": null,
+        "contact": "+919900000000",
+        "created_at": 1777000000,
+        "currency": "INR",
+        "customer_id": "cust_ANTAR00000001",
+        "description": "Monthly subscription",
+        "email": "customer@example.com",
+        "entity": "payment",
+        "error_code": "BAD_REQUEST_ERROR",
+        "error_description": "Your payment could not be completed due to insufficient funds in the account.",
+        "error_reason": "insufficient_funds",
+        "error_source": "customer",
+        "error_step": "payment_authorization",
+        "fee": null,
+        "id": "pay_INSUFFICIENTFUND",
+        "international": false,
+        "invoice_id": null,
+        "method": "upi",
+        "notes": {
+          "customer_id": "cust_ANTAR00000001",
+          "cycle_number": "3",
+          "issuer": "HDFC",
+          "merchant_id": "mer_antar_ott",
+          "subscription_id": "sub_ANTAR00000001"
+        },
+        "order_id": "order_INSUFFICIENTFUND",
+        "status": "failed",
+        "tax": null,
+        "vpa": "customer@okhdfcbank",
+        "wallet": null
+      }
+    }
+  }
+}

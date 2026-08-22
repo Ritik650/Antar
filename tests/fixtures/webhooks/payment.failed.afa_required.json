@@ -1,0 +1,52 @@
+{
+  "account_id": "acc_ANTARtestacct",
+  "contains": [
+    "payment"
+  ],
+  "created_at": 1777000180,
+  "entity": "event",
+  "event": "payment.failed",
+  "payload": {
+    "payment": {
+      "entity": {
+        "acquirer_data": {
+          "rrn": "220134228362"
+        },
+        "amount": 2450000,
+        "amount_refunded": 0,
+        "bank": "AXIS",
+        "captured": false,
+        "card_id": null,
+        "contact": "+919900000000",
+        "created_at": 1777000000,
+        "currency": "INR",
+        "customer_id": "cust_ANTAR00000004",
+        "description": "Monthly subscription",
+        "email": "customer@example.com",
+        "entity": "payment",
+        "error_code": "BAD_REQUEST_ERROR",
+        "error_description": "This amount requires additional factor authentication by the customer.",
+        "error_reason": "additional_authentication_required",
+        "error_source": "bank",
+        "error_step": "payment_authentication",
+        "fee": null,
+        "id": "pay_AFAREQUIRED001",
+        "international": false,
+        "invoice_id": null,
+        "method": "card",
+        "notes": {
+          "customer_id": "cust_ANTAR00000004",
+          "cycle_number": "1",
+          "issuer": "AXIS",
+          "merchant_id": "mer_antar_ott",
+          "subscription_id": "sub_ANTAR00000004"
+        },
+        "order_id": "order_AFAREQUIRED001",
+        "status": "failed",
+        "tax": null,
+        "vpa": null,
+        "wallet": null
+      }
+    }
+  }
+}

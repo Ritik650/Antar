@@ -1,0 +1,33 @@
+{
+  "account_id": "acc_ANTARtestacct",
+  "contains": [
+    "subscription"
+  ],
+  "created_at": 1777000400,
+  "entity": "event",
+  "event": "subscription.halted",
+  "payload": {
+    "subscription": {
+      "entity": {
+        "charge_at": 1777086400,
+        "created_at": 1766632000,
+        "current_end": 1777000000,
+        "current_start": 1774408000,
+        "customer_id": "cust_ANTAR00000001",
+        "end_at": 1797736000,
+        "entity": "subscription",
+        "id": "sub_ANTAR00000005",
+        "notes": {
+          "merchant_id": "mer_antar_ott"
+        },
+        "paid_count": 6,
+        "plan_id": "plan_ANTARmonthly01",
+        "quantity": 1,
+        "remaining_count": 6,
+        "start_at": 1766632000,
+        "status": "halted",
+        "total_count": 12
+      }
+    }
+  }
+}

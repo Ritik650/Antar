@@ -101,3 +101,23 @@ enforced by a trigger in both dialects, written once per dialect in
 **Consequence.** A reviewer with only Python can reproduce every number. The
 production story still uses Postgres, and the ledger's append-only guarantee is
 tested against whichever engine is configured.
+
+---
+
+## ADR-0007 · 2026-08-22 · Synthesised fixtures, with a one-command path to real ones · Accepted
+
+**Context.** PLAN.md M1 requires recorded payloads from a live Razorpay test-mode
+account, and predicts several test-mode/live divergences to be found in week one. No
+test-mode credentials were available for this build.
+
+**Decision.** Synthesise fixtures from the public documentation
+(`scripts/make_fixtures.py`), label their provenance loudly in
+`tests/fixtures/README.md` and `docs/LIMITATIONS.md` L1, and write
+`scripts/record_fixtures.py` so that a single command with real keys replaces them
+and prints every structural divergence. `tests/conftest.py` prefers `recorded/` over
+`webhooks/`, so the swap needs no test changes.
+
+**Consequence.** The integration layer is structurally tested and not empirically
+tested, and the repo says so rather than implying otherwise. The M1 acceptance
+criterion "document every test-mode divergence" is recorded as **not measured**, not
+as zero. This is the single largest known gap in the build.

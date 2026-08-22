@@ -1,0 +1,75 @@
+{
+  "account_id": "acc_ANTARtestacct",
+  "contains": [
+    "subscription",
+    "payment"
+  ],
+  "created_at": 1777000580,
+  "entity": "event",
+  "event": "subscription.pending",
+  "payload": {
+    "payment": {
+      "entity": {
+        "acquirer_data": {
+          "rrn": "220134228362"
+        },
+        "amount": 99900,
+        "amount_refunded": 0,
+        "bank": "ICICI",
+        "captured": false,
+        "card_id": null,
+        "contact": "+919900000000",
+        "created_at": 1777000000,
+        "currency": "INR",
+        "customer_id": "cust_ANTAR00000006",
+        "description": "Monthly subscription",
+        "email": "customer@example.com",
+        "entity": "payment",
+        "error_code": "BAD_REQUEST_ERROR",
+        "error_description": "The issuing bank declined the transaction.",
+        "error_reason": "declined_by_issuer",
+        "error_source": "issuer",
+        "error_step": "payment_authorization",
+        "fee": null,
+        "id": "pay_PENDINGCYCLE01",
+        "international": false,
+        "invoice_id": null,
+        "method": "card",
+        "notes": {
+          "customer_id": "cust_ANTAR00000006",
+          "cycle_number": "2",
+          "issuer": "ICICI",
+          "merchant_id": "mer_antar_ott",
+          "subscription_id": "sub_ANTAR00000006"
+        },
+        "order_id": "order_PENDINGCYCLE01",
+        "status": "failed",
+        "tax": null,
+        "vpa": null,
+        "wallet": null
+      }
+    },
+    "subscription": {
+      "entity": {
+        "charge_at": 1777086400,
+        "created_at": 1766632000,
+        "current_end": 1777000000,
+        "current_start": 1774408000,
+        "customer_id": "cust_ANTAR00000001",
+        "end_at": 1797736000,
+        "entity": "subscription",
+        "id": "sub_ANTAR00000006",
+        "notes": {
+          "merchant_id": "mer_antar_ott"
+        },
+        "paid_count": 1,
+        "plan_id": "plan_ANTARmonthly01",
+        "quantity": 1,
+        "remaining_count": 11,
+        "start_at": 1766632000,
+        "status": "pending",
+        "total_count": 12
+      }
+    }
+  }
+}

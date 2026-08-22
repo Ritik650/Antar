@@ -1,0 +1,29 @@
+{
+  "account_id": "acc_ANTARtestacct",
+  "contains": [
+    "payment.downtime"
+  ],
+  "created_at": 1777001200,
+  "entity": "event",
+  "event": "payment.downtime.resolved",
+  "payload": {
+    "payment.downtime": {
+      "entity": {
+        "begin": 1776996400,
+        "created_at": 1776996400,
+        "end": 1777001200,
+        "entity": "payment.downtime",
+        "id": "down_ANTAR0000001",
+        "instrument": {
+          "bank": "HDFC",
+          "issuer": "HDFC",
+          "psp": null
+        },
+        "method": "card",
+        "scheduled": false,
+        "severity": "medium",
+        "status": "resolved"
+      }
+    }
+  }
+}

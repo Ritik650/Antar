@@ -1,0 +1,38 @@
+{
+  "count": 2,
+  "entity": "collection",
+  "items": [
+    {
+      "begin": 1776996400,
+      "created_at": 1776996400,
+      "end": null,
+      "entity": "payment.downtime",
+      "id": "down_ANTAR0000001",
+      "instrument": {
+        "bank": "HDFC",
+        "issuer": "HDFC",
+        "psp": null
+      },
+      "method": "card",
+      "scheduled": false,
+      "severity": "high",
+      "status": "started"
+    },
+    {
+      "begin": 1776996400,
+      "created_at": 1776996400,
+      "end": 1776999400,
+      "entity": "payment.downtime",
+      "id": "down_ANTAR0000002",
+      "instrument": {
+        "bank": "HDFC",
+        "issuer": "HDFC",
+        "psp": null
+      },
+      "method": "upi",
+      "scheduled": false,
+      "severity": "low",
+      "status": "resolved"
+    }
+  ]
+}
