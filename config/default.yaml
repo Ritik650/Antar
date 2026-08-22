@@ -30,15 +30,24 @@ simulator:
 
   merchant_mix:
     # merchant_id: [category, share]
-    mer_antar_ott: [OTT_SUBSCRIPTION, 0.60]
-    mer_antar_ins: [INSURANCE, 0.25]
-    mer_antar_mf: [MUTUAL_FUND, 0.15]
+    # Four profiles rather than one, because the AFA boundary is category-dependent
+    # (RBI-EM-03 / RBI-EM-04) and an evaluation that never crosses it would not
+    # exercise the discontinuity that makes merchant category a feature at all.
+    mer_antar_ott: [OTT_SUBSCRIPTION, 0.45]   # cheap, far below every ceiling
+    mer_antar_edu: [EDUCATION, 0.25]          # fee debits straddling Rs 15,000
+    mer_antar_ins: [INSURANCE, 0.20]          # Rs 1,00,000 ceiling
+    mer_antar_mf: [MUTUAL_FUND, 0.10]         # Rs 1,00,000 ceiling
 
   amount:
-    # LogNormal on rupees, truncated. Tuned so a meaningful fraction crosses
-    # the 15,000 AFA boundary (SIMULATOR_CARD 4.3).
-    general: { mu: 6.6, sigma: 0.85, min_rupees: 99, max_rupees: 40000 }
-    high_ceiling: { mu: 8.6, sigma: 1.05, min_rupees: 500, max_rupees: 150000 }
+    # LogNormal on rupees, truncated, per merchant category.
+    # SIMULATOR_CARD 4.3: parameterised so both sides of each AFA boundary carry
+    # real mass. Invented, but shaped to plausible Indian ticket sizes.
+    by_category:
+      OTT_SUBSCRIPTION: { mu: 6.30, sigma: 0.80, min_rupees: 99, max_rupees: 5000 }
+      EDUCATION: { mu: 9.30, sigma: 0.70, min_rupees: 1500, max_rupees: 120000 }
+      INSURANCE: { mu: 8.60, sigma: 1.25, min_rupees: 500, max_rupees: 150000 }
+      MUTUAL_FUND: { mu: 8.20, sigma: 1.10, min_rupees: 500, max_rupees: 150000 }
+      DEFAULT: { mu: 6.60, sigma: 0.85, min_rupees: 99, max_rupees: 40000 }
 
   segment_health:
     # Two-state Markov chain per issuer x method (SIMULATOR_CARD 4.4).
@@ -48,8 +57,12 @@ simulator:
 
   downtime:
     # Injected windows, shaped like the Razorpay Downtime API entity.
-    windows_per_100_days: 6.0
-    duration_hours: { low: 1.5, medium: 3.0, high: 5.0 }
+    # Set so that roughly 3% of a segment's attempts land inside an outage. Below
+    # that, ISSUER_DOWN is too rare for per-class recall to mean anything, and the
+    # "wait, do not spend a notification" decision - the reason L2 exists - never
+    # gets exercised. Invented, like every frequency in this file.
+    windows_per_100_days: 22.0
+    duration_hours: { low: 2.5, medium: 4.0, high: 6.0 }
     severity_mix: { low: 0.5, medium: 0.3, high: 0.2 }
     fail_probability: { low: 0.35, medium: 0.70, high: 0.97 }
 

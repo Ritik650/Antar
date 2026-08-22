@@ -57,16 +57,27 @@ safely. Those are the claims we make. See §11.
 
 ### 3.1 Entities
 
-| Entity | Volume (base scenario) | Notes |
+| Entity | Volume (base scenario, seed 20260822) | Notes |
 |---|---|---|
-| Merchants | 1 primary + 2 for category variation | Categories drive the `RBI-EM-04` AFA threshold |
+| Merchants | 4 | OTT, education, insurance, mutual fund. Categories drive the `RBI-EM-04` AFA threshold |
 | Customers | 2,000 | Each carries a hidden latent vector (§4) |
 | Subscriptions / mandates | 2,000 | One per customer; monthly billing |
-| Billing cycles | ~8,000 | 4 cycles per mandate over a simulated 120 days |
-| At-risk events | `[MEASURE @ M2]` | Cycles that fail on first attempt |
-| Checkout-abandonment events | ~1,500 | Second loss class, T1 tier |
+| Billing cycles | 7,838 attempts | 4 cycles per mandate over a simulated 120 days, truncated by revocation |
+| At-risk events | 3,436 | 1,936 mandate failures + 1,500 checkout abandonments |
+| First-attempt failure rate | 24.7% | **Invented.** A property of `base_failure_rate` and the balance curve |
+| Checkout-abandonment events | 1,500 | Second loss class, T1 tier |
 | Issuer × method segments | 12 | 4 synthetic issuers × 3 methods (UPI AutoPay, card, eNACH) |
-| Downtime windows | `[MEASURE @ M2]` | Injected per §4.5 |
+| Downtime windows | 354 | Injected per §4.5; ~3% of attempts land inside one |
+| Events above the AFA ceiling | 15.3% | Both sides of the `RBI-EM-03`/`-04` boundary carry real mass |
+| Events with an ambiguous error code | 24.9% | The share the taxonomy table alone cannot resolve — see §4.2 |
+
+True-cause mix for mandate failures (base): `INSUFFICIENT_FUNDS` 40.5%,
+`TECHNICAL_DECLINE` 18.3%, `AFA_REQUIRED` 13.1%, `ISSUER_DOWN` 12.9%,
+`RISK_DECLINE` 8.4%, `MANDATE_REVOKED` 6.9%. **All invented** — §12.5.
+
+**These are regenerated, never typed.** `python tasks.py calibration-report` writes
+`artifacts/calibration.md` and `artifacts/calibration.json`; the table above is a
+transcription of that output and `scripts/make_figures.py` reproduces it.
 
 Volumes are set so that the 20% control holdout has adequate power for the primary metric. The
 power analysis lives in `docs/EVALUATION.md` and must be committed **before** the final run.
@@ -74,8 +85,16 @@ power analysis lives in `docs/EVALUATION.md` and must be committed **before** th
 ### 3.2 Simulated clock
 
 120 simulated days, 1-minute resolution. All timestamps are IST. There is exactly one
-authoritative clock (`antar.simulator.clock`); no component may call `datetime.now()`. This is
-enforced by a lint rule and a test.
+authoritative clock; no component may call `datetime.now()`. This is enforced by
+`tests/unit/test_clock.py::test_no_module_outside_clock_reads_the_wall_clock`, which
+parses every module in the package and fails on any wall-clock call.
+
+**Correction to the pre-implementation draft:** the clock lives at `antar.clock`, not
+`antar.simulator.clock`. The policy and decision layers need it for the `C-LEAD` and
+`C-WINDOW` constraints, and importing it from the simulator would have put an
+answer-key package on the import path of every production layer — exactly what
+`tests/statistical/test_no_leakage.py` forbids. IST is modelled as a fixed +05:30
+offset (ADR-0004).
 
 ---
 
@@ -96,8 +115,9 @@ Each customer draws a hidden vector, never visible to any Antar layer:
 | `balance_curve` | Exponential decay from `salary_day` with per-customer half-life ~ LogNormal | Funds availability over the month | **Invented**, but mechanistically motivated |
 | `channel_response` | Dirichlet over {SMS, WhatsApp, voice, email} | Relative responsiveness by channel | **Invented** |
 | `optout_sensitivity` | Beta(α, β), `[MEASURE @ M2]` | Propensity to use the RBI-mandated opt-out when prompted | **Invented.** See §6 — this is the second most consequential parameter |
+| `persuadability` | Beta(α, β), see `artifacts/calibration.md` | **Ceiling** on P(persuaded) under the best channel, best timing, first attempt | **Invented.** The ceiling is enforced: every modifier in `persuasion_probability` is confined to (0, 1], asserted by `test_persuadability_is_actually_the_ceiling`. It was not, once — see POSTMORTEM D1 |
 | `price_sensitivity` | LogNormal | Response to discount size | **Invented** |
-| `tenure_months` | Geometric | Months subscribed | **Invented** |
+| `tenure_months` | Geometric | Months subscribed | **Invented**, and the one latent that is **observable by design** — a merchant reads it from their own subscription records. It is therefore permitted to reach a feature builder, via a single-entry allowlist in `tests/statistical/test_no_leakage.py`, and the customer record must carry the identical value (POSTMORTEM D7) |
 | `intent_to_churn` | Bernoulli(p), `[MEASURE @ M2]` | Latent desire to cancel, independent of payment failure | **Invented.** Drives the sleeping-dogs population — see §6.3 |
 
 ### 4.2 Failure generation
@@ -116,13 +136,31 @@ Given failure, a `FailureClass` is drawn from a segment-conditional categorical 
 | `ISSUER_DOWN` | Driven by injected downtime, not a fixed share | Razorpay Downtime API semantics |
 | `TECHNICAL_DECLINE` | `[MEASURE @ M2]` | Razorpay error taxonomy |
 | `RISK_DECLINE` | `[MEASURE @ M2]` | Razorpay error taxonomy |
-| `AFA_REQUIRED` | Deterministic: amount over the category threshold | `RBI-EM-03` / `RBI-EM-04` |
+| `AFA_REQUIRED` | 65% of above-ceiling failures | `RBI-EM-03` / `RBI-EM-04` |
 | `MANDATE_REVOKED` | `[MEASURE @ M2]` | Razorpay subscription lifecycle |
 
 **The class labels and their `error_code` / `error_reason` / `error_source` / `error_step`
 payloads are taken from Razorpay's documented error taxonomy.** The *shares* are invented. That
 distinction matters: our detector is being tested against realistic label structure with
 unrealistic frequencies.
+
+**Emission overlaps on purpose.** `antar/simulator/failure_emission.py` maps each true cause to
+a *distribution* over error reasons, and those distributions overlap:
+`gateway_technical_error` is emitted by both `ISSUER_DOWN` and `TECHNICAL_DECLINE`,
+`declined_by_issuer` by both `INSUFFICIENT_FUNDS` and `RISK_DECLINE`, and `payment_failed` by
+everything. **24.9% of generated events carry a code the lookup table cannot resolve.**
+
+This is the anti-circularity guard for the *detection* result, and it matters as much as the
+one for the uplift result. If the generator emitted a unique code per cause, a lookup table
+would score 100% and the classifier, the downtime cross-check, and the changepoint detector
+would all be decoration. `failure_emission.py` was written independently of
+`antar/detect/taxonomy.py`, and `tests/statistical/test_taxonomy_realism.py` asserts the
+overlap survives.
+
+For the same reason `AFA_REQUIRED` is 65% of above-ceiling failures rather than 100%: a
+₹40,000 debit can still bounce for want of funds, and a deterministic rule would have let the
+detector infer the label from the amount alone and post a per-class recall of 1.00 that means
+nothing.
 
 ### 4.3 Amount distribution
 
@@ -165,6 +203,17 @@ P(recover | intervention) = P(self_heal)
 The middle term is the only part an intervention can influence upward. The last term is the harm
 it can cause. **Incremental effect is the difference between this and the same expression with
 `intervention = NONE`** — which is exactly the quantity the uplift estimators must recover.
+
+**Implementation note.** The code uses the exact factorisation
+
+```
+P(recover | intervention) = (1 - P(optout_induced)) x [ P(self_heal)
+                                                     + (1 - P(self_heal)) x P(persuaded) ]
+```
+
+of which the expression above is the first-order expansion. An opt-out revokes the mandate, so
+recovery is conditional on it not happening rather than merely reduced by its probability. The
+two agree to first order and the exact form cannot produce a negative probability.
 
 ### 5.2 Where the treatment effect comes from
 
@@ -226,7 +275,29 @@ scenario-specific tuning. Concretely, the test:
 4. Asserts that no simulator parameter is named or tuned per-scenario to force this
 
 The test lives at `tests/statistical/test_anti_circularity.py` and is deliberately named so a
-reviewer browsing the repo finds it.
+reviewer browsing the repo finds it. The gate itself lives in `antar/eval/claims.py`, because
+§10's consequence for this test is a statement about the *artifacts* rather than the test
+runner: `make evaluate` writes `artifacts/claims.json`, and the README refuses to state a
+claim the verdict does not support.
+
+### 6.3.1 The measured result — read the caveats with the number
+
+| Scenario | Share of customers whose **best available action** still has negative uplift |
+|---|---|
+| `conservative` | **36.0%** |
+| `base` | **5.1%** — clears the 5% bar by 0.13 points. Marginal, and reported as marginal |
+| `aggressive` | **0.07%** — effectively none |
+
+Two things a reader should take from this rather than from the headline:
+
+1. **The finding is regime-dependent.** It dominates under conservative assumptions,
+   is marginal under reference assumptions, and is absent under optimistic ones. The
+   defensible claim is exactly that sentence, and nothing stronger.
+2. **The gate did not pass on the first run.** It failed, four genuine defects were found
+   and fixed, and it then passed. The full before-and-after, including which fixes moved
+   the result toward the finding and which moved it away, is disclosed at the top of
+   `tests/statistical/test_anti_circularity.py` and in `docs/POSTMORTEM.md` D1–D3 and D6.
+   That ordering is uncomfortable and is published rather than buried.
 
 ### 6.4 The honest caveat
 
@@ -451,5 +522,14 @@ commands do not reproduce, it is a defect — report it.
 | Date | Change | Author |
 |---|---|---|
 | 2026-08-22 | Initial card written before implementation. All numeric parameters are placeholders. | — |
+| 2026-08-22 | M2 implementation. Clock path corrected to `antar.clock` (§3.2). Exact factorisation of the response model documented (§5.1). `persuadability` added to the latent table (§4.1). `[MEASURE @ M2]` placeholders in §3.1 filled from `artifacts/calibration.md`. | — |
+| 2026-08-22 | Merchant mix widened from 3 to 4 profiles, adding an education category whose ticket sizes straddle ₹15,000. The original mix put only 0.4% of events above the AFA ceiling, so the `RBI-EM-03`/`-04` discontinuity was never exercised; it is now 15.5%. | — |
+| 2026-08-22 | Downtime frequency raised from 6 to 22 windows per 100 days per segment. At the original rate `ISSUER_DOWN` was 2% of failures, too rare for per-class recall to mean anything and too rare to exercise the "wait, do not spend a notification" decision that L2 exists for. Now 12.8%. Still invented. | — |
+| 2026-08-22 | **POSTMORTEM D1:** persuasion multipliers confined to (0, 1] so `persuadability` is genuinely the ceiling it is documented as. Previously 69% of customers exceeded it and the median dunning SMS persuaded 43% of recipients. | — |
+| 2026-08-22 | **POSTMORTEM D2:** opt-out hazard now divides by a fixed `REFERENCE_OPTOUT_SENSITIVITY` rather than by `scenario.mean_optout_sensitivity`, which had been cancelling the scenario axis exactly and making §8's opt-out row inert. | — |
+| 2026-08-22 | **POSTMORTEM D3:** `prior_notifications` now defaults to 1, not 0. Under RBI-EM-01 every failed debit was already preceded by one notification, so the hazard had been understated on every event. | — |
+| 2026-08-22 | **POSTMORTEM D6:** the anti-circularity scan's "balance peak" was computed as `replace(day=min(salary_day, 28))`, which for customers paid on the 29th or 30th is the trough. Replaced with a search (`CustomerLatents.next_balance_peak`). Moved every scenario's negative-uplift share **down**. | — |
+| 2026-08-22 | **POSTMORTEM D7:** `CustomerContext.tenure_months` now comes from the latents instead of a second independent draw. The two had been uncorrelated, silently turning the only observable driver of persuasion into noise. §4.1 updated to mark tenure observable-by-design. | — |
+| 2026-08-22 | §6.3.1 added: the measured negative-uplift shares, with the marginality of the base result and the fact that the gate initially failed both stated in the card rather than only in the test. | — |
 
 *(Append an entry for every parameter change, and never edit a previous entry.)*
