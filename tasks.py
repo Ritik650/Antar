@@ -106,6 +106,17 @@ def check(args: dict[str, str]) -> int:
     return chain(lint(args), typecheck(args), test(args))
 
 
+@target("gate")
+def gate(args: dict[str, str]) -> int:
+    """Everything that must be green before a commit.
+
+    Exists because a shell chain of the form `pytest -q | tail && git commit` takes
+    its exit status from `tail`, which is always 0 - so a red suite gets committed.
+    That happened once. Use this target instead of composing the pipeline by hand.
+    """
+    return chain(lint(args), test(args))
+
+
 # ---------------------------------------------------------------- pipeline
 
 

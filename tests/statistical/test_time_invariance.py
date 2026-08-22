@@ -67,6 +67,14 @@ def _holdout_assignment() -> Any:
     return tuple(holdout.arm_of(f"cust_{i:06d}").value for i in range(200))
 
 
+def _specification_evaluation() -> float:
+    from antar.eval.specification_curve import PRE_REGISTERED, Specification, evaluate_specification
+
+    return evaluate_specification(
+        Specification(scenario="base", **PRE_REGISTERED), n_customers=200
+    )
+
+
 def _retention_decision() -> Any:
     from antar.eval.retention import decide
 
@@ -84,6 +92,7 @@ INFERENTIAL_ENTRY_POINTS: dict[str, Callable[[], Any]] = {
     "claims.sleeping_dogs_verdict": _sleeping_dogs_verdict,
     "holdout.arm_assignment": _holdout_assignment,
     "retention.decide": _retention_decision,
+    "specification_curve.evaluate_specification": _specification_evaluation,
 }
 
 # Functions in `antar/eval/` that are not inferential, each with a reason. An empty
@@ -121,8 +130,21 @@ EXEMPT: dict[str, str] = {
         "produces a label, not a number."
     ),
     "specification_curve.run_specification_curve": (
-        "Composed entirely of registered entry points evaluated at explicitly supplied "
-        "reference instants; varying the instant is the point of it."
+        "A loop over `evaluate_specification`, which is registered. Varying the "
+        "reference instant is the entire point of this function, so pinning it would "
+        "defeat the artifact."
+    ),
+    "specification_curve.enumerate_specifications": (
+        "Builds the cross product of the specification space. Pure enumeration of "
+        "committed constants; reads no clock and computes no estimate."
+    ),
+    "specification_curve.verdict_line": (
+        "Formats an already-computed curve into the sentence the README uses. No "
+        "computation beyond the summary statistics the curve already holds."
+    ),
+    "specification_curve.write_curve": (
+        "Serialises an already-computed curve to disk. The inference happened in "
+        "`evaluate_specification`, which is registered."
     ),
 }
 
