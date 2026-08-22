@@ -65,11 +65,40 @@ def evaluate_detection(batch, config) -> dict:
 
     from collections import Counter
 
+    from antar.simulator.failure_emission import UNMAPPED_REASONS
+
+    # What happens to codes the taxonomy table has never seen. Reported separately
+    # because the headline UNKNOWN rate is otherwise a property of the generator
+    # rather than evidence of coverage - see the caveat below.
+    unmapped = [
+        (d, t)
+        for d, t, e in zip(diagnoses, truth, control, strict=True)
+        if e.error_reason in UNMAPPED_REASONS
+    ]
+    unmapped_correct = sum(1 for d, t in unmapped if d.failure_class == t)
+    unmapped_abstained = sum(1 for d, _ in unmapped if d.failure_class is FailureClass.UNKNOWN)
+
     return {
         "scenario": batch.scenario.name,
         "seed": batch.seed,
         "evaluated_on": "control arm (never used for fitting)",
         "n_events": len(diagnoses),
+        "unknown_rate_caveat": (
+            "The UNKNOWN rate is a property of the generator as much as of the "
+            "detector. The simulator draws error codes from the documented Razorpay "
+            "taxonomy plus a deliberately unmapped minority "
+            f"({len(unmapped)} of {len(diagnoses)} events here); a real error stream "
+            "contains far more vendor variants and post-dated codes. Read this figure "
+            "as a lower bound on the UNKNOWN rate Antar would see in production, not "
+            "as evidence that the mapping is complete."
+        ),
+        "unmapped_codes": {
+            "events": len(unmapped),
+            "share": round(len(unmapped) / max(len(diagnoses), 1), 4),
+            "abstained_to_unknown": unmapped_abstained,
+            "resolved_correctly": unmapped_correct,
+            "resolved_incorrectly": len(unmapped) - unmapped_correct - unmapped_abstained,
+        },
         "unknown_rate": round(
             sum(1 for p in predicted if p is FailureClass.UNKNOWN) / max(len(predicted), 1), 4
         ),
@@ -294,7 +323,17 @@ def main() -> int:
 
     d = report["detection"]
     print(f"\nDetection on {d['n_events']} control-arm events ({d['evaluated_on']})")
-    print(f"  UNKNOWN rate            : {d['unknown_rate']:.1%}")
+    u = d["unmapped_codes"]
+    print(
+        f"  UNKNOWN rate            : {d['unknown_rate']:.1%}  "
+        f"(generator artifact - see unknown_rate_caveat)"
+    )
+    print(
+        f"  unmapped codes          : {u['events']} events "
+        f"({u['share']:.1%}); {u['abstained_to_unknown']} abstained, "
+        f"{u['resolved_correctly']} resolved correctly, "
+        f"{u['resolved_incorrectly']} wrong"
+    )
     print(f"  accuracy when resolved  : {d['accuracy_when_resolved']:.1%}")
     print(f"  wrong-action cost       : Rs {d['total_wrong_action_cost_rupees']:,.0f}")
     print(f"  decided by              : {d['source_mix']}")

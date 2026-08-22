@@ -25,7 +25,20 @@ from __future__ import annotations
 
 import numpy as np
 
-from antar.signals.razorpay_errors import BY_REASON, ErrorCode
+from antar.signals.razorpay_errors import (
+    BAD_REQUEST,
+    BY_REASON,
+    GATEWAY_ERROR,
+    SERVER_ERROR,
+    SOURCE_BUSINESS,
+    SOURCE_GATEWAY,
+    SOURCE_INTERNAL,
+    SOURCE_NETWORK,
+    STEP_AUTHORIZATION,
+    STEP_INITIATION,
+    STEP_RESPONSE,
+    ErrorCode,
+)
 from antar.signals.schemas import FailureClass
 
 EMISSION: dict[FailureClass, dict[str, float]] = {
@@ -107,8 +120,56 @@ _WEIGHTS: dict[FailureClass, np.ndarray] = {
 }
 
 
-def emit(failure_class: FailureClass, rng: np.random.Generator) -> ErrorCode:
-    """Draw the error payload a failure of this class surfaces as."""
+# ---------------------------------------------------------------------------
+# Codes outside the documented taxonomy.
+#
+# Without these, the taxonomy mapping in antar/detect/taxonomy.py is exhaustive **by
+# construction**: the generator only ever emits reasons the table already knows, so the
+# UNKNOWN fallback never executes and the detector reports a 0% UNKNOWN rate that is a
+# property of the simulator rather than evidence of coverage.
+#
+# Real error streams are not like that. They contain vendor-specific variants, codes a
+# PSP introduced after the mapping was written, and pass-through strings from acquirers
+# nobody documented. So a small share of failures emit something the table has never
+# seen, the fallback path runs, and the UNKNOWN rate becomes a measurement.
+#
+# These strings are deliberately *plausible but undocumented* - shaped like real codes
+# rather than obvious noise, because a fallback that only ever handles `xxx` is not
+# being tested. `test_taxonomy_realism` knows to exclude them.
+# ---------------------------------------------------------------------------
+UNMAPPED_SHARE = 0.03
+"""Share of failures emitting a reason outside the documented taxonomy. Invented."""
+
+UNMAPPED_CODES: tuple[ErrorCode, ...] = (
+    ErrorCode(GATEWAY_ERROR, "acquirer_declined", SOURCE_GATEWAY, STEP_AUTHORIZATION,
+              "The acquiring bank declined the transaction."),
+    ErrorCode(BAD_REQUEST, "mandate_amount_mismatch", SOURCE_BUSINESS, STEP_INITIATION,
+              "The debit amount does not match the registered mandate."),
+    ErrorCode(GATEWAY_ERROR, "upi_psp_unavailable", SOURCE_NETWORK, STEP_AUTHORIZATION,
+              "The UPI PSP did not respond."),
+    ErrorCode(SERVER_ERROR, "unexpected_gateway_response", SOURCE_INTERNAL, STEP_RESPONSE,
+              "The gateway returned a response we could not interpret."),
+    ErrorCode(BAD_REQUEST, "npci_error_u69", SOURCE_NETWORK, STEP_AUTHORIZATION,
+              "NPCI returned error U69."),
+)
+
+UNMAPPED_REASONS: frozenset[str] = frozenset(e.reason for e in UNMAPPED_CODES)
+
+
+def emit(
+    failure_class: FailureClass,
+    rng: np.random.Generator,
+    *,
+    unmapped_share: float = UNMAPPED_SHARE,
+) -> ErrorCode:
+    """Draw the error payload a failure of this class surfaces as.
+
+    With probability `unmapped_share`, emits a plausible code the taxonomy table has
+    never seen, so that the detector's UNKNOWN path is exercised rather than dead.
+    """
+    if unmapped_share > 0 and rng.random() < unmapped_share:
+        return UNMAPPED_CODES[int(rng.integers(0, len(UNMAPPED_CODES)))]
+
     table = _REASONS.get(failure_class)
     if table is None:
         return BY_REASON["payment_failed"]

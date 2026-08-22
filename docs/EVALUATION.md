@@ -268,6 +268,45 @@ Five seeds per scenario. Report the across-seed standard deviation of the primar
 seed variance is comparable to the treatment effect, the effect is not established and must be
 described that way.
 
+### 9.4 The phase diagram — pre-registered 22 Aug 2026
+
+**The headline artifact, specified before it is computed.**
+
+A point estimate from a simulator is worth very little: the magnitude is a property of
+parameters we chose. A *boundary* derived from a simulator is worth considerably more,
+because a boundary is a statement about mechanism, and mechanism is the part that
+survives the parameters being wrong.
+
+So the primary robustness artifact is not a sensitivity table but a map. Sweep the two
+parameters that drive the entire result:
+
+| Axis | Parameter | Range | Points |
+|---|---|---|---|
+| x | `mean_self_heal` (`p_self_heal_base`) | 0.10 → 0.60 | 11 |
+| y | `mean_optout_sensitivity` | 0.05 → 0.40 | 8 |
+
+At each cell, run the full pipeline and compute **net incremental rupees per 1,000
+at-risk cycles for P3 (Antar) minus P2 (propensity targeting)**. Plot the iso-line
+where that difference crosses zero.
+
+The claim this supports, and the only claim it supports:
+
+> Uplift-based allocation beats competent propensity targeting in *this* region of
+> parameter space. Here is the boundary. A merchant does not know which side of it
+> they are on without measuring their own self-heal and opt-out rates — and here is
+> what they would have to measure.
+
+Fixed now, before any cell is computed:
+
+- Both axes are swept **independently of the scenario definitions**; `conservative`,
+  `base`, and `aggressive` are plotted as three points *on* the map, not used to
+  define it.
+- Every cell uses the same seed set and the same measurement window as §4.
+- Cells whose difference has a bootstrap CI straddling zero are drawn as **indifferent**
+  rather than assigned to a side. The indifference band is part of the finding.
+- The map is reported whatever shape it comes out. If `base` lands inside the
+  indifference band, that is the result and the README says so.
+
 ### 9.3 Specification robustness
 
 Vary one at a time, report the effect on the primary metric:
@@ -331,6 +370,60 @@ is the direct answer to that sentence. Write it before the results section, not 
 
 ---
 
+## 12.2 Component retention rule — pre-registered 22 Aug 2026, before M6 exists
+
+**This section is a commitment made before the measurement that decides it.** It is
+committed in git ahead of `antar/decide/allocator.py`, so the ordering is checkable.
+
+`docs/LIMITATIONS.md` L7 records that a leave-one-out ablation of the detection layer
+currently condemns two components: removing the Downtime API cross-check *lowers*
+wrong-action cost from ₹98,837 to ₹64,410, and removing the EWMA/CUSUM changepoint
+detector lowers it to ₹76,337.
+
+The stated reason for not acting on that yet is that the ablation scores L2 in
+isolation, and the value of knowing a segment is down is an avoided notification and
+an avoided opt-out hazard — both of which live in the L3 objective, which does not
+exist until M6. That reasoning is defensible. It is also exactly what motivated
+reasoning sounds like, so it does not get to stand without a commitment attached.
+
+### The rule
+
+> After M6, the L2 leave-one-out ablation is re-run **with the full L3 objective**,
+> scoring net incremental rupees rather than wrong-action cost in isolation. For each
+> of the Downtime API cross-check and the EWMA/CUSUM changepoint detector: if removing
+> it does not *reduce* net incremental rupees, by a margin whose bootstrap 95% CI
+> excludes zero, **the component is deleted from the system** and the deletion is
+> reported in the README, the postmortem, and the video.
+
+Specifics fixed now so they cannot be renegotiated later:
+
+| Parameter | Value |
+|---|---|
+| Metric | Net incremental rupees per 1,000 at-risk cycles (§4.2) |
+| Arm | Control holdout, unblinded once at M8 |
+| Scenarios | All three; a component must justify itself in **base**, and ties go to deletion |
+| Uncertainty | Bootstrap 95% CI, 10,000 resamples, clustered on customer |
+| Decision | Keep only if the CI on (with − without) excludes zero **and** is positive |
+| Ambiguity | A CI straddling zero means "not shown to earn its place" → **delete** |
+
+The asymmetry is deliberate. The null is that a component does not belong; it has to
+earn its way in. A component kept on a CI that straddles zero is a component kept on
+the author's affection for it.
+
+### What deletion means
+
+Removal from the runtime path, not `git rm` of the history. The module and its tests
+stay in the repo, disconnected, with a comment pointing at the ablation that removed
+it, so the reasoning is inspectable. What must not survive is a README that credits a
+component the measurement does not support.
+
+**Implemented by** `antar/eval/retention.py` and
+`tests/statistical/test_component_retention.py`, both of which exist before the
+allocator does and both of which fail loudly if `make evaluate` has not produced a
+verdict.
+
+---
+
 ## 13. Deviations log
 
 Append-only. Every departure from this protocol, with timestamp and reason. Never edit a prior
@@ -338,7 +431,7 @@ entry.
 
 | Date | Section | Deviation | Reason |
 |---|---|---|---|
-| — | — | *(none yet)* | — |
+| 2026-08-22 | §11, SIMULATOR_CARD §6.3 | The pre-registered sleeping-dogs test is a **binary** gate: negative-uplift mass ≥ 5% in ≥ 2 of 3 scenarios. It was met (conservative 36.0%, base 5.1%, aggressive 0.07%). We are **additionally** reporting the continuous result — the negative-uplift share as a function of `p_self_heal_base` and `optout_sensitivity` across a parameter grid — and leading with the conditional claim rather than the threshold crossing. | The binary framing was the wrong instrument. It compresses a continuous, mechanism-driven finding into a pass/fail and leaves the headline resting on a 0.13-percentage-point margin in the base scenario, which invites "so, noise" and deserves it. The bar is **not** retired: it was pre-registered, it was met, and it is still reported. The addition is strictly more information, and it moves the claim from "uplift targeting wins" to "uplift targeting wins in this region of parameter space, and here is the boundary" — which is a statement about mechanism rather than magnitude, and is the honest thing a simulator can support. See §9.4. |
 
 ---
 

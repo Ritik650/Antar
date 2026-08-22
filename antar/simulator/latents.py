@@ -14,6 +14,7 @@ records which are anchored to something external (very few) and which are invent
 
 from __future__ import annotations
 
+import hashlib
 import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -39,6 +40,30 @@ RESPONSE_CHANNELS: tuple[Channel, ...] = (
 # Dirichlet concentration. Low values give customers a sharply preferred channel,
 # which is most of what makes channel choice worth optimising.
 CHANNEL_ALPHA: tuple[float, ...] = (1.4, 1.8, 0.7, 0.9)
+
+
+CANARY_PREFIX = "ANTARCANARY"
+"""Marker embedded in every latent bundle so that leakage can be detected in *data*.
+
+The static tests in `tests/statistical/test_no_leakage.py` check the import graph and
+the field names. Both would have passed cleanly while `antar/detect/pipeline.py` read
+`batch.true_failure_class` to build the mandate FSM - the leak that produced a reported
+`MANDATE_REVOKED` recall of 1.000 (docs/POSTMORTEM.md D10). It travelled by argument,
+not by import, and no static check could see it.
+
+A canary is the general defence against that class. Each customer's latent bundle
+carries a high-entropy value derived from their id, and anything that claims to be a
+feature vector is asserted free of it. A component that reaches into the answer key and
+copies a value through will carry the marker with it.
+"""
+
+
+def canary_for(customer_id: str) -> str:
+    """A per-customer signature that cannot plausibly arise by coincidence."""
+    digest = hashlib.blake2b(
+        f"{CANARY_PREFIX}\x1f{customer_id}".encode(), digest_size=10
+    ).hexdigest()
+    return f"{CANARY_PREFIX}_{digest}"
 
 
 @dataclass(frozen=True)
@@ -70,6 +95,11 @@ class CustomerLatents:
     intent_to_churn: bool
     """Latent desire to cancel, independent of payment failure. Drives the
     sleeping-dogs population emergently - there is no sleeping-dog flag."""
+
+    canary: str = ""
+    """Leak detector. See `canary_for`. Carries no information about the customer
+    beyond their id, so its presence in a feature vector proves a data-flow leak
+    without itself being one."""
 
     # ------------------------------------------------------------------ model
 
@@ -137,6 +167,7 @@ class CustomerLatents:
             "price_sensitivity": self.price_sensitivity,
             "tenure_months": self.tenure_months,
             "intent_to_churn": self.intent_to_churn,
+            "canary": self.canary,
             **{f"channel_response_{c.value}": v for c, v in self.channel_response.items()},
         }
 
@@ -170,6 +201,7 @@ def draw_latents(customer_id: str, scenario: Scenario, seed: int) -> CustomerLat
         price_sensitivity=float(np.clip(rng.lognormal(mean=0.0, sigma=0.6), 0.15, 4.0)),
         tenure_months=int(np.clip(rng.geometric(p=0.06), 1, 96)),
         intent_to_churn=bool(rng.random() < scenario.intent_to_churn_rate),
+        canary=canary_for(customer_id),
     )
 
 
@@ -194,6 +226,7 @@ def _constant_effect_latents(
         price_sensitivity=1.0,
         tenure_months=12,
         intent_to_churn=False,
+        canary=canary_for(customer_id),
     )
 
 

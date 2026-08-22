@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import ast
 import importlib
+import json
 import pkgutil
 from pathlib import Path
 
@@ -190,6 +191,103 @@ def test_observable_fields_agree_with_the_truth():
             )
             checked += 1
     assert checked > 0
+
+
+# ---------------------------------------------------------------------------
+# Canary checks: leakage that travels by DATA rather than by import.
+#
+# The static checks above would all have passed while `antar/detect/pipeline.py`
+# read `batch.true_failure_class` to build the mandate FSM - the leak that reported a
+# MANDATE_REVOKED recall of 1.000 (POSTMORTEM D10). It arrived as a function argument,
+# so there was no import to find and no field name to match.
+#
+# Finding the specific instance is a fix. Building the general defence is the lesson.
+# ---------------------------------------------------------------------------
+
+
+def assert_no_canary(payload: object, *, context: str) -> None:
+    """Fail if any answer-key marker is reachable from `payload`.
+
+    The single assertion every feature builder and every model input must pass. Kept
+    here rather than inside `antar/` on purpose: the production code must not import
+    the thing that knows what the answer key looks like.
+    """
+    from antar.simulator.latents import CANARY_PREFIX
+
+    rendered = json.dumps(payload, default=str)
+    assert CANARY_PREFIX not in rendered, (
+        f"answer-key canary reachable from {context}. Something copied a value out of "
+        "CustomerLatents into data a production layer consumes. This is the D10 class "
+        "of bug: it travels by data, not by import, so no static check will find it."
+    )
+
+
+def test_the_canary_is_present_in_the_latents_at_all():
+    """A leak detector that is not actually planted detects nothing."""
+    from antar.simulator.latents import CANARY_PREFIX, canary_for
+
+    store = LatentStore(BASE, 20260822)
+    latents = store.get("cust_000042")
+    assert latents.canary == canary_for("cust_000042")
+    assert CANARY_PREFIX in latents.canary
+    assert CANARY_PREFIX in json.dumps(latents.as_row(), default=str)
+
+
+def test_the_canary_is_per_customer():
+    """A constant marker would not distinguish a leak from a coincidence."""
+    from antar.simulator.latents import canary_for
+
+    assert canary_for("cust_000001") != canary_for("cust_000002")
+
+
+def test_no_canary_reaches_the_event_stream():
+    from tests.statistical.helpers import batch as cached_batch
+
+    batch = cached_batch()
+    for event in batch.events[:300]:
+        assert_no_canary(event.model_dump(mode="json"), context=f"AtRiskEvent {event.event_id}")
+
+
+def test_no_canary_reaches_the_customer_context():
+    from tests.statistical.helpers import batch as cached_batch
+
+    batch = cached_batch()
+    for customer_id, context in list(batch.customers.items())[:300]:
+        assert_no_canary(context.model_dump(mode="json"), context=f"CustomerContext {customer_id}")
+
+
+def test_no_canary_reaches_a_diagnosis():
+    """L2's output is L3's input, so a marker here would reach the uplift models."""
+    from antar.detect.pipeline import run_detection
+    from tests.statistical.helpers import batch as cached_batch
+
+    batch = cached_batch()
+    result = run_detection(batch, batch.events[:150])
+    for diagnosis in result.diagnoses:
+        assert_no_canary(diagnosis.model_dump(mode="json"), context=f"Diagnosis {diagnosis.event_id}")
+
+
+def test_no_canary_reaches_the_detection_feature_frame():
+    """The frame handed to LightGBM. The exact place D10's cousin would land."""
+    from antar.detect.classifier import build_frame
+    from tests.statistical.helpers import batch as cached_batch
+
+    batch = cached_batch()
+    frame = build_frame(batch.events[:200])
+    assert_no_canary(frame.astype(str).to_dict(orient="records"), context="detection feature frame")
+
+
+def test_the_canary_check_actually_catches_a_leak():
+    """A guard that cannot fail is not a guard.
+
+    Simulates the D10 mistake - a production payload carrying a value copied out of
+    the answer key - and asserts the check fires.
+    """
+    from antar.simulator.latents import canary_for
+
+    leaked = {"event_id": "evt_1", "amount_paise": 49900, "notes": canary_for("cust_000001")}
+    with pytest.raises(AssertionError, match="canary reachable"):
+        assert_no_canary(leaked, context="deliberately leaked payload")
 
 
 def test_every_production_module_actually_imports():

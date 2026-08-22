@@ -25,9 +25,13 @@ pytestmark = pytest.mark.statistical
 
 @pytest.mark.parametrize("scenario", REPORTED)
 def test_every_generated_error_code_is_documented(scenario):
+    """...except the deliberately unmapped minority, which exists to exercise the
+    detector's UNKNOWN path. See `failure_emission.UNMAPPED_CODES`."""
     batch = cached_batch(scenario)
     assert batch.events, "empty batch"
     for event in batch.events:
+        if event.error_reason in failure_emission.UNMAPPED_REASONS:
+            continue
         assert event.error_reason in rz.DOCUMENTED_REASONS, (
             f"{event.event_id} emitted undocumented reason {event.error_reason!r}"
         )
@@ -36,10 +40,31 @@ def test_every_generated_error_code_is_documented(scenario):
         assert event.error_step in rz.DOCUMENTED_STEPS
 
 
+def test_a_small_share_of_events_carry_an_unmapped_code():
+    """The UNKNOWN fallback must actually execute.
+
+    Without this the taxonomy is exhaustive by construction and a reported 0% UNKNOWN
+    rate says nothing about coverage - it says the generator only ever emitted codes
+    the table already knew.
+    """
+    batch = cached_batch()
+    unmapped = [e for e in batch.events if e.error_reason in failure_emission.UNMAPPED_REASONS]
+    share = len(unmapped) / len(batch.events)
+    assert 0.01 < share < 0.08, f"unmapped share {share:.3%} outside the intended band"
+    assert {e.error_reason for e in unmapped}, "no unmapped codes reached the stream"
+
+
+def test_unmapped_codes_are_not_in_the_documented_taxonomy():
+    """If one of these were accidentally documented, it would stop being a probe."""
+    assert not (failure_emission.UNMAPPED_REASONS & rz.DOCUMENTED_REASONS)
+
+
 def test_the_error_quadruple_is_internally_consistent():
     """code / reason / source / step come from one catalogue row, not four draws."""
     batch = cached_batch()
     for event in batch.events:
+        if event.error_reason in failure_emission.UNMAPPED_REASONS:
+            continue
         entry = rz.BY_REASON[event.error_reason]
         assert (event.error_code, event.error_source, event.error_step) == (
             entry.code,
