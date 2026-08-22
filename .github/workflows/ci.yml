@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: System dependencies
+        run: sudo apt-get update && sudo apt-get install -y coinor-cbc
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint
+        run: python tasks.py lint
+
+      - name: Typecheck
+        run: python tasks.py typecheck
+
+      - name: Secret scan
+        run: python -m scripts.secret_scan
+
+      - name: Regulatory register is in sync with the code
+        run: python -m scripts.make_register --check
+
+      - name: Test with coverage gate
+        run: python tasks.py coverage
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: artifacts/coverage.xml
+          if-no-files-found: ignore
+
+  image:
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t antar:ci .

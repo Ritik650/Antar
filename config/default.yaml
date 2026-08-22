@@ -1,0 +1,191 @@
+# Antar default configuration.
+#
+# Everything tunable lives here. Override with config/local.yaml (git-ignored) or
+# environment variables prefixed ANTAR__ (double underscore separates nesting,
+# e.g. ANTAR__BUDGETS__CONTACTS_PER_30D=5).
+#
+# Secrets NEVER live here. See .env.example.
+
+run:
+  seed: 20260822
+  scenario: base
+  # Single authoritative timezone for every wall-clock constraint (TRAI-01 windows).
+  timezone: Asia/Kolkata
+
+# ---------------------------------------------------------------------------
+# Simulator (PLAN.md M2, docs/SIMULATOR_CARD.md section 4)
+# ---------------------------------------------------------------------------
+simulator:
+  n_customers: 2000
+  cycles_per_mandate: 4
+  horizon_days: 120
+  clock_resolution_minutes: 1
+  start_date: "2026-04-01"
+  n_issuers: 4
+  methods: [UPI_AUTOPAY, CARD, ENACH]
+  checkout_abandon_events: 1500
+  # Fraction of at-risk events that receive a uniformly random feasible action.
+  # SIMULATOR_CARD section 7. Not optional; cannot be retrofitted.
+  exploration_epsilon: 0.20
+
+  merchant_mix:
+    # merchant_id: [category, share]
+    mer_antar_ott: [OTT_SUBSCRIPTION, 0.60]
+    mer_antar_ins: [INSURANCE, 0.25]
+    mer_antar_mf: [MUTUAL_FUND, 0.15]
+
+  amount:
+    # LogNormal on rupees, truncated. Tuned so a meaningful fraction crosses
+    # the 15,000 AFA boundary (SIMULATOR_CARD 4.3).
+    general: { mu: 6.6, sigma: 0.85, min_rupees: 99, max_rupees: 40000 }
+    high_ceiling: { mu: 8.6, sigma: 1.05, min_rupees: 500, max_rupees: 150000 }
+
+  segment_health:
+    # Two-state Markov chain per issuer x method (SIMULATOR_CARD 4.4).
+    p_healthy_to_degraded: 0.010
+    p_degraded_to_healthy: 0.180
+    degraded_fail_multiplier: 2.6
+
+  downtime:
+    # Injected windows, shaped like the Razorpay Downtime API entity.
+    windows_per_100_days: 6.0
+    duration_hours: { low: 1.5, medium: 3.0, high: 5.0 }
+    severity_mix: { low: 0.5, medium: 0.3, high: 0.2 }
+    fail_probability: { low: 0.35, medium: 0.70, high: 0.97 }
+
+  costs:
+    # Cost to the merchant of sending on each channel, in paise.
+    channel_paise:
+      SMS: 25
+      WHATSAPP: 75
+      VOICE: 400
+      EMAIL: 5
+      SILENT_RETRY: 0
+    # RBI-EM-05 post-transaction notification: fixed cost per successful debit.
+    post_debit_notification_paise: 25
+
+# ---------------------------------------------------------------------------
+# Detection (PLAN.md M3)
+# ---------------------------------------------------------------------------
+detect:
+  changepoint:
+    ewma_alpha: 0.20
+    # CUSUM in units of the segment's baseline standard deviation.
+    cusum_k: 0.5
+    cusum_h: 4.0
+    min_observations: 20
+    degrading_threshold: 2.0
+    degraded_threshold: 4.0
+  classifier:
+    n_estimators: 200
+    learning_rate: 0.08
+    num_leaves: 31
+    min_child_samples: 40
+    # Below this max-class probability the classifier abstains to UNKNOWN.
+    abstain_below: 0.45
+  downtime_overlap_tolerance_minutes: 30
+
+# ---------------------------------------------------------------------------
+# Policy and regulation (PLAN.md M4, section 3)
+# ---------------------------------------------------------------------------
+policy:
+  # RBI-EM-03 / RBI-EM-04. Category -> AFA-free ceiling in paise.
+  afa_free_ceiling_paise:
+    DEFAULT: 1500000        # Rs 15,000
+    INSURANCE: 10000000     # Rs 1,00,000
+    MUTUAL_FUND: 10000000
+    CREDIT_CARD_BILL: 10000000
+  # RBI-EM-01
+  pre_debit_notification_lead_hours: 24
+  # TRAI-01
+  contact_window: { start_hour: 9, end_hour: 21 }
+  # TRAI-04: explicit consent validity window.
+  explicit_consent_validity_days: 7
+
+budgets:
+  contacts_per_30d: 3           # C-BUDGET
+  cooldown_hours: 72            # C-COOLDOWN
+  max_attempts_per_event: 4
+  margin_budget_fraction: 0.02  # C-MARGIN: discount spend <= 2% of at-risk value
+
+gate:
+  per_action_cap_paise: 20000000      # Rs 2,00,000
+  per_day_cap_paise: 500000000        # Rs 50,00,000
+  per_merchant_total_cap_paise: 2000000000
+  human_approval_threshold_paise: 5000000   # Rs 50,000
+  dry_run: true
+
+# ---------------------------------------------------------------------------
+# Decision layer (PLAN.md M5, M6)
+# ---------------------------------------------------------------------------
+decide:
+  # Value assigned to an induced opt-out: the customer lifetime value we lose.
+  # Expressed as a multiple of the cycle amount.
+  optout_loss_multiplier: 6.0
+  min_uplift_to_act: 0.0
+  # C-STOP: abstain when the uplift CI upper bound is below this.
+  stop_if_ci_upper_below: 0.0
+  allocator:
+    solver: CBC
+    time_limit_seconds: 60
+    # Fallback when the LP is infeasible or the solver is unavailable.
+    greedy_fallback: true
+  uplift:
+    # Pre-specified hyperparameter grid, committed BEFORE the bake-off.
+    # docs/EVALUATION.md section 6.2 step 2.
+    common:
+      n_estimators: [200]
+      max_depth: [4, 6]
+      learning_rate: [0.05]
+      min_samples_leaf: [40]
+    causal_forest:
+      n_estimators: [500]
+      min_samples_leaf: [30]
+      max_depth: [None]
+    train_validation_split: 0.70
+    bootstrap_resamples: 400
+
+# ---------------------------------------------------------------------------
+# Act layer (PLAN.md M7)
+# ---------------------------------------------------------------------------
+act:
+  llm:
+    model: claude-sonnet-4-5
+    max_tokens: 700
+    temperature: 0.2
+    timeout_seconds: 20
+    repair_attempts: 1
+    # When false (default offline), the deterministic template filler is used
+    # and every draft is flagged fallback_used=true in the trace.
+    enabled: false
+  contamination:
+    # TRAI-03: promotional content inside a transactional/service message
+    # reclassifies the whole message.
+    classifier_threshold: 0.50
+
+# ---------------------------------------------------------------------------
+# Evaluation (docs/EVALUATION.md) - PRE-REGISTERED, do not tune after M5
+# ---------------------------------------------------------------------------
+eval:
+  control_share: 0.20
+  experiment_salt: "antar-2026-08-22"
+  measurement_window_days: 30
+  bootstrap_resamples: 10000
+  bootstrap_cluster: customer_id
+  seeds: [20260822, 20260823, 20260824, 20260825, 20260826]
+  scenarios: [conservative, base, aggressive]
+  robustness:
+    measurement_window_days: [15, 30, 60]
+    control_share: [0.10, 0.20, 0.30]
+    exploration_epsilon: [0.10, 0.20, 0.30]
+  detection_recall_floor:
+    ISSUER_DOWN: 0.70
+
+# ---------------------------------------------------------------------------
+# Storage
+# ---------------------------------------------------------------------------
+storage:
+  # Default is a local SQLite file so `make evaluate` runs from a clean checkout
+  # with no Docker. docker-compose overrides this with Postgres.
+  database_url: "sqlite:///artifacts/antar.db"
+  artifacts_dir: "artifacts"

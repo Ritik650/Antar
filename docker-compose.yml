@@ -1,0 +1,77 @@
+# PLAN.md M0 acceptance: `docker compose up` from a clean clone reaches a healthy
+# /healthz in under 90 seconds, and is the only setup step.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: antar
+      POSTGRES_PASSWORD: antar
+      POSTGRES_DB: antar
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U antar -d antar"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    command: uvicorn antar.api:app --host 0.0.0.0 --port 8000
+    environment: &antar_env
+      ANTAR__STORAGE__DATABASE_URL: postgresql+psycopg://antar:antar@postgres:5432/antar
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports: ["8000:8000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz').status==200 else 1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  worker:
+    build: .
+    command: celery -A antar.worker.celery_app worker --loglevel=info --pool=solo
+    environment: *antar_env
+    depends_on:
+      redis: { condition: service_healthy }
+      postgres: { condition: service_healthy }
+
+  beat:
+    build: .
+    command: celery -A antar.worker.celery_app beat --loglevel=info
+    environment: *antar_env
+    depends_on:
+      redis: { condition: service_healthy }
+
+  console:
+    build: .
+    command: streamlit run antar/console/app.py --server.port 8501 --server.address 0.0.0.0
+    environment: *antar_env
+    ports: ["8501:8501"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    volumes:
+      - ./artifacts:/app/artifacts
+
+volumes:
+  pgdata:

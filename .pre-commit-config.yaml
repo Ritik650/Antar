@@ -1,0 +1,33 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: secret-scan
+        name: reject committed Razorpay/Anthropic keys
+        entry: python -m scripts.secret_scan
+        language: system
+        pass_filenames: false
+
+      - id: regulatory-register
+        name: docs/REGULATORY_REGISTER.md matches regulations.py
+        entry: python -m scripts.make_register --check
+        language: system
+        pass_filenames: false
+        files: ^(antar/policy/regulations\.py|docs/REGULATORY_REGISTER\.md)$
