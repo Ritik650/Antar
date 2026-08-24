@@ -283,3 +283,38 @@ Two honest consequences:
   many may fire per hour). A merchant whose outbound capacity is per-hour would lose
   roughly a eleventh of their daily throughput to Note-1; we do not model per-hour
   throughput, so we cannot price that, and we do not claim to.
+
+---
+
+## L15 · The contamination classifier is thin; the rules do the work
+
+`contamination.py` is described as a hybrid — deterministic rules for the obvious,
+a classifier for phrasings nobody wrote a rule for. Measured against the seven positive
+cases in `tests/adversarial/test_contamination.py`:
+
+| Half | Blocks |
+|---|---|
+| Deterministic rules | **7 of 7** |
+| `LexicalClassifier` score alone, at the 0.50 threshold | **3 of 7** |
+
+On the five lawful negative cases the classifier scores 0.00 on all five, so it costs
+nothing in false positives — but it is not currently carrying the half of the load the
+design attributes to it.
+
+The reason is structural. `LexicalClassifier` keys on promotional-register vocabulary,
+which makes it a keyword list wearing a different hat: it inherits the same blind spot as
+the rules it is meant to back up. D19 is the demonstration — "twenty percent off annual
+plans" scored **0.00**, missing for exactly the reason the regex missed.
+
+**What we claim, therefore.** The detector blocks every case in the suite, and the
+deterministic half is why. The classifier is a genuine second path — it blocks
+`"an exclusive premium deal reward"`, which trips no rule — but it is a stand-in for a
+learned model, not a learned model, and it should be read as defence-in-depth with an
+untested depth rather than as an independent detector. A real classifier is future work;
+substituting one is a drop-in through the `classifier` parameter, which is why the
+seam exists.
+
+**Not fixed by widening the lexicon.** Adding "annual plan" and its neighbours would
+make the table look better and change nothing about the argument, because the next
+evasion would be phrased in words that are not in the wider list either. The honest
+statement is that we have one strong path and one weak one, not two strong ones.

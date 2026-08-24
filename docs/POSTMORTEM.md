@@ -614,3 +614,77 @@ but was not the panel we said it was". Both would have gone into the README as f
 behaviour must be checked to actually restrict it. A cheap assertion — that the two
 panels differ at all — would have caught this immediately, and one now exists in
 `tests/unit/test_phase_diagram.py`.
+
+---
+
+## D19 · The contamination rule matched only the digits
+
+**Found by:** the adversarial suite, on its first run against the finished detector.
+**Severity:** high — an unlawful send would have gone out.
+**Status:** fixed.
+
+**Symptom.** `tests/adversarial/test_contamination.py` includes a case written as prose
+rather than as a template:
+
+> "Your payment failed. We also have twenty percent off annual plans."
+
+It was not blocked. `DISCOUNT_OFFER`, the rule whose entire job is to catch a percentage
+discount, scored it 0.0 and the message passed as TRANSACTIONAL.
+
+**Root cause.** The pattern was
+
+```python
+r"\b\d{1,3}\s?(%|per\s?cent|percent)\s*(off|discount|cashback|back)\b"
+```
+
+`\d{1,3}` matches `20`. It does not match `twenty`. Every example I had written while
+building the rule — every one — used digits, because I was thinking about the *rendered
+template*, where an amount arrives as a formatted number. But the contamination detector
+does not inspect templates. It inspects **LLM prose**, and a model writing a sentence
+writes "twenty percent" far more often than "20 percent". The rule was checking the case
+least likely to occur in the only input it ever sees.
+
+**Fix.** A `NUMBER_WORD` alternation folded into a shared `QUANTITY` group used by both
+`DISCOUNT_OFFER` and `MONEY_OFF`, plus a new `OFF_A_PLAN` rule that matches
+`off our|your|the|annual|premium…` with no quantity at all. The second rule is the
+important half: it catches the construction when the quantity is phrased in a way no
+quantity pattern anticipated, which is the failure mode a quantity pattern always
+eventually has. Both rules now fire on the original case, and the test asserts
+`"DISCOUNT_OFFER" in triggered_rules` rather than equality — overlapping coverage is the
+design, not a redundancy to trim.
+
+**Why this one matters more than its size.** Every other defect in this log was caught by
+a test I wrote against my own implementation. This one was caught by a test written
+against the *specification* — PLAN.md §9.4 asks for "dunning message with an upsell
+appended", and I wrote the upsell the way a language model would, not the way my regex
+would. The gap between those two sentences is the whole argument for adversarial testing
+as a separate discipline: a suite written by the same mind that wrote the code, in the
+same session, still tests the author's assumptions unless it is deliberately written
+from the attacker's side.
+
+**A second finding, and a near-miss of my own.** My first draft of this entry said the
+classifier had scored the sentence 0.31 — "below threshold, but moving in the right
+direction" — as evidence that the hybrid design was sound and only one half had a bug.
+I had not measured it. When I did, the classifier scored it **0.0**. `LexicalClassifier`
+keys on promotional-register vocabulary, and "twenty percent off annual plans" contains
+none of its terms: not `discount`, not `offer`, not `deal`. **Both halves of the hybrid
+missed this sentence completely.**
+
+That is a materially different finding from the one I nearly wrote down. The hybrid's
+premise is that the classifier catches phrasings nobody wrote a rule for; here it caught
+nothing, because a lexicon is a keyword list wearing a different hat and inherits exactly
+the same blind spot as the rule it was supposed to back up. Recorded as **LIMITATIONS
+L15** rather than papered over: the classifier half of the detector is load-bearing in
+principle and thin in practice, and the deterministic rules are doing essentially all of
+the work.
+
+I am leaving the sentence about the 0.31 in this entry rather than deleting it, because
+it is the most instructive thing in the log. Rule 6 of this project is *never fabricate a
+number*, and I produced a plausible one — with a confident interpretation attached —
+inside the postmortem entry about a defect caught by not trusting my own assumptions.
+It survived about ninety seconds, because the number was checkable and I checked it. The
+control worked. The instinct that generated the number is still there.
+
+**Generalisation applied.** A grep for other digit-only patterns across the rule set
+found none, but the shared `QUANTITY` constant now exists so that the next
+quantity-matching rule inherits word-numbers by construction rather than by remembering.

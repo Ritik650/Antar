@@ -105,28 +105,101 @@ def test_static_scan_finds_no_ungated_money_call():
     assert not offenders, "ungated money call:\n" + "\n".join(offenders)
 
 
-def test_every_public_executor_callable_is_marked():
-    """Runtime discovery. Catches an executor that reaches money indirectly."""
+def _is_executor_shaped(obj) -> bool:
+    """Does this function take an `ActionRecord`?
+
+    That signature *is* what an executor is: something handed a gate-approved action
+    to perform. A helper that formats a response dict, or maps a message class to a
+    number series, takes no such thing and cannot move money. Demanding
+    `@requires_gate` on it would be ceremony - and a decorator applied everywhere
+    stops meaning anything in the places where it matters.
+    """
+    from antar.signals.schemas import ActionRecord
+
+    try:
+        parameters = inspect.signature(obj).parameters
+    except (TypeError, ValueError):  # pragma: no cover - builtins
+        return False
+    for parameter in parameters.values():
+        annotation = parameter.annotation
+        if annotation is ActionRecord:
+            return True
+        if isinstance(annotation, str) and annotation.endswith("ActionRecord"):
+            return True
+    return False
+
+
+def test_every_executor_shaped_callable_is_marked():
+    """Runtime discovery. Catches an executor that reaches money indirectly.
+
+    Scope is "takes an ActionRecord", read off the signature, so an executor written
+    later is covered without anyone remembering to add it here.
+    """
     modules = executor_modules()
     if not modules:
         pytest.skip("executors package not built yet (M7)")
 
     offenders: list[str] = []
+    checked = 0
     for module_name in modules:
         module = importlib.import_module(module_name)
         for name, obj in vars(module).items():
-            if name.startswith("_") or not callable(obj):
+            if name.startswith("_") or not inspect.isfunction(obj):
                 continue
             if getattr(obj, "__module__", None) != module_name:
                 continue  # re-exported from elsewhere
-            if not inspect.isfunction(obj):
+            if not _is_executor_shaped(obj):
                 continue
+            checked += 1
             if not getattr(obj, "__antar_requires_gate__", False):
                 offenders.append(f"{module_name}.{name}")
 
-    assert not offenders, (
-        "executor callables missing the @requires_gate marker:\n" + "\n".join(offenders)
+    assert checked >= 3, (
+        f"only {checked} executor-shaped callables discovered; the signature heuristic "
+        "has probably broken and this test is passing vacuously"
     )
+    assert not offenders, (
+        "executor callables missing the @requires_gate marker:\n"
+        + "\n".join(offenders)
+    )
+
+
+def test_unmarked_helpers_cannot_reach_the_client():
+    """The other half of the rule.
+
+    A public function in the executors package that is *not* executor-shaped is exempt
+    from the decorator, so it must be provably unable to move money. Checked directly
+    rather than trusted to the shape heuristic.
+    """
+    if not EXECUTORS_DIR.exists():
+        pytest.skip("executors package not built yet (M7)")
+
+    methods = money_moving_methods()
+    offenders: list[str] = []
+
+    for path in EXECUTORS_DIR.rglob("*.py"):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.FunctionDef) or node.name.startswith("_"):
+                continue
+            decorated = "requires_gate" in {
+                d.id if isinstance(d, ast.Name) else getattr(d, "attr", "")
+                for d in node.decorator_list
+            }
+            if decorated:
+                continue
+            calls = {
+                child.func.attr
+                for child in ast.walk(node)
+                if isinstance(child, ast.Call) and isinstance(child.func, ast.Attribute)
+            }
+            if calls & methods:
+                offenders.append(
+                    f"{path.relative_to(ROOT)}:{node.lineno}: {node.name}() is not "
+                    f"gate-marked but calls {sorted(calls & methods)}"
+                )
+
+    assert not offenders, "\n".join(offenders)
 
 
 def test_no_module_outside_the_executors_touches_the_client_directly():

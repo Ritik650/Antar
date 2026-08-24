@@ -1,0 +1,117 @@
+# DLT-style registered templates.
+#
+# **The LLM fills slots. It cannot emit a message body.** That is the mechanical form
+# of N1: a model that returns free text has returned a field nothing reads.
+#
+# Under India's DLT regime every commercial template is pre-registered with an access
+# provider against a registered header, and the delivered content must match the
+# registered template. Antar mirrors that shape: the body is fixed here, the variable
+# parts are declared slots with types, and rendering is a substitution rather than a
+# generation.
+#
+# NONE OF THESE IS ACTUALLY REGISTERED. `dlt_template_id` values are placeholders in
+# the right format, and docs/LIMITATIONS.md L11 says so. A real deployment registers
+# each body verbatim and replaces these ids.
+
+templates:
+  - id: RETRY_SCHEDULED_SMS
+    dlt_template_id: "1207160000000000001"
+    channel: SMS
+    message_class: TRANSACTIONAL
+    language: en
+    header: ANTARP
+    # RBI-EM-01: this IS the pre-transaction notification, so it must carry the amount,
+    # the date, and the opt-out. Section 6(b) names each of these.
+    body: >-
+      {merchant_name}: your payment of Rs {amount} for {plan_name} could not be
+      completed ({reason}). We will retry on {retry_date}. To skip this payment or
+      cancel the mandate, reply STOP or visit {optout_link}.
+    slots:
+      merchant_name: {type: name, max_length: 30}
+      amount: {type: money}
+      plan_name: {type: name, max_length: 40}
+      reason: {type: reason_phrase, max_length: 60}
+      retry_date: {type: date}
+      optout_link: {type: url}
+
+  - id: RETRY_SCHEDULED_WHATSAPP
+    dlt_template_id: "1207160000000000002"
+    channel: WHATSAPP
+    message_class: TRANSACTIONAL
+    language: en
+    header: ANTARP
+    body: >-
+      Hello {customer_name}, this is {merchant_name}. Your {plan_name} payment of
+      Rs {amount} did not go through ({reason}). We will try again on {retry_date}.
+      You can pay now at {payment_link}, or skip this payment via {optout_link}.
+    slots:
+      customer_name: {type: name, max_length: 40}
+      merchant_name: {type: name, max_length: 30}
+      plan_name: {type: name, max_length: 40}
+      amount: {type: money}
+      reason: {type: reason_phrase, max_length: 60}
+      retry_date: {type: date}
+      payment_link: {type: url}
+      optout_link: {type: url}
+
+  - id: INSTRUMENT_UPDATE_SMS
+    dlt_template_id: "1207160000000000003"
+    channel: SMS
+    message_class: SERVICE
+    language: en
+    header: ANTARS
+    # For TECHNICAL_DECLINE: the instrument is broken and no retry will fix it, so the
+    # only useful action is asking the customer to update it.
+    body: >-
+      {merchant_name}: we could not charge your saved payment method for {plan_name}
+      ({reason}). Please update it at {update_link} to avoid interruption. To cancel
+      the mandate instead, visit {optout_link}.
+    slots:
+      merchant_name: {type: name, max_length: 30}
+      plan_name: {type: name, max_length: 40}
+      reason: {type: reason_phrase, max_length: 60}
+      update_link: {type: url}
+      optout_link: {type: url}
+
+  - id: AFA_AUTHENTICATION_SMS
+    dlt_template_id: "1207160000000000004"
+    channel: SMS
+    message_class: TRANSACTIONAL
+    language: en
+    header: ANTARP
+    # RBI-EM-03/-04: above the category ceiling the customer must authenticate each
+    # time, so the message routes them into that flow rather than promising a retry
+    # that cannot succeed on its own.
+    body: >-
+      {merchant_name}: your payment of Rs {amount} for {plan_name} needs your
+      approval because it is above the Rs {ceiling} limit for automatic debits.
+      Approve at {auth_link} by {expiry_date}. To cancel, visit {optout_link}.
+    slots:
+      merchant_name: {type: name, max_length: 30}
+      amount: {type: money}
+      plan_name: {type: name, max_length: 40}
+      ceiling: {type: money}
+      auth_link: {type: url}
+      expiry_date: {type: date}
+      optout_link: {type: url}
+
+  - id: PAYMENT_LINK_EMAIL
+    dlt_template_id: "1207160000000000005"
+    channel: EMAIL
+    message_class: TRANSACTIONAL
+    language: en
+    header: ANTARP
+    body: >-
+      Hello {customer_name}, your {plan_name} payment of Rs {amount} due on
+      {due_date} could not be collected ({reason}). You can complete it here:
+      {payment_link}. This link expires on {expiry_date}. To cancel the mandate,
+      visit {optout_link}.
+    slots:
+      customer_name: {type: name, max_length: 40}
+      plan_name: {type: name, max_length: 40}
+      amount: {type: money}
+      due_date: {type: date}
+      reason: {type: reason_phrase, max_length: 60}
+      payment_link: {type: url}
+      expiry_date: {type: date}
+      optout_link: {type: url}

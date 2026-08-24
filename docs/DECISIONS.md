@@ -380,3 +380,75 @@ contact capacity is shown to bind only below 0.05 — which is what turns "the s
 price is zero" from a null result into a statement about which resource is scarce in
 which regime. Extending an axis after seeing a result is legitimate; extending it
 silently is not, and the distinction is the entire content of this ADR.
+
+---
+
+## ADR-0021 · 2026-08-24 · The model fills slots; it never writes a body · Accepted
+
+**Context.** N1 says the LLM writes language only. That is easy to state and easy to
+erode: the shortest path from "generate a message" to a working demo is to hand Claude
+the customer context and print what comes back. Every regulation in
+`policy/regulations.py` then depends on a model's judgement, and TRAI-03 in particular
+depends on it declining to be helpful.
+
+**Decision.** Registered templates in `act/templates/registry.yaml` own the message body.
+The model is asked for exactly one slot — `reason`, a short human phrase explaining why
+the payment failed — and `DraftContext.fixed_slots()` supplies every amount, date, URL,
+and merchant name from the `Decision`. `Template.render()` rejects missing slots *and
+extra* ones, and `_parse()` discards invented keys before rendering rather than after.
+
+**Consequence.** A prompt injection that persuades the model to emit
+`{"amount": "10000", "reason": "..."}` changes nothing: `amount` is not a slot the model
+is permitted to fill, and the rendered message carries the amount the allocator decided.
+The model cannot state a number, a date, or a URL, which removes the entire category of
+"the LLM hallucinated a figure into a customer-facing message". The cost is that message
+variety is bounded by the template registry — five templates — and that is the right
+trade for money-adjacent language.
+
+**Tested by** `test_the_model_is_never_asked_for_an_amount_a_date_or_a_url` and
+`test_injection_cannot_raise_a_discount_above_the_cap`.
+
+---
+
+## ADR-0022 · 2026-08-24 · A rule match pins the score at 1.0 and the classifier cannot lower it · Accepted
+
+**Context.** `contamination.py` runs two detectors. The obvious design is to combine
+them — average the scores, or let a confident classifier veto a marginal rule match —
+and it is the design that fails in an incident review, because the answer to "why did
+this promotional message go out?" becomes "the model thought it was fine."
+
+**Decision.** Rules run first. Any rule match returns `score=1.0`, `blocked=True`, and
+the triggering rule ids, regardless of the classifier. The classifier can only *raise* a
+score that no rule set. A classifier that throws is caught and treated as 0.0 —
+degrading the detector rather than disabling it, because the load-bearing half has
+already run.
+
+**Consequence.** The refusal is always explainable by a named construction, and the
+worst a broken or adversarially-influenced classifier can do is fail to add coverage.
+It can never remove any. D19 then showed the other side of this: when *both* halves miss,
+nothing catches it, and the honest accounting of how much each half actually contributes
+is **LIMITATIONS L15** — pinned by a test so the table cannot drift.
+
+**Tested by** `test_a_rule_match_outranks_a_confident_classifier`,
+`test_a_broken_classifier_does_not_open_the_gate`.
+
+---
+
+## ADR-0023 · 2026-08-24 · A delivered message is declared irreversible, not compensated · Accepted
+
+**Context.** `saga.py` unwinds a partially-completed workflow by walking the log
+backwards. A payment link can be cancelled. A charge can be refunded. A delivered SMS
+cannot be recalled, and the tempting compensation is an automatic "please ignore our
+previous message".
+
+**Decision.** `Step` accepts `compensate=None` only alongside an `irreversible_reason`;
+`Saga.add()` raises otherwise, because silence is indistinguishable from an oversight.
+The send step declares `IRREVERSIBLE_SEND` and `compensate_all()` reports it in
+`SagaResult.irreversible`, which makes `result.clean` false. An operator decides.
+
+**Consequence.** An auto-correction would be a second unsolicited contact, a second
+`C-BUDGET` slot, and a second RBI-EM-02 opt-out prompt — a compliance cost incurred by a
+compliance control, which is the failure mode this whole layer exists to avoid. The
+system reports "I could not undo this" rather than reporting a clean unwind it did not
+achieve. That distinction is the same one ADR-0019 makes about shadow prices and
+LIMITATIONS L14 makes about zero: say what happened, not what would sound finished.

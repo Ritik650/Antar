@@ -24,3 +24,6 @@ artifacts/
 .DS_Store
 .idea/
 .vscode/
+
+# Local throwaway experiments; never part of a milestone.
+.scratch/
