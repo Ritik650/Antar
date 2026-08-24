@@ -386,7 +386,7 @@ silently is not, and the distinction is the entire content of this ADR.
 ## ADR-0021 · 2026-08-24 · The model fills slots; it never writes a body · Accepted
 
 **Context.** N1 says the LLM writes language only. That is easy to state and easy to
-erode: the shortest path from "generate a message" to a working demo is to hand Claude
+erode: the shortest path from "generate a message" to a working demo is to hand the model
 the customer context and print what comes back. Every regulation in
 `policy/regulations.py` then depends on a model's judgement, and TRAI-03 in particular
 depends on it declining to be helpful.
