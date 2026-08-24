@@ -385,6 +385,72 @@ class AlwaysContact(FittedGuard):
         return np.full(len(X), 1.0)
 
 
+class OptoutRisk:
+    """The harm model. A treated-arm response model, not an uplift learner.
+
+    An X-learner cannot be fitted to opt-out in this data, and the reason is worth
+    stating plainly: **no untreated customer in the simulator ever opts out.** Measured
+    on the base scenario, seed 7 - 0 opt-outs in 2,996 untreated rows against 35 in 260
+    treated. The control arm has one class, so a two-arm learner has nothing to
+    difference.
+
+    That is a fact about the simulator, not about India. `SIMULATOR_CARD.md` models
+    opt-out as a hazard triggered by contact, so spontaneous cancellation is not
+    represented at all. Real customers cancel subscriptions on Sunday afternoons for
+    reasons no merchant caused.
+
+    So this estimator does the only defensible thing: it fits `P(optout | X, treated)`
+    on the treated arm and subtracts the **measured** untreated rate, rather than
+    assuming that rate is zero. On this data the subtraction is a no-op, and if the
+    simulator ever grows spontaneous churn the same code estimates it properly. The
+    limitation is recorded as `docs/LIMITATIONS.md` L17, because an opt-out cost that is
+    only a causal effect by construction is not the same claim as one identified from
+    data.
+    """
+
+    def __init__(self) -> None:
+        self.model: Any = None
+        self.baseline_rate: float = 0.0
+        self.treated_rows: int = 0
+
+    def fit(self, X: Any, treated: Any, outcome: Any) -> OptoutRisk:
+        import numpy as np
+        from sklearn.ensemble import GradientBoostingClassifier
+
+        treated = np.asarray(treated).astype(bool)
+        outcome = np.asarray(outcome).astype(int)
+
+        untreated_outcomes = outcome[~treated]
+        self.baseline_rate = (
+            float(untreated_outcomes.mean()) if untreated_outcomes.size else 0.0
+        )
+
+        encoded = encode(X)
+        self.reference = encoded
+        treated_X = encoded[treated]
+        treated_y = outcome[treated]
+        self.treated_rows = int(treated.sum())
+
+        if treated_y.size == 0 or len(np.unique(treated_y)) < 2:
+            # Nobody opted out under treatment either. Predict the observed rate rather
+            # than refusing: a constant of zero is the correct estimate when the outcome
+            # never occurred, and it is honest about carrying no information.
+            self.model = None
+            self.constant = float(treated_y.mean()) if treated_y.size else 0.0
+            return self
+
+        self.model = GradientBoostingClassifier(random_state=0)
+        self.model.fit(treated_X, treated_y)
+        return self
+
+    def predict_uplift(self, X: Any) -> Any:
+        encoded = align(self.reference, encode(X))
+        if self.model is None:
+            return np.full(len(encoded), max(0.0, self.constant - self.baseline_rate))
+        treated_risk = self.model.predict_proba(encoded)[:, 1]
+        return treated_risk - self.baseline_rate
+
+
 LEARNERS: dict[str, type] = {
     "t_learner": TLearner,
     "x_learner": XLearner,

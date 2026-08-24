@@ -121,15 +121,30 @@ REASON_PHRASES: dict[FailureClass, str] = {
     FailureClass.UNKNOWN: "the payment could not be completed",
 }
 
+# Failure classes where the default retry template would say something untrue. A
+# technical decline will not fix itself on a retry and an AFA-required charge cannot
+# succeed unattended, so promising "we will try again" is a false statement in a
+# message that must be factual. Every channel that can carry these classes needs its
+# own entry - the VOICE rows exist because a live trace showed the fallback promising
+# an AFA retry (POSTMORTEM D20).
 TEMPLATE_FOR: dict[tuple[Channel, FailureClass], str] = {
     (Channel.SMS, FailureClass.TECHNICAL_DECLINE): "INSTRUMENT_UPDATE_SMS",
     (Channel.SMS, FailureClass.AFA_REQUIRED): "AFA_AUTHENTICATION_SMS",
+    (Channel.VOICE, FailureClass.TECHNICAL_DECLINE): "INSTRUMENT_UPDATE_VOICE",
+    (Channel.VOICE, FailureClass.AFA_REQUIRED): "AFA_AUTHENTICATION_VOICE",
+    (Channel.WHATSAPP, FailureClass.TECHNICAL_DECLINE): "INSTRUMENT_UPDATE_WHATSAPP",
+    (Channel.WHATSAPP, FailureClass.AFA_REQUIRED): "AFA_AUTHENTICATION_WHATSAPP",
 }
 
+# Every channel in `CONTACT_CHANNELS` must appear here. L3 selects from that set, so a
+# channel missing a default is a decision L4 cannot execute - which is how M8's
+# end-to-end pipeline died on VOICE (POSTMORTEM D20). The completeness of this mapping
+# is asserted by `test_every_contact_channel_has_a_template` rather than trusted.
 DEFAULT_TEMPLATE: dict[Channel, str] = {
     Channel.SMS: "RETRY_SCHEDULED_SMS",
     Channel.WHATSAPP: "RETRY_SCHEDULED_WHATSAPP",
     Channel.EMAIL: "PAYMENT_LINK_EMAIL",
+    Channel.VOICE: "RETRY_SCHEDULED_VOICE",
 }
 
 
@@ -139,6 +154,22 @@ def choose_template(channel: Channel, failure_class: FailureClass) -> Template:
     A model choosing its own template could pick the AFA flow for a customer whose
     payment simply bounced, which is both wrong and unlawful to send.
     """
+    if failure_class is FailureClass.MANDATE_REVOKED and channel is not Channel.EMAIL:
+        # There is no truthful short message here. A revoked mandate cannot be retried
+        # and cannot be re-debited; the customer would have to authorise a new mandate,
+        # which is a re-signup the merchant owns and Antar does not. L2 recommends
+        # TERMINATE for this class and L3 vetoes the candidate, so reaching this line
+        # means a caller bypassed that - and inventing a plausible sentence would be
+        # the failure mode this whole layer exists to prevent. Email is exempt because
+        # `PAYMENT_LINK_EMAIL` offers a one-off payment link and promises nothing about
+        # the mandate.
+        raise TemplateError(
+            "no truthful template exists for a revoked mandate on "
+            f"{channel.value}: it cannot be retried and cannot be re-debited. L2 "
+            "recommends TERMINATE for MANDATE_REVOKED and L3 removes the candidate; "
+            "if this was reached, the veto was bypassed."
+        )
+
     template_id = TEMPLATE_FOR.get((channel, failure_class)) or DEFAULT_TEMPLATE.get(channel)
     if template_id is None:
         raise TemplateError(f"no registered template for channel {channel.value}")

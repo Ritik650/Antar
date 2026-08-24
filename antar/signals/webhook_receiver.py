@@ -140,7 +140,8 @@ class WebhookReceiver:
         merchant_category_for: Any = None,
         require_signature: bool = True,
     ) -> None:
-        self.store = store or InMemoryEventStore()
+        # `is None`: an empty store is falsy (D21).
+        self.store = InMemoryEventStore() if store is None else store
         self.secret = webhook_secret if webhook_secret is not None else secret("RAZORPAY_WEBHOOK_SECRET")
         self.require_signature = require_signature
         self._category_for = merchant_category_for or (lambda _mid: MerchantCategory.GENERAL)

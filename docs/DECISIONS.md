@@ -452,3 +452,85 @@ compliance control, which is the failure mode this whole layer exists to avoid. 
 system reports "I could not undo this" rather than reporting a clean unwind it did not
 achieve. That distinction is the same one ADR-0019 makes about shadow prices and
 LIMITATIONS L14 makes about zero: say what happened, not what would sound finished.
+
+---
+
+## ADR-0024 · 2026-08-24 · The chain link covers the whole entry, not just the payload · Accepted
+
+**Context.** PLAN.md M8 specifies the ledger as hash-chained on `prev_hash` +
+`payload_hash`. Implemented literally — entry *n* storing `sha256(payload of n-1)` —
+that detects an edited payload and misses everything else. Relabel an `ACTION` as an
+`ALERT`, or move a timestamp six hours, and every payload hash still agrees.
+
+**Decision.** `entry_hash` covers `seq`, `prev_hash`, `payload_hash`, `kind`, and
+`written_at`, joined with a delimiter that cannot occur in any of them; entry *n+1*
+links to that. Separately, `verify_chain()` asserts `seq` is contiguous from 1, because
+a chain of hashes detects a modified entry but a verifier walking `ORDER BY seq` accepts
+a chain with a hole in it.
+
+**Consequence.** An edit anywhere breaks the chain at the point of the edit, which is
+where an auditor needs to be shown. One thing remains undetectable from inside the
+ledger — **truncating the tail** leaves a shorter chain that verifies perfectly — and
+`test_truncating_the_tail_is_not_detected_by_the_chain_alone` records that as a stated
+negative result rather than an oversight. `head()` exists so it can be published, which
+is the only defence against it.
+
+---
+
+## ADR-0025 · 2026-08-24 · Replay compares behaviour, not bits, and never produces an outcome · Accepted
+
+**Context.** "Replay a batch deterministically" admits two readings. One re-runs history
+to see whether today's code decides the same way. The other re-runs it to get a better
+answer.
+
+**Decision.** Only the first. `replay()` compares a fixed field set — channel, schedule,
+discount, arm, binding constraints, stopping rule, plus floats with a tolerance —
+between the recorded decision and a freshly computed one. `decision_id` is deliberately
+excluded: it is derived from the versions (ADR-0005), so comparing it would report a
+divergence on every version bump and bury the real ones. `ReplayResult` has no field for
+an outcome, and cannot acquire one by accident.
+
+**Consequence.** A refactor is checkable. A counterfactual is not available here and
+must go through `eval/policies.py`, which is explicit about being an estimate. Every
+replayed decision runs under a `FrozenClock` pinned to the recorded time (D13), and a
+ledger that does not verify is refused rather than replayed — a confident comparison
+against an altered record is worse than no comparison.
+
+---
+
+## ADR-0026 · 2026-08-24 · The production path values candidates from models only · Accepted
+
+**Context.** `eval/policies.py` values candidates from the simulator's response model.
+That is correct for the three-policy comparison: valuing every policy on the same oracle
+is what makes it fair. Reusing it in the pipeline that writes the ledger made the audit
+record attribute the simulator's answer key to L3 (POSTMORTEM D22).
+
+**Decision.** The two paths share feasibility and nothing else. `pipeline._estimate_values`
+computes `recovery_uplift x amount - channel cost - optout_uplift x amount x multiplier`
+from two fitted models. Ground truth enters the pipeline at exactly one point,
+`_realise`, which draws the simulated outcome and is labelled `"simulated": true`.
+
+**Consequence.** Antar contacts more and induces more opt-outs than the oracle policy did
+— 12 → 29 contacts and 0 → 5 opt-outs on a 400-event slice — because the oracle policy
+was cheating and this one is not. Two further consequences are recorded as limitations
+rather than smoothed over: channel choice falls back to cost (L16), and the opt-out term
+is a causal effect only because the simulator gives the untreated arm a rate of exactly
+zero (L17).
+
+---
+
+## ADR-0027 · 2026-08-24 · No fitted model means no action, not a naive one · Accepted
+
+**Context.** PLAN.md section 10: *"Uplift model missing / version mismatch → refuses to
+act; does not silently fall back to targeting everyone."* An earlier `run_pipeline`
+returned `None` for an unfitted model and carried on, recording `uplift_estimate=0.0`.
+With every candidate scored identically and a capacity constraint to fill, that policy
+*is* "contact everyone until the budget runs out" — the naive thing, arrived at by
+accident.
+
+**Decision.** `_fit_models` raises `NoModel` rather than returning a degraded object.
+A caller cannot carry on, because carrying on is not expressible.
+
+**Consequence.** A batch with too little exploration data produces no contacts and a
+loud failure. That is the correct behaviour for a system that moves money: the safe
+failure is do nothing.

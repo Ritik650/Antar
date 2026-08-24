@@ -318,3 +318,63 @@ seam exists.
 make the table look better and change nothing about the argument, because the next
 evasion would be phrased in words that are not in the wider list either. The honest
 statement is that we have one strong path and one weak one, not two strong ones.
+
+---
+
+## L16 · Channel choice is made on cost, not on effect
+
+The uplift learner is trained on **treated versus untreated**. It produces one estimate
+per event and has no opinion about which channel to use, because the training design
+never asked it that question.
+
+So `pipeline._build_candidates` picks the **cheapest feasible contact channel**. That is
+the honest reading of an estimator that cannot distinguish channels, and it is a much
+weaker claim than the architecture might suggest. Antar does not know that SMS beats
+WhatsApp for a particular customer. It knows that contacting beats not contacting, by
+how much, and that SMS costs less.
+
+`eval/policies.py` does choose the channel on expected value — but from ground truth, in
+the oracle comparison, where that is legitimate and labelled. The production path cannot
+and does not.
+
+**What it would take to fix.** A per-channel treatment indicator in the exploration
+design, so the learner sees `(treated, channel)` rather than `treated`. The exploration
+policy already randomises channel (ADR-0015 draws treatment first, then a channel), so
+the data exists; the feature builder and the learner interface do not currently carry it.
+That is a design change rather than a tuning change, and it landed outside the M8 scope.
+
+---
+
+## L17 · The opt-out cost is a causal effect only by construction
+
+`OptoutRisk` estimates the harm term in L3's objective. It is **not** an uplift learner,
+and it cannot be one on this data.
+
+Base scenario, seed 7:
+
+| Arm | Opt-outs | Rows | Rate |
+|---|---|---|---|
+| Untreated | 0 | 2,996 | 0.000 |
+| Treated | 35 | 260 | 0.135 |
+
+The control arm has a single class. There is nothing to difference. This is a property
+of `SIMULATOR_CARD.md`'s response model, which represents opt-out purely as a hazard
+triggered by contact — spontaneous cancellation is not modelled at all, and real
+customers cancel subscriptions on Sunday afternoons for reasons no merchant caused.
+
+`OptoutRisk` therefore fits `P(optout | X, treated)` on the treated arm and subtracts the
+**measured** untreated rate rather than assuming it is zero. On this data the subtraction
+is a no-op. The code is written so that a simulator with spontaneous churn, or real data,
+would be estimated properly without changing the estimator.
+
+**The claim this permits, and the one it does not.** We may say: *in this simulator, the
+opt-out cost Antar prices is the full causal effect of contacting.* We may not say: *this
+is how you would estimate opt-out harm in production.* In production the untreated rate
+is not zero, and the difference between the two rates — not the treated rate — is the
+number that belongs in the objective.
+
+**Direction of the error, if we are wrong.** Overstating the untreated baseline would
+make contacts look *safer* than they are. Our baseline is measured, and measured at zero,
+so Antar prices opt-out harm at its maximum defensible value here. The bias, if any,
+is toward contacting less than optimal — which is the side of this particular error we
+would choose.

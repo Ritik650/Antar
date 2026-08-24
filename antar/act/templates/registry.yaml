@@ -41,8 +41,8 @@ templates:
     language: en
     header: ANTARP
     body: >-
-      Hello {customer_name}, this is {merchant_name}. Your {plan_name} payment of
-      Rs {amount} did not go through ({reason}). We will try again on {retry_date}.
+      Hello {customer_name}, this is {merchant_name}. The payment of Rs {amount} for
+      {plan_name} did not go through ({reason}). We will try again on {retry_date}.
       You can pay now at {payment_link}, or skip this payment via {optout_link}.
     slots:
       customer_name: {type: name, max_length: 40}
@@ -102,8 +102,8 @@ templates:
     language: en
     header: ANTARP
     body: >-
-      Hello {customer_name}, your {plan_name} payment of Rs {amount} due on
-      {due_date} could not be collected ({reason}). You can complete it here:
+      Hello {customer_name}, the payment of Rs {amount} for {plan_name}, due on
+      {due_date}, could not be collected ({reason}). You can complete it here:
       {payment_link}. This link expires on {expiry_date}. To cancel the mandate,
       visit {optout_link}.
     slots:
@@ -114,4 +114,116 @@ templates:
       reason: {type: reason_phrase, max_length: 60}
       payment_link: {type: url}
       expiry_date: {type: date}
+      optout_link: {type: url}
+
+  # Added in M8, after the end-to-end pipeline selected VOICE and the drafter raised
+  # `no registered template for channel VOICE`. L3's action set included a channel L4
+  # could not serve: a decision that cannot be executed. See POSTMORTEM D20, and
+  # `test_every_contact_channel_has_a_template`, which now makes the gap impossible to
+  # reintroduce quietly.
+  #
+  # A voice "template" is a script for a pre-recorded call, not an SMS body. TCCCPR
+  # covers voice as commercial communication on the same terms, so the same
+  # constraints apply: fixed content, declared slots, an opt-out route, and the
+  # 10:00-21:00 window (TRAI-01).
+  - id: RETRY_SCHEDULED_VOICE
+    dlt_template_id: "1207160000000000006"
+    channel: VOICE
+    message_class: TRANSACTIONAL
+    language: en
+    header: ANTARP
+    # No URL slot: reading a link aloud is useless, and a spoken URL is a phishing
+    # pattern rather than a service. The opt-out is a keypress, stated in the script.
+    body: >-
+      This is a service call from {merchant_name}. Your payment of Rs {amount} for
+      {plan_name} could not be completed. We will try again on {retry_date}. To skip
+      this payment or cancel the mandate, press 9 now, or reply STOP to our message.
+      Thank you.
+    slots:
+      merchant_name: {type: name, max_length: 30}
+      amount: {type: money}
+      plan_name: {type: name, max_length: 40}
+      retry_date: {type: date}
+
+  # The AFA and technical-decline variants for voice.
+  #
+  # Adding RETRY_SCHEDULED_VOICE alone made `choose_template` *resolve* for every
+  # (VOICE, failure class) pair, and the coverage test went green. The first live trace
+  # then showed an AFA_REQUIRED event getting the retry script - "we will try again on
+  # 2 Apr" - for a failure where no unattended retry can succeed. Resolving is not the
+  # same as being right, and a test that only checks resolution says nothing about
+  # truthfulness. See POSTMORTEM D20 and `test_a_retry_is_never_promised_where_a_retry
+  # _cannot_work`.
+  - id: AFA_AUTHENTICATION_VOICE
+    dlt_template_id: "1207160000000000007"
+    channel: VOICE
+    message_class: TRANSACTIONAL
+    language: en
+    header: ANTARP
+    body: >-
+      This is a service call from {merchant_name}. Your payment of Rs {amount} for
+      {plan_name} needs your approval, because it is above the Rs {ceiling} limit for
+      automatic debits. Please check your messages for the approval link, or contact
+      {merchant_name} to complete it. To cancel the mandate, press 9 now.
+    slots:
+      merchant_name: {type: name, max_length: 30}
+      amount: {type: money}
+      plan_name: {type: name, max_length: 40}
+      ceiling: {type: money}
+
+  - id: INSTRUMENT_UPDATE_VOICE
+    dlt_template_id: "1207160000000000008"
+    channel: VOICE
+    message_class: SERVICE
+    language: en
+    header: ANTARS
+    body: >-
+      This is a service call from {merchant_name}. We could not charge your saved
+      payment method for {plan_name}. Please update your payment details to avoid
+      interruption. We have also sent you a message with a link. To cancel the
+      mandate, press 9 now.
+    slots:
+      merchant_name: {type: name, max_length: 30}
+      plan_name: {type: name, max_length: 40}
+
+  # WhatsApp variants for the same two classes. `PAYMENT_LINK_EMAIL` needs no variant:
+  # it promises a link rather than a retry, and completing an AFA charge or paying with
+  # a fresh instrument through a link are both true statements.
+  - id: AFA_AUTHENTICATION_WHATSAPP
+    dlt_template_id: "1207160000000000009"
+    channel: WHATSAPP
+    message_class: TRANSACTIONAL
+    language: en
+    header: ANTARP
+    body: >-
+      Hello {customer_name}, this is {merchant_name}. The payment of Rs {amount} for
+      {plan_name} needs your approval, because it is above the Rs {ceiling} limit for
+      automatic debits. Approve at {auth_link} by {expiry_date}. To cancel the
+      mandate, visit {optout_link}.
+    slots:
+      customer_name: {type: name, max_length: 40}
+      merchant_name: {type: name, max_length: 30}
+      plan_name: {type: name, max_length: 40}
+      amount: {type: money}
+      ceiling: {type: money}
+      auth_link: {type: url}
+      expiry_date: {type: date}
+      optout_link: {type: url}
+
+  - id: INSTRUMENT_UPDATE_WHATSAPP
+    dlt_template_id: "1207160000000000010"
+    channel: WHATSAPP
+    message_class: SERVICE
+    language: en
+    header: ANTARS
+    body: >-
+      Hello {customer_name}, this is {merchant_name}. We could not charge your saved
+      payment method for {plan_name} ({reason}). Please update it at {update_link} to
+      avoid interruption. To cancel the mandate instead, visit {optout_link}.
+    slots:
+      customer_name: {type: name, max_length: 40}
+      merchant_name: {type: name, max_length: 30}
+      plan_name: {type: name, max_length: 40}
+      reason: {type: reason_phrase, max_length: 60}
+      update_link: {type: url}
       optout_link: {type: url}

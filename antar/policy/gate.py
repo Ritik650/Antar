@@ -184,7 +184,12 @@ class PolicyGate:
         approver: str | None = None,
     ) -> None:
         self.limits = limits or GateLimits()
-        self.ledger = ledger or NullLedger()
+        # `is None`, not `or`. `Ledger` defines `__len__`, so an empty ledger is
+        # falsy and `ledger or NullLedger()` silently threw away the caller's
+        # ledger on every fresh run - which is precisely the run that has nothing
+        # in it yet. Every gate decision went to a NullLedger and vanished.
+        # POSTMORTEM D21.
+        self.ledger = NullLedger() if ledger is None else ledger
         self.dry_run = dry_run
         self.counters = counters or GateCounters()
         self.approver = approver

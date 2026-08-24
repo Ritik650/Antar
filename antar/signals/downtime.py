@@ -140,7 +140,8 @@ class DowntimePoller:
 
     def __init__(self, client: RazorpayClient, registry: DowntimeRegistry | None = None) -> None:
         self.client = client
-        self.registry = registry or DowntimeRegistry()
+        # `is None`: an empty registry is falsy (D21).
+        self.registry = DowntimeRegistry() if registry is None else registry
 
     def poll(self) -> list[DowntimeWindow]:
         response = self.client.fetch_downtimes()

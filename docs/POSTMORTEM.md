@@ -688,3 +688,143 @@ control worked. The instinct that generated the number is still there.
 **Generalisation applied.** A grep for other digit-only patterns across the rule set
 found none, but the shared `QUANTITY` constant now exists so that the next
 quantity-matching rule inherits word-numbers by construction rather than by remembering.
+
+---
+
+## D20 · The template registry did not cover the actions the allocator could choose
+
+**Found by:** the M8 end-to-end pipeline, on its first complete run.
+**Severity:** high — a crash in the send path, then a *false statement* in a message.
+**Status:** fixed, in two stages, and the second stage is the interesting one.
+
+**Stage one — the crash.** The pipeline died on
+`TemplateError: no registered template for channel VOICE`. `CONTACT_CHANNELS` — the set
+L3 selects from — contains `SMS`, `WHATSAPP`, `VOICE`, `EMAIL`. `registry.yaml`
+contained templates for three of them. Nothing compared the two sets, so L3 could choose
+an action L4 was structurally unable to perform.
+
+Every earlier test of the act layer passed a channel *it had chosen itself*. The
+adversarial suite, the drafter tests, the contamination tests — all of them constructed
+an `Intervention` with `Channel.SMS` because that is the channel a person writing a test
+reaches for. The gap needed the decide layer to pick the channel, and until M8 the two
+layers had never actually been connected.
+
+**Stage two — resolving is not the same as being right.** I added
+`RETRY_SCHEDULED_VOICE`, added `test_every_contact_channel_has_a_template`, and the
+suite went green. Then the first live trace showed this, for an event L2 had classified
+`AFA_REQUIRED` at 97% confidence:
+
+> "This is a service call from Antar. Your payment of Rs 20,313 ... could not be
+> completed. **We will try again on 2 Apr 2026.**"
+
+No, we will not. An AFA-required charge cannot succeed unattended — that is the entire
+content of the classification. The message stated, to a customer, something the system
+knew to be false, and it did so because `choose_template` fell back to the default when
+`TEMPLATE_FOR` had no entry for `(VOICE, AFA_REQUIRED)`.
+
+**The lesson, which is bigger than the bug.** My completeness test asserted that a
+lookup *returned something*. It could not have caught this, because it never asked
+whether the something was true. Test coverage of a mapping is not coverage of the
+mapping's meaning.
+
+**Fix.** Four more templates (`AFA_AUTHENTICATION_VOICE`, `INSTRUMENT_UPDATE_VOICE`, and
+the two WhatsApp equivalents), so that every channel able to carry `AFA_REQUIRED` or
+`TECHNICAL_DECLINE` has a truthful script. `MANDATE_REVOKED` on a push channel now
+**raises**: a revoked mandate cannot be retried or re-debited, the customer would have to
+authorise a new one, and there is no truthful short message for that — so the code
+refuses rather than composing a plausible sentence. And
+`test_a_retry_is_never_promised_where_a_retry_cannot_work` asserts the semantic property
+across the whole cross product, with a paired test that some template *does* promise a
+retry, so the invariant cannot pass by there being no retry language anywhere.
+
+---
+
+## D21 · `x or Default()` threw away every caller's ledger
+
+**Found by:** a trace that came back empty on a run whose summary said 13 contacts.
+**Severity:** high — the audit record silently did not exist.
+**Status:** fixed, with a scan.
+
+**Symptom.** `run_pipeline` reported `contacted: 13` and `ledger_entries: 1600`.
+400 events x 4 entries = 1600 exactly. Not one `ACTION` entry had been written, and
+`build_trace` found no action for any event.
+
+**Root cause.** One line in `PolicyGate.__init__`:
+
+```python
+self.ledger = ledger or NullLedger()
+```
+
+`Ledger` defines `__len__`. An **empty** ledger is therefore falsy, so a caller passing
+a fresh ledger got a `NullLedger` — and every gate decision went into a sink and
+vanished. The bug is invisible at the call site, invisible in the type signature, and
+appears only when the collection is empty, which for an append-only ledger is the
+**first run, every time**.
+
+**Fix.** `NullLedger() if ledger is None else ledger`, and the same correction in three
+other places the same idiom had reached: `antar/pipeline.py`, `signals/downtime.py`
+(`DowntimeRegistry`), and `signals/webhook_receiver.py` (`InMemoryEventStore`) — all
+three classes define `__len__`, and all three would have discarded an empty object a
+caller deliberately passed.
+
+**The guard.** `tests/unit/test_default_substitution.py` walks the package AST for
+`name = name or Call()` and fails if the callee's class defines `__len__` or `__bool__`.
+It discovers its own targets rather than listing the ones I remembered, and a companion
+test asserts the detector still recognises `Ledger` — a guard nobody has watched fail is
+a guard nobody knows works.
+
+---
+
+## D22 · The pipeline recorded the model's estimate and acted on the oracle's
+
+**Found by:** reading a trace I had just written, and not believing it.
+**Severity:** critical — the ledger would have attributed simulator knowledge to the model.
+**Status:** fixed.
+
+**Symptom.** A trace read:
+
+> "L3 estimated an uplift of +0.3072 (95% CI +0.2572 to +0.3572) and chose VOICE
+> scheduled for 2026-04-02T19:20:00+05:30."
+
+Both halves were true. The connective was false. The estimate came from the fitted
+X-learner; the *choice* came from `PolicyRunner.candidate_values()`, which values every
+candidate from `ResponseModel` — the simulator's ground truth — and picks the best
+channel by that value.
+
+**Why that is worse than a wrong number.** `eval/policies.py` is *right* to use ground
+truth: comparing three policies fairly means valuing all three on the same oracle. Reused
+in the production path it becomes a leak with a decision's clothes on. The ledger — the
+artifact whose entire purpose is to be checkable — would have been recording the
+simulator's answer key as L3's reasoning, hash-chained and tamper-evident and wrong.
+
+**Fix.** The pipeline no longer calls `candidate_values`. `_build_candidates` picks the
+cheapest feasible contact; `_estimate_values` values it from two fitted models and
+nothing else:
+
+```
+net = recovery_uplift x amount - channel cost - optout_uplift x amount x multiplier
+```
+
+Ground truth now enters at exactly one point, `_realise`, which draws the simulated
+outcome — the simulator's job, labelled `"simulated": true` in every artifact (N6).
+
+**Three things fell out of the fix.**
+
+1. **The harm model had to be built.** Valuing a contact without an opt-out term treats
+   every contact as free of harm, which is the exact failure this project argues
+   against. `OptoutRisk` now estimates it.
+2. **A T-learner cannot estimate opt-out on this data.** Base scenario, seed 7: **0
+   opt-outs in 2,996 untreated rows, 35 in 260 treated.** The control arm has one class.
+   That is a property of the simulator, which models opt-out purely as a
+   contact-triggered hazard — real customers cancel for reasons no merchant caused.
+   `OptoutRisk` fits `P(optout | X, treated)` and subtracts the *measured* untreated rate
+   rather than assuming it is zero. LIMITATIONS L17.
+3. **The numbers moved, in the direction that makes sense.** Contacts on a 400-event
+   slice went 12 → 29 and opt-outs 0 → 5. A model-driven policy contacts more than an
+   oracle-driven one and induces harm the oracle could dodge. The oracle policy looked
+   better because it was cheating.
+
+**What this says about the earlier milestones.** M5 and M6 are unaffected — they
+*are* the oracle comparison, and are labelled as such. What was wrong was carrying that
+valuation into the path that writes the audit record. The two now share the feasibility
+logic and nothing else.
