@@ -39,7 +39,24 @@ POLICIES = ("contact_everyone", "propensity", "antar")
 
 @dataclass
 class PolicyOutcome:
-    """What one policy achieved on one batch."""
+    """What one policy achieved on one batch.
+
+    **Two denominators, kept apart on purpose.**
+
+    `candidates` is the number of events for which a feasible contact existed. It is the
+    right denominator for "how often did this policy act when it could have".
+
+    `at_risk_events` is every at-risk cycle in the batch, including those where every
+    candidate contact was removed by a blocking regulation before the solver saw it.
+    It is the denominator `docs/EVALUATION.md` §11.2 pre-registered for the primary
+    metric, and it is larger.
+
+    Until M10 the primary metric divided by `candidates` while being reported as "per
+    1,000 at-risk cycles", which overstated it by the ratio between the two - 3,436
+    at-risk events against 3,148 candidates on the base scenario, so by about 9%. Same
+    class of defect as D24: a number correctly computed under a name that described a
+    different quantity. POSTMORTEM D27.
+    """
 
     name: str
     contacts: int = 0
@@ -47,7 +64,8 @@ class PolicyOutcome:
     expected_incremental_paise: float = 0.0
     channel_cost_paise: float = 0.0
     expected_optout_loss_paise: float = 0.0
-    events: int = 0
+    candidates: int = 0
+    at_risk_events: int = 0
     objective_paise: float = 0.0
     shadow_prices: list[dict[str, Any]] = field(default_factory=list)
 
@@ -61,19 +79,38 @@ class PolicyOutcome:
 
     @property
     def net_per_1000_paise(self) -> float:
-        return self.net_paise * 1000 / self.events if self.events else 0.0
+        """The pre-registered primary metric. Denominator is at-risk cycles."""
+        denominator = self.at_risk_events or self.candidates
+        return self.net_paise * 1000 / denominator if denominator else 0.0
+
+    @property
+    def incremental_per_1000_paise(self) -> float:
+        denominator = self.at_risk_events or self.candidates
+        return self.expected_incremental_paise * 1000 / denominator if denominator else 0.0
+
+    @property
+    def optout_loss_per_1000_paise(self) -> float:
+        denominator = self.at_risk_events or self.candidates
+        return self.expected_optout_loss_paise * 1000 / denominator if denominator else 0.0
 
     def as_dict(self) -> dict[str, Any]:
         return {
             "policy": self.name,
-            "events": self.events,
+            "at_risk_events": self.at_risk_events,
+            "candidates": self.candidates,
             "contacts": self.contacts,
             "abstentions": self.abstentions,
             "expected_incremental_rupees": round(self.expected_incremental_paise / 100, 2),
             "channel_cost_rupees": round(self.channel_cost_paise / 100, 2),
             "expected_optout_loss_rupees": round(self.expected_optout_loss_paise / 100, 2),
             "net_rupees": round(self.net_paise / 100, 2),
-            "net_per_1000_events_rupees": round(self.net_per_1000_paise / 100, 2),
+            "net_per_1000_at_risk_rupees": round(self.net_per_1000_paise / 100, 2),
+            "incremental_per_1000_at_risk_rupees": round(
+                self.incremental_per_1000_paise / 100, 2
+            ),
+            "optout_loss_per_1000_at_risk_rupees": round(
+                self.optout_loss_per_1000_paise / 100, 2
+            ),
         }
 
 
@@ -226,7 +263,10 @@ class PolicyRunner:
     def run(self) -> dict[str, PolicyOutcome]:
         candidates, values = self.candidate_values()
         if not candidates:
-            return {name: PolicyOutcome(name=name) for name in POLICIES}
+            return {
+                name: PolicyOutcome(name=name, at_risk_events=len(self.batch.events))
+                for name in POLICIES
+            }
 
         capacity = self.capacity(len(candidates))
 
@@ -263,7 +303,12 @@ class PolicyRunner:
                 shadow = []
                 objective = sum(values[cid].net_paise for cid in chosen if cid in values)
 
-            outcome = PolicyOutcome(name=name, events=len(candidates), objective_paise=objective)
+            outcome = PolicyOutcome(
+                name=name,
+                candidates=len(candidates),
+                at_risk_events=len(self.batch.events),
+                objective_paise=objective,
+            )
             outcome.shadow_prices = shadow
             for candidate in candidates:
                 cid = candidate.candidate_id

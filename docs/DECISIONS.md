@@ -553,7 +553,8 @@ results on every seed.
 **Consequence.** The ablation measures the component rather than the build, and a
 degenerate result is a loud failure rather than a quiet verdict. Re-run after the fix, the
 verdicts are unchanged — both still DELETE — but now on **positive evidence** (removing
-each *improves* net) rather than on an interval of zero width. The same finding, honestly
+each *improves* net by ₹284 and ₹243 per 1,000 at-risk cycles) rather than on an interval
+of zero width. The same finding, honestly
 obtained, which is the only version worth having.
 
 ---

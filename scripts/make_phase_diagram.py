@@ -81,7 +81,7 @@ def run_cell(panel: str, self_heal: float, optout: float, *, config, seed: int) 
         antar_contacts=antar.contacts,
         propensity_contacts=propensity.contacts,
         contact_capacity_shadow_price_paise=capacity_price,
-        events=antar.events,
+        events=antar.at_risk_events,
     )
 
 

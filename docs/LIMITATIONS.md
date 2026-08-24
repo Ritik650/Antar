@@ -228,14 +228,15 @@ defences are tested even when the network is not.
 ## L13 · Two detection components were deleted by their own measurement
 
 **Resolved, against ourselves.** `docs/EVALUATION.md` §12.2 was committed before the
-allocator existed and bound us to a rule. Measured on 2026-08-25, base scenario, 5 seeds:
+allocator existed and bound us to a rule. Measured on 2026-08-25, base scenario,
+5 seeds, per 1,000 **at-risk cycles** (the pre-registered denominator; see D27):
 
 Δ is `with − without`, so a negative number means the component was costing money:
 
 | Component | Δ net per 1,000 cycles | 95% CI | Verdict |
 |---|---|---|---|
-| Downtime API cross-check | **−₹311.45** | [−467.56, −144.28] | **DELETE** |
-| EWMA/CUSUM changepoint detector | **−₹264.36** | [−491.89, −72.80] | **DELETE** |
+| Downtime API cross-check | **−₹284.35** | [−429.04, −130.76] | **DELETE** |
+| EWMA/CUSUM changepoint detector | **−₹243.09** | [−451.75, −66.62] | **DELETE** |
 
 Both intervals exclude zero, on the side that says the components were *costing* money
 rather than merely failing to earn their place. The pre-registered rule would have
@@ -257,7 +258,7 @@ an edit.
 **What deletion cost.** Detection quality got worse, and that is reported rather than
 omitted: accuracy when resolved fell 92.4% → 91.7%, `ISSUER_DOWN` recall fell
 0.82 → 0.70, and the wrong-action cost rose ₹140k → ₹153k on the control arm. Net money
-improved by ₹311 and ₹264 per 1,000 cycles respectively. That is the trade the
+improved by ₹284 and ₹243 per 1,000 cycles respectively. That is the trade the
 pre-registered rule made, with its eyes open.
 
 **Why they did not earn their place.** Once the L3 objective prices the RBI-EM-02
@@ -392,3 +393,54 @@ make contacts look *safer* than they are. Our baseline is measured, and measured
 so Antar prices opt-out harm at its maximum defensible value here. The bias, if any,
 is toward contacting less than optimal — which is the side of this particular error we
 would choose.
+
+---
+
+## L18 · 99.4% of the headline is a harm term scaled by an assumed constant
+
+The primary result — Antar minus propensity targeting, **₹1,033,289 per 1,000 at-risk
+cycles** — decomposes as:
+
+| Component | Per 1,000 at-risk cycles | Share |
+|---|---:|---:|
+| Difference in expected recovery | ₹6,322 | 0.6% |
+| Difference in avoided opt-out loss | ₹1,026,962 | **99.4%** |
+
+Antar is not, in any meaningful sense, recovering more money than a propensity ranker.
+It recovers ₹103,797 per 1,000 at-risk cycles against the ranker's ₹97,475 — a 6% edge, on a batch where it sends
+**a fifth as many messages**. That is a real and interesting efficiency result, and it is
+not where the million rupees comes from.
+
+The million rupees comes from **not incurring modelled harm**. And that harm is:
+
+```
+expected_optout_loss = p_optout x amount x optout_loss_multiplier
+```
+
+where `decide.optout_loss_multiplier = 6.0`.
+
+**That 6.0 is an assumption.** It asserts that an induced cancellation costs six cycles
+of revenue — the failed cycle plus five more that would have been collected. It is a
+crude lifetime-value proxy. It was chosen before any result existed, which is the only
+thing that recommends it, and it scales 99.4% of the headline **linearly**: halve it and
+the headline roughly halves.
+
+**What is measured and what is assumed, stated plainly.**
+
+| Quantity | Status |
+|---|---|
+| `p_optout` given a contact | Simulated, from `SIMULATOR_CARD.md`'s response model |
+| Amount at risk | Simulated, calibrated against published figures |
+| The 6x multiplier | **Assumed.** Not calibrated against anything. |
+| That Antar contacts fewer people to achieve it | Measured, and robust |
+
+**The claim that survives without the multiplier.** Antar contacts **156** candidates
+where the propensity ranker contacts **787**, and recovers slightly more while doing it.
+That comparison involves no multiplier at all, and it is the one to lead with when the
+6.0 is challenged — as it should be.
+
+**Direction of the sensitivity.** The phase diagram's opt-out axis already varies the
+*probability* side of this term, and the boundary it locates (≈0.035) is where the whole
+advantage disappears. The multiplier is the other half of the same product and has not
+been varied. A specification curve over it is the obvious next piece of work and is not
+in this build.

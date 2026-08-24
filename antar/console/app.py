@@ -272,6 +272,10 @@ def view_shadow_prices(scenario: str) -> None:
 
     st.subheader("Three policies, one contact capacity")
     st.dataframe(data["policies"], use_container_width=True)
+    st.caption(
+        "Per-1,000 figures use **at-risk cycles** as the denominator, not "
+        "candidates. See POSTMORTEM D27."
+    )
 
     delta = data["antar_minus_propensity_per_1000_rupees"]
     st.metric("Antar minus propensity targeting, per 1,000 at-risk cycles", f"Rs {delta:,.0f}")

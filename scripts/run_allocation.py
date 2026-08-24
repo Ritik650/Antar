@@ -79,7 +79,7 @@ def window_price(batch, log, config, *, widened_start_hour: int = 9) -> Counterf
         label=f"TRAI-01 contact window ({widened_start_hour:02d}:00 vs 10:00 opening)",
         baseline_objective_paise=baseline.net_paise,
         relaxed_objective_paise=widened.net_paise,
-        events=baseline.events,
+        events=baseline.at_risk_events,
         explanation=(
             "TCCCPR Schedule II para 3(1) Note-1 makes the 08:00-10:00 band default-OFF "
             "for every customer, so the permitted window opens at 10:00 rather than the "
@@ -134,7 +134,7 @@ def main() -> int:
             f"  {row['policy']:18s} {row['contacts']:>9d} {row['abstentions']:>8d} "
             f"{row['expected_incremental_rupees']:>12,.0f} "
             f"{row['expected_optout_loss_rupees']:>12,.0f} "
-            f"{row['net_per_1000_events_rupees']:>13,.0f}"
+            f"{row['net_per_1000_at_risk_rupees']:>13,.0f}"
         )
     # Named, not `delta`. The retention loop below used to reuse that name, so by the
     # time the artifact was written this headline had been overwritten by the last

@@ -361,24 +361,67 @@ def _section_allocation(add, scenario):
     if data is None:
         _missing(add, "allocation")
         return
+    first = (data.get("policies") or [{}])[0]
     add(
-        "| Policy | Contacts | Abstentions | Incremental Rs | Opt-out loss Rs "
-        "| Net per 1,000 Rs |"
+        f"Denominator is **at-risk cycles** ({first.get('at_risk_events', '?')} in this "
+        f"batch), not candidates ({first.get('candidates', '?')}). "
+        "`docs/EVALUATION.md` 11.2 pre-registered the former; the code divided by the "
+        "latter until M10 (POSTMORTEM D27)."
+    )
+    add("")
+    add(
+        "| Policy | Contacts | Abstentions | Incremental Rs/1k | Opt-out loss Rs/1k "
+        "| Net Rs/1k |"
     )
     add("|---|---|---|---|---|---|")
     for row in data.get("policies", []):
         add(
             f"| {row.get('policy', '')} | {row.get('contacts', '')} | "
-            f"{row.get('abstentions', '')} | {row.get('expected_incremental_rupees', '')} | "
-            f"{row.get('expected_optout_loss_rupees', '')} | "
-            f"{row.get('net_per_1000_events_rupees', '')} |"
+            f"{row.get('abstentions', '')} | "
+            f"{row.get('incremental_per_1000_at_risk_rupees', '')} | "
+            f"{row.get('optout_loss_per_1000_at_risk_rupees', '')} | "
+            f"{row.get('net_per_1000_at_risk_rupees', '')} |"
         )
     add("")
     delta = data.get("antar_minus_propensity_per_1000_rupees")
+    by_policy = {row["policy"]: row for row in data.get("policies", [])}
     if delta is not None:
         add(
             f"**Antar minus propensity targeting: Rs {delta} per 1,000 at-risk cycles.** "
             "That is the comparison that matters - beating 'contact everyone' is easy."
+        )
+        add("")
+
+    # The decomposition, computed here from the artifact's own fields rather than typed.
+    # Without it, a reader takes the headline for a recovery number, and it is not one.
+    if {"antar", "propensity"} <= set(by_policy):
+        antar, ranker = by_policy["antar"], by_policy["propensity"]
+        recovery_gap = round(
+            antar["incremental_per_1000_at_risk_rupees"]
+            - ranker["incremental_per_1000_at_risk_rupees"],
+            2,
+        )
+        harm_gap = round(
+            ranker["optout_loss_per_1000_at_risk_rupees"]
+            - antar["optout_loss_per_1000_at_risk_rupees"],
+            2,
+        )
+        total = recovery_gap + harm_gap
+        add("Where that difference comes from:")
+        add("")
+        add("| Component | Rs per 1,000 at-risk cycles | Share |")
+        add("|---|---|---|")
+        add(f"| Difference in expected recovery | {recovery_gap} | "
+            f"{recovery_gap / total:.1%} |")
+        add(f"| Difference in avoided cancellation harm | {harm_gap} | "
+            f"{harm_gap / total:.1%} |")
+        add("")
+        add(
+            "**The headline is not a recovery number.** It is overwhelmingly a "
+            "harm-avoidance number, and that harm is priced at an assumed 6x "
+            "cancellation cost - a config constant, not a measurement. See "
+            "`docs/LIMITATIONS.md` L18. The comparison that survives without it is the "
+            f"contact count: {antar['contacts']} against {ranker['contacts']}."
         )
         add("")
     prices = data.get("shadow_prices") or {}

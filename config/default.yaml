@@ -139,8 +139,8 @@ detect:
   #
   # Measured on 2026-08-25, base scenario, 5 seeds (artifacts/retention.json):
   #
-  #   downtime_crosscheck   delta Rs  -311.45 / 1000   CI [-467.56, -144.28]  -> DELETE
-  #   changepoint_detector  delta Rs  -264.36 / 1000   CI [-491.89,  -72.80]  -> DELETE
+  #   downtime_crosscheck   delta Rs  -284.35 / 1000   CI [-429.04, -130.76]  -> DELETE
+  #   changepoint_detector  delta Rs  -243.09 / 1000   CI [-451.75,  -66.62]  -> DELETE
   #
   # Both intervals exclude zero on the NEGATIVE side: each component was not
   # merely unproven, it was measurably costing money. Their false alarms vetoed

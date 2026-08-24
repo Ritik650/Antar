@@ -45,8 +45,8 @@ def test_the_headline_delta_is_the_difference_it_names():
     data = load("allocation_base.json")
     by_policy = {row["policy"]: row for row in data["policies"]}
 
-    antar = by_policy["antar"]["net_per_1000_events_rupees"]
-    propensity = by_policy["propensity"]["net_per_1000_events_rupees"]
+    antar = by_policy["antar"]["net_per_1000_at_risk_rupees"]
+    propensity = by_policy["propensity"]["net_per_1000_at_risk_rupees"]
     recorded = data["antar_minus_propensity_per_1000_rupees"]
 
     assert recorded == pytest.approx(antar - propensity, abs=1.0), (
@@ -62,9 +62,9 @@ def test_the_headline_delta_has_the_sign_the_table_implies():
     notices and the one that most damages a claim."""
     data = load("allocation_base.json")
     by_policy = {row["policy"]: row for row in data["policies"]}
-    expected_sign = by_policy["antar"]["net_per_1000_events_rupees"] > by_policy[
+    expected_sign = by_policy["antar"]["net_per_1000_at_risk_rupees"] > by_policy[
         "propensity"
-    ]["net_per_1000_events_rupees"]
+    ]["net_per_1000_at_risk_rupees"]
     recorded_sign = data["antar_minus_propensity_per_1000_rupees"] > 0
     assert recorded_sign == expected_sign
 
@@ -87,9 +87,14 @@ def test_each_policys_net_is_its_own_components():
 def test_contacts_and_abstentions_account_for_every_event():
     data = load("allocation_base.json")
     for row in data["policies"]:
-        assert row["contacts"] + row["abstentions"] == row["events"], (
-            f"{row['policy']}: {row['contacts']} + {row['abstentions']} != {row['events']}. "
-            "An event that is neither contacted nor abstained on has gone missing."
+        assert row["contacts"] + row["abstentions"] == row["candidates"], (
+            f"{row['policy']}: {row['contacts']} + {row['abstentions']} != "
+            f"{row['candidates']}. A candidate that is neither contacted nor abstained "
+            "on has gone missing."
+        )
+        assert row["at_risk_events"] >= row["candidates"], (
+            "there cannot be more candidates than at-risk events: every candidate is "
+            "an event that survived the feasibility filter"
         )
 
 
@@ -184,4 +189,57 @@ def test_at_least_one_artifact_was_checked():
     assert CHECKED, (
         "no artifact was available to check. Run `python tasks.py evaluate` before "
         "trusting this file's silence."
+    )
+
+
+def test_the_headline_decomposes_into_recovery_and_harm():
+    """The decomposition `RESULTS.md` prints must add up to the headline it decomposes.
+
+    Without this the two could drift and a reader would be told the headline is 99%
+    harm-avoidance on the strength of arithmetic nothing checks. D27 is the reason the
+    decomposition is published at all.
+    """
+    data = load("allocation_base.json")
+    by_policy = {row["policy"]: row for row in data["policies"]}
+    antar, ranker = by_policy["antar"], by_policy["propensity"]
+
+    recovery_gap = (
+        antar["incremental_per_1000_at_risk_rupees"]
+        - ranker["incremental_per_1000_at_risk_rupees"]
+    )
+    harm_gap = (
+        ranker["optout_loss_per_1000_at_risk_rupees"]
+        - antar["optout_loss_per_1000_at_risk_rupees"]
+    )
+    cost_gap = (
+        ranker["channel_cost_rupees"] - antar["channel_cost_rupees"]
+    ) * 1000 / antar["at_risk_events"]
+
+    assert recovery_gap + harm_gap + cost_gap == pytest.approx(
+        data["antar_minus_propensity_per_1000_rupees"], abs=1.0
+    ), (
+        "recovery difference + harm difference + channel-cost difference must equal the "
+        "headline. If it does not, the decomposition published in RESULTS.md is telling "
+        "a reader something the numbers do not support."
+    )
+
+
+def test_the_harm_term_dominates_the_headline_and_is_disclosed():
+    """A guard on the *story*, not just the arithmetic.
+
+    If a future change made the headline genuinely recovery-driven, this fails and the
+    prose in the README and L18 has to be revisited - which is the point. Right now the
+    prose says 99.4% harm avoidance, and that claim needs to keep being true.
+    """
+    data = load("allocation_base.json")
+    by_policy = {row["policy"]: row for row in data["policies"]}
+    harm_gap = (
+        by_policy["propensity"]["optout_loss_per_1000_at_risk_rupees"]
+        - by_policy["antar"]["optout_loss_per_1000_at_risk_rupees"]
+    )
+    share = harm_gap / data["antar_minus_propensity_per_1000_rupees"]
+    assert share > 0.90, (
+        f"avoided harm is only {share:.1%} of the headline. The README, L18 and the "
+        "video script all say it is overwhelmingly a harm-avoidance number. Update them "
+        "or explain why not."
     )

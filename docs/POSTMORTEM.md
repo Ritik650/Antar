@@ -946,8 +946,9 @@ the same file should be checked against them, and the check is cheap.
 **Scope of the correction.** No claim outside `artifacts/` used the bad figure: the
 README does not exist yet, and the milestone commit messages quote the console output,
 which was correct. The corrected headline for the base scenario is
-**Rs 1,126,509 per 1,000 at-risk cycles**, and it is now checked by the guard on every
-CI run.
+**Rs 1,033,289 per 1,000 at-risk cycles**, and it is now checked by the guard on every
+CI run. (That figure was itself corrected again in D27, which found the denominator was
+candidates rather than at-risk cycles - the same field, a third time.)
 
 ---
 
@@ -1070,3 +1071,73 @@ are fast, and fast tests get run. The cost is that a whole class of defect, the 
 only appears at production scale, cannot be caught by any of them. The batch runner is
 now the thing that runs at full size, and it should be run at full size before every
 demo, because it is the only place this class of bug can surface.
+
+---
+
+## D27 · The primary metric divided by the wrong denominator
+
+**Found by:** a dimensionless sanity check run on the headline before it went into the
+video — recovery as a fraction of the money at risk.
+**Severity:** medium — the headline was overstated by 9%, and mislabelled in a way that
+would not have survived a panel question.
+**Status:** fixed.
+
+**The check that found it.** `+₹1,126,509 per 1,000 cycles` is ₹1,126 per at-risk cycle.
+Against a mean cycle value of ₹9,274 that is 12%, which is not absurd — but the field it
+came from had just spent two milestones holding paise mislabelled as rupees (D24), so
+"not absurd" was not good enough. A ratio of two quantities in the same units cannot have
+a units error, so:
+
+| Policy | Incremental recovery ÷ money at risk |
+|---|---:|
+| contact_everyone | 1.07% |
+| propensity | 1.05% |
+| **antar** | **1.12%** |
+
+Sane, and no units error. But computing it required the denominator, and the denominator
+did not match.
+
+**Root cause.** `PolicyOutcome.events` was set to `len(candidates)` — events for which a
+*feasible contact existed*. `net_per_1000_paise` divided by it. `docs/EVALUATION.md`
+§11.2 pre-registered the primary metric as *"incremental rupees recovered per 1,000
+**at-risk cycles**"*, and the README said so too.
+
+On the base scenario: **3,436 at-risk events, 3,148 candidates.** The 288-event gap is
+the events where every candidate contact was removed by a blocking regulation before the
+solver saw it — which is exactly the population the pre-registered denominator was
+meant to include, because a cycle Antar was forbidden to touch is still a cycle at risk.
+
+The headline was therefore overstated by 3436/3148 = **9.2%**.
+
+**Fix.** `PolicyOutcome` carries `candidates` and `at_risk_events` as separate fields.
+The per-1,000 metrics divide by `at_risk_events`. The corrected headline is
+**₹1,033,289 per 1,000 at-risk cycles**, and every downstream artifact, figure and
+document now uses it.
+
+**The second thing the check found, which matters more than the first.** Decomposing the
+headline (per 1,000 at-risk cycles):
+
+| Component of the ₹1,033,289 | Share |
+|---|---:|
+| Difference in expected recovery | ₹6,322 — **0.6%** |
+| Difference in avoided opt-out loss | ₹1,026,962 — **99.4%** |
+
+**The headline is not a recovery number.** It is almost entirely a harm-avoidance number.
+Antar does recover marginally more than the propensity ranker (₹356,231 against
+₹334,534), but that difference is a rounding error next to the opt-out loss it declines
+to incur. The README said *"Antar recovers more money than the propensity ranker while
+contacting a fifth as many people"* — true, and a sentence that lets a reader believe the
+million rupees came from recovery. Corrected.
+
+**And the third.** That harm term is `p_optout × amount × optout_loss_multiplier`, and
+`optout_loss_multiplier` is **6.0** — a config parameter asserting that an induced
+cancellation costs six cycles. It is an assumption, not a measurement, and it scales
+99.4% of the headline linearly. Recorded as **LIMITATIONS L18**.
+
+**The general lesson.** Both output-side guards built after D24 check *where a number came
+from*: provenance (does it appear in an artifact?) and internal consistency (does it equal
+its own components?). Neither asks *whether it is a plausible size*. A units error
+produces a number that is perfectly traceable, perfectly consistent, and off by a factor
+of a hundred. `tests/statistical/test_magnitudes_are_plausible.py` is the third guard, and
+it works by reducing every headline to a dimensionless ratio — because a ratio cannot have
+a units error at all.

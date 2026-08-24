@@ -88,23 +88,45 @@ def _walk(node: object, sink: set[str]) -> None:
     elif isinstance(node, bool):
         return
     elif isinstance(node, int | float):
-        value = float(node)
-        if value != value or value in (float("inf"), float("-inf")):
-            # A NaN in an artifact is a real thing (an unfilled phase-diagram cell) and
-            # is not a number the README could be quoting.
-            return
-        # A stored figure counts as present under any reading that is a *unit change or
-        # a rounding*, never under a reading that changes the claim. Paise to rupees is
-        # not a claim; a different number is.
-        readings = (value, value / 100, value * 100)
-        for reading in readings:
-            sink.add(f"{reading:.6g}")
-            for places in (0, 1, 2, 3):
-                sink.add(f"{round(reading, places):.6g}")
-            # Percentages: 0.9168 in an artifact reads as "91.7%" or "0.917" in prose.
-            sink.add(f"{round(reading * 100, 1):.6g}")
+        sink |= readings_of(float(node))
     elif isinstance(node, str):
-        sink |= numbers_in(node)
+        sink |= expand(numbers_in(node))
+
+
+def readings_of(value: float) -> set[str]:
+    """Every reading of a stored figure that is a *unit change or a rounding*.
+
+    Never a reading that changes the claim. Paise to rupees is not a claim; a different
+    number is.
+    """
+    if value != value or value in (float("inf"), float("-inf")):
+        # A NaN in an artifact is a real thing (an unfilled phase-diagram cell) and is
+        # not a number the README could be quoting.
+        return set()
+
+    out: set[str] = set()
+    for reading in (value, value / 100, value * 100):
+        out.add(f"{reading:.6g}")
+        for places in (0, 1, 2, 3):
+            out.add(f"{round(reading, places):.6g}")
+        # Percentages: 0.9168 in an artifact reads as "91.7%" or "0.917" in prose.
+        out.add(f"{round(reading * 100, 1):.6g}")
+    return out
+
+
+def expand(tokens: set[str]) -> set[str]:
+    """Numbers found in *text* get the same treatment as numbers found in JSON.
+
+    `RESULTS.md` is generated, so a figure printed there as `6322.08` is as much a
+    measured number as one stored as `6322.08` in JSON - and the README rounding it to
+    `6,322` is a rounding, not a fabrication."""
+    out = set(tokens)
+    for token in tokens:
+        try:
+            out |= readings_of(float(token))
+        except ValueError:
+            continue
+    return out
 
 
 @pytest.fixture(scope="module")
@@ -120,7 +142,7 @@ def artifact_numbers() -> set[str]:
             continue
     results = artifacts_dir() / "RESULTS.md"
     if results.exists():
-        sink |= numbers_in(results.read_text(encoding="utf-8"))
+        sink |= expand(numbers_in(results.read_text(encoding="utf-8")))
     return sink
 
 
