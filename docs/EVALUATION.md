@@ -173,6 +173,96 @@ All reported with CIs. All produced by `make evaluate`.
 T-learner, X-learner, R-learner, CausalForestDML, plus two baselines: random targeting and
 propensity targeting.
 
+---
+
+### 3.3 Control-arm opt-out hazard — **amended 25 Aug 2026, before the re-run**
+
+**Committed before the code changes and before any number moves.** The result of this
+amendment is not yet known at the time of writing, and §13 records the commit that
+carries it.
+
+#### The defect
+
+`antar/simulator/response_model.py::optout_probability` returns a hard **0.0** for the
+control arm, under a comment that says the opposite:
+
+```python
+if intervention is None:
+    # Control customers still receive the pre-debit notification for their
+    # *scheduled* debit, because that is the issuer's obligation rather than
+    # our action - but they receive no additional Antar-initiated one.
+    return 0.0
+```
+
+Both halves of that are defensible on their own. Together they contradict the mechanism
+this whole project is built on. Antar's thesis is that **the notification is the opt-out
+prompt** — RBI-EM-02 requires every pre-debit notification to carry a way to cancel, and
+that is *why* contacting a customer can destroy a mandate. If a notification is what
+surfaces the cancel button, and control customers receive a notification, then the
+control opt-out hazard cannot be zero.
+
+This is the same shape as POSTMORTEM D22: two true statements joined by a false
+connective, sitting directly under the headline result.
+
+#### The consequence for what we have claimed
+
+`docs/LIMITATIONS.md` L17 currently says the opt-out cost is *"a causal effect only by
+construction"* — because the untreated arm has zero opt-outs, so there is nothing to
+difference. That is presented as a modelling limitation. It is not. It is an artefact of
+this one `return 0.0`, and describing it as an inherent property of the simulator
+overstates how carefully it was chosen.
+
+#### The amendment
+
+For `intervention is None`, compute the hazard with the same expression the treated arm
+uses, substituting a `BASELINE_INTRUSIVENESS` constant for the per-channel factor:
+
+```
+hazard = BASE_OPTOUT_HAZARD
+       * optout_sensitivity / REFERENCE_OPTOUT_SENSITIVITY
+       * BASELINE_INTRUSIVENESS
+       * (CHURN_INTENT_MULTIPLIER if intent_to_churn else 1)
+       * (1 + NOTIFICATION_FATIGUE * prior_notifications)
+```
+
+`BASELINE_INTRUSIVENESS = 0.40`, against `CHANNEL_INTRUSIVENESS[SMS] = 1.00`. **Chosen,
+not measured**, and recorded as such in `SIMULATOR_CARD.md`. The reasoning: a mandatory
+pre-debit notification is expected, is not a dunning message, and does not carry the
+"we are chasing you" signal that makes a recovery contact provoke cancellation — but it
+does carry the same cancel affordance. A value strictly between zero and SMS is the only
+defensible range; 0.40 is a point inside it and nothing more.
+
+`is_validation_mode` continues to return 0.0 for both arms. That switch exists to make
+the anti-circularity harness deterministic and is not a claim about customers.
+
+#### Pre-committed expectations, to be reported whichever way they fall
+
+1. **The harm-avoidance term shrinks.** It is currently ₹1,026,962 per 1,000 at-risk
+   cycles and 99.4% of the headline. Every policy's opt-out loss is now measured against
+   a non-zero baseline rather than against zero, so the *difference* between arms must
+   fall. We do not commit to a magnitude.
+2. **The headline falls.** Currently ₹1,033,289 per 1,000 at-risk cycles. If it does not
+   fall, the amendment did not do what it was meant to and that is itself reportable.
+3. **The contact comparison barely moves.** Currently 156 against 787. This is the claim
+   that does not depend on how harm is priced, which is exactly why it is the headline of
+   record in the README and the video.
+4. **L17 changes in kind.** From "a causal effect only by construction" to a contrast
+   between two non-zero arms, with a confidence interval. `OptoutRisk` can then be a real
+   two-arm estimator rather than a treated-arm response model minus a measured zero.
+
+**If the result is that Antar's advantage largely disappears, that is the finding and it
+goes in the README.** The point of committing this before the re-run is that the outcome
+is not available to negotiate with.
+
+#### What this does not fix
+
+Spontaneous cancellation — a customer who cancels on a Sunday afternoon for reasons no
+merchant caused — is still not modelled. The control hazard after this amendment is still
+*notification-driven*, just no longer zero. Real baseline churn remains out of scope and
+stays in L17.
+
+---
+
 ### 6.2 Selection rule — **amended 23 Aug 2026, before the bake-off ran**
 
 **The amendment, and why it had to happen before the run.** The original rule selected on
