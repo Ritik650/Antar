@@ -112,6 +112,8 @@ markers = [
     "statistical: statistical validation gate (PLAN.md 9.1)",
     "chaos: fault-injection suite (PLAN.md 10)",
     "adversarial: prompt-injection and contamination suite (PLAN.md 9.4)",
+    "integration: full batch through all five layers, offline (PLAN.md 9.1)",
+    "property: hypothesis-driven invariants (PLAN.md 9.1)",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",
@@ -123,6 +125,10 @@ source = ["antar"]
 omit = ["antar/console/*", "*/__main__.py"]
 
 [tool.coverage.report]
+# PLAN.md M8 sets the bar at 85%. Enforced rather than observed: a threshold nobody
+# checks is a number in a document.
+fail_under = 85
+show_missing = true
 exclude_lines = [
     "pragma: no cover",
     "if TYPE_CHECKING:",

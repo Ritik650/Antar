@@ -324,40 +324,18 @@ def _first(entries: list[LedgerEntry], kind: LedgerKind) -> dict[str, Any] | Non
     return None
 
 
-def build_trace(ledger: Ledger, event_id: str) -> Trace:
-    """Everything the ledger knows about one event, in order.
+def _mentions(payload: dict[str, Any], key: str, value: str) -> bool:
+    return payload.get(key) == value
 
-    Actions are found through the decision id as well as the event id, because
-    `ActionRecord` carries both and a partial write could carry only one.
-    """
-    entries = [e for e in ledger.entries() if _mentions(e.payload, "event_id", event_id)]
 
+def _assemble(
+    event_id: str, entries: list[LedgerEntry], verified: VerificationResult
+) -> Trace:
     decision = _first(entries, LedgerKind.DECISION)
-    if decision and decision.get("decision_id"):
-        by_decision = [
-            e
-            for e in ledger.entries()
-            if e not in entries
-            and _mentions(e.payload, "decision_id", decision["decision_id"])
-        ]
-        entries = sorted([*entries, *by_decision], key=lambda e: e.seq)
-
-    action = _first(entries, LedgerKind.ACTION)
-    if action and action.get("action_id"):
-        by_action = [
-            e
-            for e in ledger.entries()
-            if e not in entries and _mentions(e.payload, "action_id", action["action_id"])
-        ]
-        entries = sorted([*entries, *by_action], key=lambda e: e.seq)
-
     return Trace(
         event_id=event_id,
         entries=tuple(entries),
-        # The verification covers the *whole* ledger, not this slice: a chain is only
-        # meaningful end to end, and a break anywhere is a reason to distrust a trace
-        # from anywhere.
-        verified=verify_entries(ledger.entries()),
+        verified=verified,
         event=_first(entries, LedgerKind.EVENT),
         diagnosis=_first(entries, LedgerKind.DIAGNOSIS),
         decision=decision,
@@ -367,29 +345,113 @@ def build_trace(ledger: Ledger, event_id: str) -> Trace:
     )
 
 
-def _mentions(payload: dict[str, Any], key: str, value: str) -> bool:
-    return payload.get(key) == value
+def build_trace(ledger: Ledger, event_id: str) -> Trace:
+    """Everything the ledger knows about one event, in order.
+
+    Entries are found by `event_id`, then by the decision id and action id they carry,
+    because a partial write could carry one and not the other.
+
+    **Single-trace path.** This reads and verifies the whole ledger, which is right for
+    one trace and quadratic for all of them. `TraceIndex` exists for the second case and
+    is what `replay.py` and the console use - an earlier version of this module had only
+    this function, and a full-size batch (3,436 events, ~14,000 entries) took long enough
+    to look like a hang. See POSTMORTEM D26.
+    """
+    all_entries = ledger.entries()
+    verified = verify_entries(all_entries)
+    return _assemble(event_id, _slice_for(all_entries, event_id), verified)
+
+
+def _slice_for(all_entries: list[LedgerEntry], event_id: str) -> list[LedgerEntry]:
+    entries = [e for e in all_entries if _mentions(e.payload, "event_id", event_id)]
+
+    decision = _first(entries, LedgerKind.DECISION)
+    if decision and decision.get("decision_id"):
+        seen = {e.seq for e in entries}
+        entries += [
+            e
+            for e in all_entries
+            if e.seq not in seen and _mentions(e.payload, "decision_id", decision["decision_id"])
+        ]
+
+    action = _first(entries, LedgerKind.ACTION)
+    if action and action.get("action_id"):
+        seen = {e.seq for e in entries}
+        entries += [
+            e
+            for e in all_entries
+            if e.seq not in seen and _mentions(e.payload, "action_id", action["action_id"])
+        ]
+
+    return sorted(entries, key=lambda e: e.seq)
 
 
 @dataclass
 class TraceIndex:
-    """Cheap lookups for the console: which events does this ledger know about?"""
+    """Every trace in a ledger, built from **one** pass over it.
+
+    `build_trace` reads and verifies the entire ledger per call. Called once, that is
+    correct. Called once per event on a full batch it is quadratic in the number of
+    entries, and the batch runner does exactly that: 3,436 events against ~14,000
+    entries is 48 million row constructions, plus 3,436 full chain verifications.
+
+    So this loads once, groups by event id, and verifies once. The traces it returns are
+    identical to `build_trace`'s - `test_the_index_and_the_single_trace_agree` asserts
+    that on every event of a real batch rather than trusting it.
+    """
 
     ledger: Ledger
-    _event_ids: list[str] = field(default_factory=list)
+    _entries: list[LedgerEntry] = field(default_factory=list)
+    _by_event: dict[str, list[LedgerEntry]] = field(default_factory=dict)
+    _verified: VerificationResult | None = None
+
+    def _load(self) -> None:
+        if self._entries:
+            return
+        self._entries = self.ledger.entries()
+        self._verified = verify_entries(self._entries)
+
+        by_decision: dict[str, str] = {}
+        by_action: dict[str, str] = {}
+        grouped: dict[str, list[LedgerEntry]] = {}
+
+        # One pass in sequence order. An entry that names an event id joins that event;
+        # one that names only a decision or action id joins whichever event claimed that
+        # id earlier, which is exactly what the per-event scan resolved the slow way.
+        for entry in self._entries:
+            payload = entry.payload
+            event_id = payload.get("event_id")
+            if not isinstance(event_id, str):
+                decision_id = payload.get("decision_id")
+                action_id = payload.get("action_id")
+                event_id = by_decision.get(str(decision_id)) or by_action.get(str(action_id))
+            if not isinstance(event_id, str):
+                continue
+
+            grouped.setdefault(event_id, []).append(entry)
+            if isinstance(payload.get("decision_id"), str):
+                by_decision.setdefault(payload["decision_id"], event_id)
+            if isinstance(payload.get("action_id"), str):
+                by_action.setdefault(payload["action_id"], event_id)
+
+        self._by_event = grouped
+
+    @property
+    def verified(self) -> VerificationResult:
+        self._load()
+        assert self._verified is not None
+        return self._verified
 
     def event_ids(self) -> list[str]:
-        if not self._event_ids:
-            seen: dict[str, None] = {}
-            for entry in self.ledger.entries():
-                eid = entry.payload.get("event_id")
-                if isinstance(eid, str):
-                    seen.setdefault(eid, None)
-            self._event_ids = list(seen)
-        return self._event_ids
+        self._load()
+        return list(self._by_event)
+
+    def trace(self, event_id: str) -> Trace:
+        self._load()
+        return _assemble(event_id, self._by_event.get(event_id, []), self.verified)
 
     def traces(self) -> list[Trace]:
-        return [build_trace(self.ledger, eid) for eid in self.event_ids()]
+        return [self.trace(event_id) for event_id in self.event_ids()]
 
 
 __all__ = ["STAGES", "Trace", "TraceIndex", "build_trace"]

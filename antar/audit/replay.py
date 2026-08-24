@@ -192,12 +192,15 @@ def replay(
                 "deliberately inspecting the damage."
             )
 
+    # One pass over the ledger, not one per event. `build_trace` reads and verifies the
+    # whole chain on every call, which turned a full-size batch replay into something
+    # that looked like a hang (POSTMORTEM D26).
     index = TraceIndex(ledger)
     targets = list(event_ids) if event_ids is not None else index.event_ids()
     result = ReplayResult()
 
     for event_id in targets:
-        trace = index_trace(ledger, event_id)
+        trace = index.trace(event_id)
 
         if trace.event is None:
             result.skipped += 1
@@ -248,12 +251,6 @@ def replay(
     return result
 
 
-def index_trace(ledger: Ledger, event_id: str) -> Trace:
-    from antar.audit.trace import build_trace
-
-    return build_trace(ledger, event_id)
-
-
 def replay_is_self_consistent(ledger: Ledger) -> ReplayResult:
     """The null replay: feed each recorded decision back as its own answer.
 
@@ -265,8 +262,7 @@ def replay_is_self_consistent(ledger: Ledger) -> ReplayResult:
     index = TraceIndex(ledger)
 
     def echo(event: dict[str, Any], _diagnosis: dict[str, Any] | None) -> dict[str, Any] | None:
-        trace = index_trace(ledger, str(event.get("event_id")))
-        return trace.decision
+        return index.trace(str(event.get("event_id"))).decision
 
     return replay(ledger, echo, event_ids=index.event_ids())  # type: ignore[arg-type]
 

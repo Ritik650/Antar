@@ -828,3 +828,245 @@ outcome — the simulator's job, labelled `"simulated": true` in every artifact 
 *are* the oracle comparison, and are labelled as such. What was wrong was carrying that
 valuation into the path that writes the audit record. The two now share the feasibility
 logic and nothing else.
+
+---
+
+## D23 · An LLM timeout crashed the send path the fallback existed to protect
+
+**Found by:** the chaos suite, writing the row PLAN.md section 10 specifies as
+*"LLM timeout → deterministic template fallback, flagged in the trace"*.
+**Severity:** high — an unhandled exception in the money path.
+**Status:** fixed.
+
+**Symptom.** A client whose `messages.create` raises `TimeoutError` did not produce a
+fallback draft. It produced a `TimeoutError`, out of `Drafter.draft()`, up through the
+pipeline, killing the batch.
+
+**Root cause.** One `except` clause:
+
+```python
+except (TemplateError, ValueError, json.JSONDecodeError) as exc:
+```
+
+Those are the three ways the model's **response** can be wrong: an unrenderable
+template, an invented slot, malformed JSON. They are not the ways the **call** can be
+wrong — a read timeout, a dropped connection, a 529, an SDK that reorganises its
+exception hierarchy in a minor release. I had written a careful, specific exception
+tuple and it was specific about the wrong axis.
+
+The whole architecture of the act layer says the deterministic template is always safe
+to fall back to. Given that, there is no exception from an API call worth crashing for,
+and the narrow clause was precision doing damage.
+
+**Fix.** `except Exception`, with a comment saying why the breadth is deliberate rather
+than lazy. Every failure is appended to `drafter.failures` and reaches the ledger.
+
+**A second defect in the same function, found by the next test.** On exhausting its
+attempts, `_draft_with_model` returned `None` and let `draft()` build the fallback with
+`repair_attempts=0`. A draft that had cost two API calls was recorded as never having
+tried one. PLAN.md asks for the repair and the fallback to be **both logged**; only the
+fallback was. `_draft_with_model` now builds the fallback itself so the count survives,
+and `repair_attempts` means repairs — calls after the first — on both the success path
+and the exhaustion path, which it previously did not.
+
+**Why the adversarial suite missed both.** `tests/adversarial/test_injection.py` has a
+test called `test_malformed_json_is_repaired_once_then_falls_back`. It passed throughout.
+It asserted that the fallback was *used* — `draft.fallback_used is True` — and never
+looked at what the record said about how it got there. The adversarial suite asks "can
+an attacker make this do the wrong thing?"; the chaos suite asks "when this breaks, is
+what we wrote down still true?". Those are different questions, and the second one found
+two bugs the first had been stepping over for a day.
+
+---
+
+## D24 · A headline number in an artifact was a different quantity entirely
+
+**Found by:** rendering `RESULTS.md` from the artifacts for the first time and reading
+a sentence that contradicted the table directly above it.
+**Severity:** critical — a published headline, wrong, with the wrong sign, for two
+milestones.
+**Status:** fixed, with a guard.
+
+**Symptom.** `artifacts/RESULTS.md` rendered:
+
+| Policy | ... | Net per 1,000 Rs |
+|---|---|---|
+| propensity | ... | -1,086,143 |
+| antar | ... | 40,366 |
+
+immediately followed by:
+
+> **Antar minus propensity targeting: Rs -84,676.49 per 1,000 at-risk cycles.**
+
+Antar is over a million rupees ahead per 1,000 cycles. The headline said it was eighty
+thousand behind.
+
+**Root cause.** `scripts/run_allocation.py`:
+
+```python
+delta = antar_minus_propensity_paise(outcomes) / 100     # line 139: correct
+...
+for component in (...):
+    delta, ci, ... = retention_across_seeds(...)          # line 171: reused the name
+...
+"antar_minus_propensity_per_1000_rupees": round(delta, 2)  # line 198: last component's
+```
+
+The value written under the headline key was **the changepoint detector's retention
+effect, in paise, under a key whose name ends `_rupees`** — the wrong quantity *and* the
+wrong unit, from a loop thirty lines below. Compare the same run's retention block:
+`changepoint_detector, delta_net_paise: -84676`. The number printed to the console at
+line 140 was right; the number saved to the artifact was not. Nobody reads the console
+after the run; everybody reads the artifact.
+
+**Why it survived two milestones.** Every safeguard this project has was pointed
+somewhere else. `-84,676.49` is plausible in magnitude, correct in units, correctly
+rounded, and sits under a correctly-named key in a correctly-shaped JSON file. Nothing
+compared it to the components it claimed to be derived from — because until M8's
+`RESULTS.md` there was no consumer of the artifact that put the delta and the policy
+table on the same page.
+
+**Fix.** `headline_delta_rupees` and `retention_delta`, two names for two quantities.
+
+**The guard, which is the point.**
+`tests/statistical/test_artifacts_are_self_consistent.py` asserts that every derived
+number in an artifact is recomputable from that artifact's own components: the delta
+equals the difference of the two nets, each policy's net equals its parts, contacts plus
+abstentions equals events, per-class support sums to the events evaluated, the ledger
+entry count reconciles with the batch summary. Written against the stale artifact it
+failed immediately with the arithmetic spelled out — which is how it should have been
+found.
+
+**The general lesson.** I have spent this build guarding the *inputs* to numbers: no
+leakage, no answer key, pinned clocks, pre-registered rules, verified regulations. This
+was a failure at the *output* — an artifact that was internally inconsistent, which no
+amount of upstream care can catch. Any number that is a function of other numbers in
+the same file should be checked against them, and the check is cheap.
+
+**Scope of the correction.** No claim outside `artifacts/` used the bad figure: the
+README does not exist yet, and the milestone commit messages quote the console output,
+which was correct. The corrected headline for the base scenario is
+**Rs 1,126,509 per 1,000 at-risk cycles**, and it is now checked by the guard on every
+CI run.
+
+---
+
+## D25 · The retention rule stopped being able to measure anything, by succeeding
+
+**Found by:** re-running `scripts/run_allocation.py` in M8 and noticing that the
+retention verdicts had become `delta 0, CI (0, 0)` for **both** components, where M6 had
+measured `-846.76` with a CI of `[-2540, 0]` for the changepoint detector.
+**Severity:** high — a pre-registered measurement silently became incapable of producing
+a result, while continuing to produce one.
+**Status:** fixed, with a vacuity guard.
+
+**Symptom.** Identical zeros, for both components, across every seed. Not "small". Not
+"noisy". Exactly zero, every time — and the diagnostic line the script had been printing
+all along said so, if anyone had read it:
+
+```
+downtime_crosscheck    DELETE
+  with Rs 29,192/1000  without Rs 29,192/1000  delta Rs 0.00
+```
+
+The two arms are the same number to the rupee. That is not a small effect; that is not
+an effect.
+
+**Root cause, which is almost funny.** `retention_across_seeds` built the *with-component*
+arm from the current config and the *without* arm by overriding some thresholds:
+
+```python
+with_component = PolicyRunner(batch, log, config=config, ...)
+without        = PolicyRunner(batch, log, config=stripped, ...)
+```
+
+In M6 that was correct: both components were enabled in `config/default.yaml`, so the two
+arms genuinely differed. **Then M6's own verdict switched them off.** From that commit
+onward `config` already had `enable_downtime_crosscheck: false`, the stripped config
+disabled a component that was not running, and the two arms described the same detector.
+
+The measurement did not fail. It reported a delta of zero with a confidence interval of
+zero width, and the pre-registered rule read that as ambiguity and resolved — correctly,
+by its own terms — to **DELETE**. A component deleted once could never be reconsidered on
+new data, because every future measurement of it would return exactly zero and confirm
+the deletion. The rule had become a ratchet.
+
+**The uncomfortable part.** The *verdict* did not change: both components were deleted in
+M6 on a valid measurement, and both remain deleted. Nothing shipped is wrong because of
+this. But between M6 and now, the artifact reported a zero delta as if it were a
+measurement, `RESULTS.md` rendered it, and I had already overwritten M6's real numbers on
+disk before noticing. The reason I noticed at all is that the README quoted M6's figures
+and `test_results_are_reproducible.py` failed because they no longer appeared in any
+artifact — a test written for a completely different purpose.
+
+**Fix.** Both arms are now constructed explicitly, and neither inherits the shipped
+default:
+
+```python
+enabled  = config.with_overrides({flag: True})
+stripped = enabled.with_overrides({flag: False, **extra_off})
+```
+
+The measurement is now independent of what the current build happens to ship, which is
+the only way a deleted component can ever be re-evaluated.
+
+**The guard.** `retention_across_seeds` raises if the enabled and stripped arms produce
+identical results on every seed:
+
+> the retention measurement for 'changepoint_detector' is vacuous: the enabled and
+> stripped arms produced identical results on every seed, so the component had no
+> influence to measure. […] A zero delta from this state is not evidence for DELETE —
+> it is the absence of evidence.
+
+**The general lesson, and it is the third time this build has taught it.** D16 was a
+retention CI of exactly (0, 0) because L2 had no influence on the allocator. D24 was a
+headline that did not match its own components. This is the same shape again: **a
+measurement that cannot fail is not a measurement, and "exactly zero" is the signature.**
+Any estimator that can return a degenerate answer needs an explicit check that it did not,
+because the degenerate answer is always plausible and always wrong.
+
+---
+
+## D26 · The trace assembler was quadratic, and the full batch looked like a hang
+
+**Found by:** running `scripts/run_batch.py` at full size for the first time. Every run
+until then had used `--max-events` or a reduced customer count.
+**Severity:** medium — no wrong answers, but the demo path did not finish.
+**Status:** fixed.
+
+**Symptom.** `python -m scripts.run_batch --scenario base` printed its first line and
+then produced nothing for eight minutes. Not an error, not a partial result. Silence.
+
+**Root cause.** `build_trace(ledger, event_id)` does two full passes over the ledger: it
+reads every entry, and it verifies the entire chain. That is correct for *one* trace and
+it is what makes a single trace trustworthy — the verification covers the whole chain,
+because a break anywhere is a reason to distrust a trace from anywhere.
+
+`replay_is_self_consistent` then called it **once per event**. On a full base batch that
+is 3,436 events against roughly 14,000 entries: about 48 million row constructions and
+3,436 complete chain verifications, to answer a question that needs one pass.
+
+**Why it survived every test.** `tests/unit/test_trace.py` uses a five-entry ledger.
+`tests/integration/test_full_batch.py` caps at 150 events. Both are the right size for
+what they test — composition, not scale — and neither could have surfaced this. The
+performance characteristic only appears at the size the *demo* runs at, and until M8
+nothing had run at that size.
+
+**Fix.** `TraceIndex` loads the ledger once, verifies once, and groups entries by event
+id in a single pass, resolving entries that carry only a `decision_id` or `action_id`
+through whichever event claimed that id earlier. `replay.py`, the console, and the batch
+runner all use it. `build_trace` is unchanged and remains the single-trace path, because
+its whole-ledger verification is the honest thing to do when you are looking at one
+event.
+
+**The test that makes the optimisation safe.**
+`test_the_index_and_the_single_trace_agree` builds every trace both ways on the same
+ledger and asserts the dictionaries are identical. A faster path that returns different
+answers is not an optimisation, and two code paths that are supposed to agree will not
+stay agreed on their own.
+
+**The general lesson.** Every test in this repository is small on purpose — small tests
+are fast, and fast tests get run. The cost is that a whole class of defect, the kind that
+only appears at production scale, cannot be caught by any of them. The batch runner is
+now the thing that runs at full size, and it should be run at full size before every
+demo, because it is the only place this class of bug can surface.

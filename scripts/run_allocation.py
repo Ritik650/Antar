@@ -136,8 +136,15 @@ def main() -> int:
             f"{row['expected_optout_loss_rupees']:>12,.0f} "
             f"{row['net_per_1000_events_rupees']:>13,.0f}"
         )
-    delta = antar_minus_propensity_paise(outcomes) / 100
-    print(f"\n  P3 - P2 (the comparison that matters): Rs {delta:,.0f} per 1,000 cycles")
+    # Named, not `delta`. The retention loop below used to reuse that name, so by the
+    # time the artifact was written this headline had been overwritten by the last
+    # component's retention effect - a different quantity, of the opposite sign, under
+    # a key that said otherwise. POSTMORTEM D24.
+    headline_delta_rupees = antar_minus_propensity_paise(outcomes) / 100
+    print(
+        f"\n  P3 - P2 (the comparison that matters): "
+        f"Rs {headline_delta_rupees:,.0f} per 1,000 cycles"
+    )
 
     print("\nShadow prices:")
     for price in antar.shadow_prices:
@@ -168,12 +175,12 @@ def main() -> int:
     print(f"  measuring across {len(seeds)} seeds (the sampling distribution that applies)")
     verdicts = []
     for component in ("downtime_crosscheck", "changepoint_detector"):
-        delta, ci, with_totals, without_totals = retention_across_seeds(
+        retention_delta, ci, with_totals, without_totals = retention_across_seeds(
             config, args.scenario, component, seeds
         )
         verdict = decide(
             component,
-            delta_net_paise=round(delta),
+            delta_net_paise=round(retention_delta),
             ci_low_paise=round(ci[0]),
             ci_high_paise=round(ci[1]),
             scenario=args.scenario,
@@ -183,7 +190,7 @@ def main() -> int:
         print(
             f"    with Rs {np.mean(with_totals) / 100:>12,.0f}/1000  "
             f"without Rs {np.mean(without_totals) / 100:>12,.0f}/1000  "
-            f"delta Rs {delta / 100:>10,.2f}"
+            f"delta Rs {retention_delta / 100:>10,.2f}"
         )
         print(f"    {verdict.rationale}")
     write_verdicts(verdicts)
@@ -195,7 +202,7 @@ def main() -> int:
                 "scenario": args.scenario,
                 "seed": args.seed,
                 "policies": comparison_table(outcomes),
-                "antar_minus_propensity_per_1000_rupees": round(delta, 2),
+                "antar_minus_propensity_per_1000_rupees": round(headline_delta_rupees, 2),
                 "shadow_prices": summarise_prices(
                     _as_allocation(antar), [price]
                 ),
@@ -244,30 +251,48 @@ def retention_across_seeds(config, scenario: str, component: str, seeds: list[in
     The real variation is across draws of the world. So the interval is built over
     seeds, which is the sampling distribution that actually applies.
     """
-    overrides = {
-        # Disabling the cross-check means the detector finds no declared outage at all.
-        # A tolerance of -1 was NOT enough: a window that strictly covers the attempt
-        # is still found, so the component stayed live.
+    # Both arms are constructed explicitly. Neither inherits the shipped default, and
+    # that is the whole point.
+    #
+    # The first version built the "with" arm from `config` as-is. That was fine in M6,
+    # when both components were still enabled - and became *vacuous* the moment M6's own
+    # verdict switched them off, because `with` and `without` then described the same
+    # detector and every delta was exactly zero. The measurement would have re-confirmed
+    # DELETE forever, on no evidence, and a deleted component could never be
+    # reconsidered on new data. POSTMORTEM D25.
+    flags = {
+        "downtime_crosscheck": "detect.enable_downtime_crosscheck",
+        "changepoint_detector": "detect.enable_changepoint_detector",
+    }
+    extra_off = {
+        # Belt and braces: turning the flag off is what removes the component, and these
+        # additionally neutralise it in case a future refactor reads the thresholds
+        # without consulting the flag.
         "downtime_crosscheck": {"detect.downtime_overlap_tolerance_minutes": -100000},
         "changepoint_detector": {
             "detect.changepoint.degrading_threshold": 1e9,
             "detect.changepoint.degraded_threshold": 1e9,
         },
     }[component]
-    stripped = config.with_overrides(overrides)
+
+    enabled = config.with_overrides({flags[component]: True})
+    stripped = enabled.with_overrides({flags[component]: False, **extra_off})
 
     deltas: list[float] = []
     with_totals: list[float] = []
     without_totals: list[float] = []
 
     for seed in seeds:
+        # Shared between arms on purpose: the two arms must differ in the detector
+        # and in nothing else, or the delta measures the difference between two
+        # worlds rather than between two detectors.
         batch = generate(scenario, seed=seed, config=config)
         log = run_experiment(batch, config=config)
         propensity = fit_propensity(log)
 
         with_component = PolicyRunner(
-            batch, log, config=config, propensity_model=propensity,
-            detection=run_detection(batch, config=config),
+            batch, log, config=enabled, propensity_model=propensity,
+            detection=run_detection(batch, config=enabled),
         ).run()["antar"]
         without = PolicyRunner(
             batch, log, config=stripped, propensity_model=propensity,
@@ -277,6 +302,19 @@ def retention_across_seeds(config, scenario: str, component: str, seeds: list[in
         with_totals.append(with_component.net_per_1000_paise)
         without_totals.append(without.net_per_1000_paise)
         deltas.append(with_component.net_per_1000_paise - without.net_per_1000_paise)
+
+    # A measurement in which the two arms never differ has measured nothing. Reporting
+    # it as "delta 0, CI (0, 0), DELETE" would be a verdict wearing the clothes of
+    # evidence - and it is exactly what this function produced once the components it
+    # judges were switched off (D25). Fail loudly instead.
+    if all(w == wo for w, wo in zip(with_totals, without_totals, strict=True)):
+        raise RuntimeError(
+            f"the retention measurement for {component!r} is vacuous: the enabled and "
+            "stripped arms produced identical results on every seed, so the component "
+            "had no influence to measure. Either the override no longer disables it, "
+            "or the component is already inert. A zero delta from this state is not "
+            "evidence for DELETE - it is the absence of evidence. See POSTMORTEM D25."
+        )
 
     array = np.asarray(deltas, dtype=float)
     if array.std() < 1e-9:

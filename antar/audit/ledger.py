@@ -414,6 +414,12 @@ class Ledger:
     def close(self) -> None:
         self._conn.close()
 
+    def __enter__(self) -> Ledger:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self.close()
+
     # ------------------------------------------------------------ testing
 
     def _disable_append_only_guards(self) -> None:

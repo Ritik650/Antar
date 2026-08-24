@@ -349,3 +349,54 @@ def test_a_trace_is_a_frozen_view(full_ledger):
     # console a story the ledger does not contain.
     with pytest.raises(AttributeError):
         trace.event_id = "something_else"  # type: ignore[misc]
+
+
+# ------------------------------------------- the index and the single trace
+
+
+def test_the_index_and_the_single_trace_agree(full_ledger):
+    """`TraceIndex` exists purely for speed. Speed is worthless if it changes answers.
+
+    `build_trace` rescans and re-verifies the whole ledger per call; the index does one
+    pass and groups. They must produce identical traces, and this asserts it field by
+    field rather than trusting the two code paths to stay aligned. POSTMORTEM D26.
+    """
+    index = TraceIndex(full_ledger)
+    for event_id in index.event_ids():
+        slow = build_trace(full_ledger, event_id)
+        fast = index.trace(event_id)
+        assert fast.as_dict() == slow.as_dict(), f"the two paths disagree on {event_id}"
+
+
+def test_the_index_links_an_action_to_its_event_through_the_decision(frozen):
+    """The hard case the single-pass grouping has to get right.
+
+    An `ActionRecord` carries `event_id` directly, but an entry that carried only a
+    `decision_id` would be orphaned by naive grouping. The index resolves it through the
+    decision that claimed that id.
+    """
+    led = Ledger()
+    led.append(LedgerKind.EVENT, make_event())
+    led.append(LedgerKind.DECISION, make_decision())
+    # An entry with no event_id at all, reachable only through the decision.
+    led.append(LedgerKind.ALERT, {"decision_id": "dec_1", "alert": "AWAITING_APPROVAL"})
+
+    trace = TraceIndex(led).trace("evt_1")
+    assert len(trace.entries) == 3
+    assert trace.alerts and trace.alerts[0]["alert"] == "AWAITING_APPROVAL"
+
+
+def test_the_index_verifies_the_chain_once_and_shares_the_result(full_ledger):
+    index = TraceIndex(full_ledger)
+    assert index.verified.ok
+    assert all(trace.verified is index.verified for trace in index.traces())
+
+
+def test_the_index_reports_a_broken_chain_on_every_trace(full_ledger):
+    full_ledger._disable_append_only_guards()
+    full_ledger._conn.execute("UPDATE ledger SET payload = '{}' WHERE seq = 1")
+    full_ledger._conn.commit()
+
+    index = TraceIndex(full_ledger)
+    assert not index.verified.ok
+    assert all("WARNING" in trace.narrate() for trace in index.traces())

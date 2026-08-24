@@ -228,12 +228,26 @@ defences are tested even when the network is not.
 ## L13 · Two detection components were deleted by their own measurement
 
 **Resolved, against ourselves.** `docs/EVALUATION.md` §12.2 was committed before the
-allocator existed and bound us to a rule. Measured on 2026-08-23, base scenario, 3 seeds:
+allocator existed and bound us to a rule. Measured on 2026-08-25, base scenario, 5 seeds:
+
+Δ is `with − without`, so a negative number means the component was costing money:
 
 | Component | Δ net per 1,000 cycles | 95% CI | Verdict |
 |---|---|---|---|
-| Downtime API cross-check | ₹0.00 | [0, 0] | **DELETE** |
-| EWMA/CUSUM changepoint detector | **−₹846.76** | [−2,540, 0] | **DELETE** |
+| Downtime API cross-check | **−₹311.45** | [−467.56, −144.28] | **DELETE** |
+| EWMA/CUSUM changepoint detector | **−₹264.36** | [−491.89, −72.80] | **DELETE** |
+
+Both intervals exclude zero, on the side that says the components were *costing* money
+rather than merely failing to earn their place. The pre-registered rule would have
+deleted them either way — ambiguity resolves to DELETE — but this is the stronger
+finding, and it is the one that survives.
+
+**This supersedes the M6 measurement**, which reported ₹0.00 [0, 0] for the cross-check
+and −₹846.76 [−2,540, 0] for the changepoint detector. That run was valid when it was
+made. The verdict has not changed. What changed is that the ablation was rebuilding its
+*with-component* arm from the shipped configuration, so once M6's own verdict switched
+these flags off, both arms described the same detector and every later delta was exactly
+zero — a rule that could only ever re-confirm itself. POSTMORTEM D25, ADR-0028.
 
 Both are now off in `config/default.yaml`, and
 `tests/statistical/test_component_retention.py` fails if the configuration and the
@@ -243,8 +257,8 @@ an edit.
 **What deletion cost.** Detection quality got worse, and that is reported rather than
 omitted: accuracy when resolved fell 92.4% → 91.7%, `ISSUER_DOWN` recall fell
 0.82 → 0.70, and the wrong-action cost rose ₹140k → ₹153k on the control arm. Net money
-improved by ₹847 per 1,000 cycles. That is the trade the pre-registered rule made, with
-its eyes open.
+improved by ₹311 and ₹264 per 1,000 cycles respectively. That is the trade the
+pre-registered rule made, with its eyes open.
 
 **Why they did not earn their place.** Once the L3 objective prices the RBI-EM-02
 opt-out hazard directly, the allocator declines outage-affected candidates on economics

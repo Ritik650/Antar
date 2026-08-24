@@ -289,7 +289,16 @@ class Drafter:
                 values = self._parse(raw, model_slots)
                 slots = {**fixed, **values}
                 rendered = template.render({k: slots[k] for k in template.slots})
-            except (TemplateError, ValueError, json.JSONDecodeError) as exc:
+            except Exception as exc:
+                # Deliberately broad. The narrow version caught TemplateError,
+                # ValueError and JSONDecodeError - every way the *response* can be
+                # wrong - and none of the ways the *call* can be: a read timeout, a
+                # dropped connection, a 529 from the API, an SDK that changed its
+                # exception hierarchy. Those propagated straight out of `draft()` and
+                # took the send path down with them. PLAN.md section 10 requires a
+                # timeout to produce the deterministic fallback, and the fallback is
+                # always safe to take, so there is no failure here worth crashing for.
+                # POSTMORTEM D23.
                 last_error = str(exc)
                 self.failures.append(f"{type(exc).__name__}: {exc}")
                 attempts += 1
@@ -319,7 +328,26 @@ class Drafter:
                 contamination_score=verdict.score,
             )
 
-        return None
+        # Every attempt failed. Fall back *here* rather than returning None, so that
+        # `repair_attempts` survives into the record. The earlier version returned None
+        # and let `draft()` build the fallback with `repair_attempts=0`, so a draft that
+        # had cost two API calls was recorded as never having tried - and PLAN.md
+        # section 10 asks for the repair and the fallback to be *both* logged.
+        # `attempts` counts calls made; a repair is every call after the first. On the
+        # success path above, `attempts` is already the number of repairs that preceded
+        # the good response, so the two paths agree on what the field means.
+        repairs = max(0, attempts - 1)
+        return self._deterministic(
+            context,
+            template,
+            fixed,
+            version,
+            repair_attempts=repairs,
+            note=(
+                f"model exhausted {attempts} attempt(s) including {repairs} repair(s); "
+                f"last error: {last_error}"
+            ),
+        )
 
     def _call(
         self, context: DraftContext, template: Template, model_slots: list[str], *, repair: str

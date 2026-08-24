@@ -137,17 +137,24 @@ detect:
   # net incremental rupees by a margin whose CI excludes zero. Ambiguity
   # resolves to DELETE - the null is that a component does not belong.
   #
-  # Measured on 2026-08-23, base scenario, 3 seeds, 800 customers
-  # (artifacts/retention.json):
+  # Measured on 2026-08-25, base scenario, 5 seeds (artifacts/retention.json):
   #
-  #   downtime_crosscheck   delta Rs      0.00 / 1000   CI [0, 0]           -> DELETE
-  #   changepoint_detector  delta Rs   -846.76 / 1000   CI [-2540, 0]       -> DELETE
+  #   downtime_crosscheck   delta Rs  -311.45 / 1000   CI [-467.56, -144.28]  -> DELETE
+  #   changepoint_detector  delta Rs  -264.36 / 1000   CI [-491.89,  -72.80]  -> DELETE
   #
-  # The changepoint detector was actively costing money: its false alarms
-  # vetoed contacts the allocator correctly wanted to make. The downtime
-  # cross-check made no difference at all, because once the objective prices
-  # the RBI-EM-02 opt-out hazard directly, the allocator declines those
-  # candidates on economics without needing to be told the issuer was down.
+  # Both intervals exclude zero on the NEGATIVE side: each component was not
+  # merely unproven, it was measurably costing money. Their false alarms vetoed
+  # contacts the allocator correctly wanted to make, and once the objective
+  # prices the RBI-EM-02 opt-out hazard directly, the allocator declines the
+  # right candidates on economics without being told the issuer was down.
+  #
+  # This supersedes the M6 measurement, which reported [0, 0] for the downtime
+  # cross-check and [-2540, 0] for the changepoint detector. That earlier run was
+  # valid when made and the verdict is unchanged, but the ablation was rebuilding
+  # its "with component" arm from the shipped config - so once M6's own verdict
+  # switched these flags off, the two arms became identical and every subsequent
+  # delta was exactly zero. Both arms are now constructed explicitly and the
+  # measurement raises if they ever coincide. POSTMORTEM D25, ADR-0028.
   #
   # The modules and their tests remain in the repo, disconnected, per the
   # pre-registered definition of deletion. Re-enabling either requires a NEW

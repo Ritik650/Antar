@@ -140,6 +140,20 @@ def bakeoff(args: dict[str, str]) -> int:
     return run(PY, "-m", "scripts.run_bakeoff", "--scenario", args.get("SCENARIO", "base"))
 
 
+@target("spec-curve")
+def spec_curve(args: dict[str, str]) -> int:
+    return run(PY, "-m", "scripts.run_spec_curve", "--scenario", args.get("SCENARIO", "base"))
+
+
+@target("trace")
+def trace(args: dict[str, str]) -> int:
+    """Answer 'why did you contact this customer?' for one event id."""
+    cmd = [PY, "-m", "scripts.run_batch", "--scenario", args.get("SCENARIO", "base")]
+    if args.get("EVENT"):
+        cmd += ["--trace", args["EVENT"]]
+    return run(*cmd)
+
+
 @target("evaluate")
 def evaluate(args: dict[str, str]) -> int:
     """The N4 target: reproduce every number in the README from a clean checkout."""

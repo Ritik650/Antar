@@ -534,3 +534,44 @@ A caller cannot carry on, because carrying on is not expressible.
 **Consequence.** A batch with too little exploration data produces no contacts and a
 loud failure. That is the correct behaviour for a system that moves money: the safe
 failure is do nothing.
+
+---
+
+## ADR-0028 · 2026-08-25 · Both arms of an ablation are constructed, never inherited · Accepted
+
+**Context.** `retention_across_seeds` built the *with-component* arm from the shipped
+config. That was correct in M6 — and became vacuous the moment M6's own verdict switched
+those components off, because both arms then described the same detector and every delta
+was exactly zero (POSTMORTEM D25). The pre-registered rule read zero as ambiguity and
+resolved to DELETE, so a deleted component could never be reconsidered. The rule had
+become a ratchet.
+
+**Decision.** Both arms are constructed explicitly from an override. Neither inherits the
+current default. The measurement additionally raises if the two arms produce identical
+results on every seed.
+
+**Consequence.** The ablation measures the component rather than the build, and a
+degenerate result is a loud failure rather than a quiet verdict. Re-run after the fix, the
+verdicts are unchanged — both still DELETE — but now on **positive evidence** (removing
+each *improves* net) rather than on an interval of zero width. The same finding, honestly
+obtained, which is the only version worth having.
+
+---
+
+## ADR-0029 · 2026-08-25 · Derived numbers are checked against their own components · Accepted
+
+**Context.** D24: an artifact key named `antar_minus_propensity_per_1000_rupees` held the
+changepoint detector's retention effect, in paise, for two milestones. Every safeguard in
+this project points at the *inputs* to numbers — no leakage, no answer key, pinned clocks,
+verified regulations. Nothing pointed at the outputs.
+
+**Decision.** `tests/statistical/test_artifacts_are_self_consistent.py` asserts that every
+derived figure in an artifact is recomputable from that artifact's own parts, and
+`tests/statistical/test_results_are_reproducible.py` asserts that every number in the
+README appears in some artifact.
+
+**Consequence.** The two together give N4 teeth: provenance from the second, meaning from
+the first. Neither is sufficient alone — a number can appear in an artifact under a
+completely different meaning, which is precisely what D24 was. Both were written *against
+the stale artifacts* and both failed immediately, which is the only evidence that a guard
+works.
