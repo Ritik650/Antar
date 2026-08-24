@@ -110,6 +110,11 @@ Named because each is real and material in India and none is modelled:
 
 ## L7 · Two detection components do not currently pay for themselves
 
+> **SUPERSEDED by L13 on 2026-08-23.** The end-to-end measurement this section called
+> for now exists, and both components were **deleted** by it. The section is kept
+> unedited below because the open question was recorded before the answer was known,
+> and rewriting it afterwards would erase the ordering that makes the answer credible.
+
 **Reported because it is against us.** `artifacts/detection_base.json` contains a
 leave-one-out ablation of the detection layer, scored in rupees on the control arm:
 
@@ -217,3 +222,64 @@ figures never silently imply an LLM was involved when it was not.
 The adversarial suite exercises both paths: injections are tested against the real
 schema-validation and contamination logic using recorded model outputs, so the
 defences are tested even when the network is not.
+
+---
+
+## L13 · Two detection components were deleted by their own measurement
+
+**Resolved, against ourselves.** `docs/EVALUATION.md` §12.2 was committed before the
+allocator existed and bound us to a rule. Measured on 2026-08-23, base scenario, 3 seeds:
+
+| Component | Δ net per 1,000 cycles | 95% CI | Verdict |
+|---|---|---|---|
+| Downtime API cross-check | ₹0.00 | [0, 0] | **DELETE** |
+| EWMA/CUSUM changepoint detector | **−₹846.76** | [−2,540, 0] | **DELETE** |
+
+Both are now off in `config/default.yaml`, and
+`tests/statistical/test_component_retention.py` fails if the configuration and the
+recorded verdict ever disagree — so re-enabling either requires a new measurement, not
+an edit.
+
+**What deletion cost.** Detection quality got worse, and that is reported rather than
+omitted: accuracy when resolved fell 92.4% → 91.7%, `ISSUER_DOWN` recall fell
+0.82 → 0.70, and the wrong-action cost rose ₹140k → ₹153k on the control arm. Net money
+improved by ₹847 per 1,000 cycles. That is the trade the pre-registered rule made, with
+its eyes open.
+
+**Why they did not earn their place.** Once the L3 objective prices the RBI-EM-02
+opt-out hazard directly, the allocator declines outage-affected candidates on economics
+without needing to be told the issuer was down. The changepoint detector was worse than
+redundant: its false alarms vetoed contacts the allocator correctly wanted to make.
+
+**What this does not say.** It does not say a downtime feed is useless in general. It
+says that *in this objective, at this scenario's opt-out sensitivity*, it is. A merchant
+whose customers tolerate contact — the low-opt-out region of the phase diagram — has a
+binding contact capacity, and there the feed would have something to contribute. The
+measurement is regime-specific and is reported as such.
+
+Supersedes L7, which recorded the open question.
+
+---
+
+## L14 · Every capacity shadow price is zero in the base scenario
+
+The LP duals on the contact-capacity row come out at **₹0**, and the counterfactual
+price of the TRAI-01 contact window is likewise **₹0 per 1,000 cycles**.
+
+This is a finding, not a null result. At the base scenario's opt-out sensitivity the
+binding constraint is **not** the merchant's outbound capacity — it is customer
+tolerance. Antar contacts 23 of 574 eligible candidates and declines slots it is fully
+entitled to use, so one more slot is worth nothing, and an extra hour of window in which
+to use slots it does not want is worth nothing either.
+
+Two honest consequences:
+
+- **The headline "one more contact slot is worth ₹X" demo does not exist in the base
+  scenario.** The truthful version is "₹0 — and here is why, and here is the regime
+  where it becomes positive." The phase diagram reports the share of the grid in which
+  capacity binds.
+- **The window price is also limited by our model.** The contact window is modelled as a
+  *scheduling* constraint (when an action may fire) rather than a *throughput* one (how
+  many may fire per hour). A merchant whose outbound capacity is per-hour would lose
+  roughly a eleventh of their daily throughput to Note-1; we do not model per-hour
+  throughput, so we cannot price that, and we do not claim to.

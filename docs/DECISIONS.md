@@ -285,3 +285,98 @@ and it is not re-opened because we now know which model it favours.
 so. POSTMORTEM D15 records the methodological finding and flags it as a candidate
 amendment for a future protocol, where it can be committed before the numbers exist —
 which is the only order in which it would mean anything.
+
+---
+
+## ADR-0017 · 2026-08-23 · CI is the authority on "is the build green" · Accepted
+
+**Context.** Twice in one session a guard fired on newly-written code and caught a real
+defect — the leakage scan on `features.py`'s denylist, the inferential registry on
+`specification_curve`. Once a red suite was committed anyway, because
+`pytest -q | tail -4 && git commit` takes its exit status from `tail`, which always
+succeeds.
+
+Adding `python tasks.py gate` fixed that invocation. It does not fix the class: a gate
+that can only be trusted when invoked one specific way will be invoked the other way
+by someone under deadline pressure.
+
+**Decision.** `.github/workflows/ci.yml` is the verdict. It runs the **same**
+`tasks.py` targets a developer runs, so the two cannot drift. `main` is protected by
+it. A local pass is a convenience.
+
+Three jobs beyond lint-and-test:
+
+- **reproducibility** runs `make evaluate` on a clean checkout and then runs it *again*,
+  diffing the output. N4 is a claim about a clean checkout, so it is tested on one, and
+  the second run is what would have caught D13.
+- **coverage** enforces the 85% gate separately, so a coverage regression cannot be
+  waved through as "the tests pass".
+- A **nightly schedule**, because D13 was found by accident when a midnight rolled
+  over. Time-dependent failures should be found by a cron, not by luck.
+
+**Consequence.** The pre-push hook runs `tasks.py gate` too, so the local and remote
+paths are the same command. If they ever disagree, the local one is the one that is
+wrong.
+
+---
+
+## ADR-0018 · 2026-08-23 · Deleting two detection components on their own measurement · Accepted
+
+**Context.** `docs/EVALUATION.md` §12.2 was committed before the allocator existed and
+bound us to delete any governed component whose removal does not reduce net incremental
+rupees by a margin whose CI excludes zero, with ambiguity resolving to DELETE.
+
+**Decision.** Honour it. Measured across 3 seeds against the full L3 objective:
+`downtime_crosscheck` Δ ₹0.00 (CI [0, 0]); `changepoint_detector` Δ **−₹846.76** per
+1,000 cycles (CI [−2,540, 0]). Both **DELETE**. `detect.enable_*` flags are now `false`,
+and `tests/statistical/test_component_retention.py` fails if the configuration and the
+recorded verdict disagree.
+
+**Consequence.** Detection got measurably worse — accuracy 92.4% → 91.7%, `ISSUER_DOWN`
+recall 0.82 → 0.70, wrong-action cost ₹140k → ₹153k — and net money got better by ₹847
+per 1,000. Both halves are reported (LIMITATIONS L13).
+
+The flags live in config rather than being read from `antar/eval/retention.py`, because
+`antar.detect` may not import `antar.eval`; doing so would put the ground-truth-aware
+harness on the import path of a production layer. Config is the seam.
+
+**What made this real.** POSTMORTEM D16: the first run of this measurement returned a CI
+of exactly (0, 0) because L2 had no influence on the allocation at all. Deleting on that
+would have been a false verdict presented as discipline.
+
+---
+
+## ADR-0019 · 2026-08-23 · Shadow prices are labelled by the method that produced them · Accepted
+
+**Context.** PLAN.md M6 asks for shadow prices on contact capacity, margin budget, and
+"the evening contact window". Only the first two are LP rows. `TRAI-01` is a
+*feasibility filter* — candidates outside the window are removed before the solver sees
+them — so it has no dual.
+
+**Decision.** Two mechanisms, each labelled on the record. `ShadowPrice.method` is
+`lp_dual` for capacity rows and `counterfactual_resolve` for filter constraints, where
+the price is the objective difference from re-running with the constraint relaxed.
+
+**Consequence.** No number is presented as a dual that is not one. The window's
+counterfactual price came out at **₹0 per 1,000 cycles**, and so did the capacity dual —
+because at base-scenario opt-out sensitivity Antar declines slots it is entitled to use.
+That is reported as the finding it is (LIMITATIONS L14) rather than replaced with a
+number from a regime we did not measure.
+
+---
+
+## ADR-0020 · 2026-08-23 · The phase-diagram extension is post-hoc and labelled · Accepted
+
+**Context.** The pre-registered grid (§9.4) came back with Antar ahead in every one of
+176 cells across both panels. A unanimous result locates no boundary.
+
+**Decision.** Extend the opt-out axis below the pre-registered floor (0.005–0.035) and
+label every extended cell `*` in renderings and `extended` in the artifact. The
+pre-registered grid remains the headline; no claim rests on the extension without saying
+so.
+
+**Consequence.** The boundary is located at an opt-out sensitivity of ≈0.035, and the
+contact capacity is shown to bind only below 0.05 — which is what turns "the shadow
+price is zero" from a null result into a statement about which resource is scarce in
+which regime. Extending an axis after seeing a result is legitimate; extending it
+silently is not, and the distinction is the entire content of this ADR.

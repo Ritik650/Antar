@@ -22,7 +22,8 @@ from antar.detect.classifier import (
 )
 from antar.detect.mandate_fsm import MandateRegistry
 from antar.detect.root_cause import RootCauseAnalyser, source_mix, unknown_rate
-from antar.signals.schemas import AtRiskEvent, Diagnosis
+from antar.signals.downtime import DowntimeRegistry
+from antar.signals.schemas import AtRiskEvent, Diagnosis, SegmentHealth
 
 
 @dataclass
@@ -53,12 +54,33 @@ def build_detector(
     """
     cfg = config or get_config()
 
-    changepoint = ChangepointDetector.from_config(cfg).ingest(batch.observations)
+    # Component retention (docs/EVALUATION.md 12.2). Both of these were switched off
+    # by the post-M6 ablation, not by an opinion: see `detect.enable_*` in
+    # config/default.yaml for the measured deltas.
+    #
+    # The flags live in config rather than being read from `antar/eval/retention.py`
+    # because `antar.detect` may not import `antar.eval` - the evaluation harness is
+    # allowed to know ground truth, so importing it upward would be a leak by a longer
+    # route, and `tests/statistical/test_no_leakage.py` enforces that. Config is the
+    # seam; `scripts/run_evaluation.py` is what writes the verdict into it.
+    use_changepoint = bool(cfg.get("detect.enable_changepoint_detector", True))
+    use_downtime = bool(cfg.get("detect.enable_downtime_crosscheck", True))
+
+    changepoint = (
+        ChangepointDetector.from_config(cfg).ingest(batch.observations)
+        if use_changepoint
+        else None
+    )
 
     # Driven by the observable subscription webhook stream only. An earlier version
     # derived it from `batch.true_failure_class`, which handed L2 the answer key and
     # inflated MANDATE_REVOKED recall to 1.00. POSTMORTEM D10.
     mandates = MandateRegistry().apply_stream(batch.lifecycle_events)
+
+    # A disconnected component sees an empty registry rather than being special-cased
+    # inside the analyser: the analyser's logic stays identical whether or not the
+    # feed is switched on, so turning it back on cannot resurrect a different code path.
+    declared = batch.downtime if use_downtime else DowntimeRegistry()
 
     classifier: FailureClassifier | None = None
     if fit_classifier:
@@ -73,14 +95,22 @@ def build_detector(
         if len(training) >= 50:
             contexts = [
                 DetectionContext(
-                    segment_health=changepoint.health_at(e.segment_key, e.occurred_at),
-                    downtime=batch.downtime.overlap_for(
-                        e.occurred_at,
-                        e.method,
-                        e.issuer,
-                        tolerance_minutes=int(
-                            cfg.get("detect.downtime_overlap_tolerance_minutes")
-                        ),
+                    segment_health=(
+                        changepoint.health_at(e.segment_key, e.occurred_at)
+                        if changepoint is not None
+                        else SegmentHealth.HEALTHY
+                    ),
+                    downtime=(
+                        declared.overlap_for(
+                            e.occurred_at,
+                            e.method,
+                            e.issuer,
+                            tolerance_minutes=int(
+                                cfg.get("detect.downtime_overlap_tolerance_minutes")
+                            ),
+                        )
+                        if use_downtime
+                        else None
                     ),
                 )
                 for e in training
@@ -93,7 +123,7 @@ def build_detector(
             classifier = None
 
     return RootCauseAnalyser(
-        downtime=batch.downtime,
+        downtime=declared,
         mandates=mandates,
         classifier=classifier,
         changepoint=changepoint,

@@ -28,6 +28,17 @@ simulator:
   # SIMULATOR_CARD section 7. Not optional; cannot be retrofitted.
   exploration_epsilon: 0.20
 
+  # The channels this merchant has integrated. Restricting it is how the phase
+  # diagram's `reference_sms` panel models a merchant with one SMS integration -
+  # which is most merchants.
+  #
+  # It must live here rather than as a module constant: the first version of the
+  # phase diagram tried to restrict the panel by zeroing the other channels' costs,
+  # which left them fully available and produced two identical panels plus a
+  # generated sentence claiming the boundary was stable across them. See POSTMORTEM
+  # D18.
+  available_channels: [SMS, WHATSAPP, EMAIL, VOICE]
+
   merchant_mix:
     # merchant_id: [category, share]
     # Four profiles rather than one, because the AFA boundary is category-dependent
@@ -116,6 +127,35 @@ detect:
     abstain_below: 0.45
   downtime_overlap_tolerance_minutes: 30
 
+  # ---------------------------------------------------------------------
+  # Component retention. **Both of these were switched off by a measurement,
+  # not by an opinion.**
+  #
+  # docs/EVALUATION.md 12.2 was committed before the allocator existed and
+  # bound us to a rule: after M6, re-run the leave-one-out ablation against the
+  # full L3 objective, and delete any component whose removal does not reduce
+  # net incremental rupees by a margin whose CI excludes zero. Ambiguity
+  # resolves to DELETE - the null is that a component does not belong.
+  #
+  # Measured on 2026-08-23, base scenario, 3 seeds, 800 customers
+  # (artifacts/retention.json):
+  #
+  #   downtime_crosscheck   delta Rs      0.00 / 1000   CI [0, 0]           -> DELETE
+  #   changepoint_detector  delta Rs   -846.76 / 1000   CI [-2540, 0]       -> DELETE
+  #
+  # The changepoint detector was actively costing money: its false alarms
+  # vetoed contacts the allocator correctly wanted to make. The downtime
+  # cross-check made no difference at all, because once the objective prices
+  # the RBI-EM-02 opt-out hazard directly, the allocator declines those
+  # candidates on economics without needing to be told the issuer was down.
+  #
+  # The modules and their tests remain in the repo, disconnected, per the
+  # pre-registered definition of deletion. Re-enabling either requires a NEW
+  # verdict; tests/statistical/test_component_retention.py fails if these flags
+  # disagree with artifacts/retention.json.
+  enable_downtime_crosscheck: false
+  enable_changepoint_detector: false
+
 # ---------------------------------------------------------------------------
 # Policy and regulation (PLAN.md M4, section 3)
 # ---------------------------------------------------------------------------
@@ -138,6 +178,15 @@ policy:
 
 budgets:
   contacts_per_30d: 3           # C-BUDGET
+  # Batch-level outbound capacity, as a fraction of at-risk events. A merchant cannot
+  # message everyone even when every individual message would be compliant: DLT
+  # throughput, support headroom, and the appetite to be seen sending are all finite.
+  #
+  # This is the row whose dual becomes the headline shadow price - "one additional
+  # compliant contact slot is worth Rs X". Without a binding capacity there is no
+  # scarcity, and without scarcity a shadow price is zero and the allocator is
+  # decoration. Merchant policy, not regulation.
+  contact_capacity_fraction: 0.25
   cooldown_hours: 72            # C-COOLDOWN
   max_attempts_per_event: 4
   margin_budget_fraction: 0.02  # C-MARGIN: discount spend <= 2% of at-risk value

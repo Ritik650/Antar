@@ -25,6 +25,13 @@ repos:
         language: system
         pass_filenames: false
 
+      - id: gate
+        name: python tasks.py gate (the same target CI runs)
+        entry: python tasks.py gate
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
       - id: regulatory-register
         name: docs/REGULATORY_REGISTER.md matches regulations.py
         entry: python -m scripts.make_register --check

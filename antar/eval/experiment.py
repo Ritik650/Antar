@@ -68,16 +68,24 @@ from antar.signals.schemas import (
 from antar.simulator.response_model import ResponseModel
 from antar.simulator.rng import substream
 
-# The action space explored over. `None` means "no Antar-initiated action", and it must
-# be in the set with positive probability or the uplift models have no untreated
-# treatment-arm rows to learn from.
-EXPLORATION_CHANNELS: tuple[Channel | None, ...] = (
-    None,
+# The default action space. `None` - no Antar-initiated action - is always in the set
+# and must be, or the uplift models have no untreated treatment-arm rows to learn from.
+#
+# The *contact* half is configurable (`simulator.available_channels`), because which
+# channels a merchant has integrated is a property of the merchant, not of Antar.
+DEFAULT_CHANNELS: tuple[Channel, ...] = (
     Channel.SMS,
     Channel.WHATSAPP,
     Channel.EMAIL,
     Channel.VOICE,
 )
+
+
+def available_channels(config) -> tuple[Channel, ...]:
+    names = config.get("simulator.available_channels", None)
+    if not names:
+        return DEFAULT_CHANNELS
+    return tuple(Channel(name) for name in names)
 
 
 @dataclass
@@ -171,6 +179,7 @@ class ExperimentRunner:
         self.ceilings = self.config.get("policy.afa_free_ceiling_paise")
         self.channel_costs = self.config.get("simulator.costs.channel_paise")
         self.window = self.config.get("policy.contact_window")
+        self.channels = available_channels(self.config)
         self.lead_hours = int(self.config.get("policy.pre_debit_notification_lead_hours"))
 
     # ------------------------------------------------------------------ run
@@ -310,9 +319,7 @@ class ExperimentRunner:
         candidates: list[Candidate] = []
         by_id: dict[str, Intervention] = {}
 
-        for channel in EXPLORATION_CHANNELS:
-            if channel is None:
-                continue
+        for channel in self.channels:
             intervention = self._candidate(event, channel, reference)
             context = DecisionContext(
                 event=event,

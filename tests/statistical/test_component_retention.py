@@ -122,6 +122,78 @@ def test_the_rule_is_committed_in_the_evaluation_protocol():
         assert component in protocol, f"{component} is not named in the pre-registration"
 
 
+CONFIG_FLAG = {
+    "downtime_crosscheck": "detect.enable_downtime_crosscheck",
+    "changepoint_detector": "detect.enable_changepoint_detector",
+}
+
+
+def test_the_runtime_configuration_matches_the_recorded_verdict():
+    """**The test that makes the rule real.**
+
+    A pre-registered rule that resolves to DELETE, followed by a component that quietly
+    stays switched on, is worse than no rule: it is a claim of discipline without the
+    discipline. This asserts that `config/default.yaml` agrees with
+    `artifacts/retention.json` for every governed component.
+
+    Re-enabling a deleted component therefore requires producing a new verdict, not
+    editing a flag.
+    """
+    from antar.config import load_config
+
+    try:
+        verdicts = read_verdicts()
+    except RetentionNotMeasured:
+        pytest.skip("no verdict recorded yet; run `python tasks.py evaluate`")
+
+    config = load_config(environ={})
+    mismatches = []
+    for component, flag in CONFIG_FLAG.items():
+        verdict = verdicts.get(component)
+        if verdict is None:
+            continue
+        enabled = bool(config.get(flag, True))
+        if enabled != verdict.keep:
+            mismatches.append(
+                f"{component}: verdict says {'KEEP' if verdict.keep else 'DELETE'} "
+                f"({verdict.rationale}) but {flag}={enabled}"
+            )
+    assert not mismatches, (
+        "runtime configuration disagrees with the retention verdict:\n  "
+        + "\n  ".join(mismatches)
+    )
+
+
+def test_a_deleted_component_is_actually_out_of_the_runtime_path():
+    """Deletion means removed from the path, not merely marked deleted.
+
+    docs/EVALUATION.md 12.2 defines deletion as removal from the runtime path with the
+    module left in the repo. This checks the first half by running detection and
+    asserting the component never decides an event.
+    """
+    from antar.config import load_config
+    from antar.detect.pipeline import run_detection
+    from tests.statistical.helpers import batch as cached_batch
+
+    config = load_config(environ={})
+    try:
+        verdicts = read_verdicts()
+    except RetentionNotMeasured:
+        pytest.skip("no verdict recorded yet")
+
+    source_for = {"downtime_crosscheck": "downtime", "changepoint_detector": "changepoint"}
+    deleted = [c for c, v in verdicts.items() if not v.keep and c in source_for]
+    if not deleted:
+        pytest.skip("nothing currently deleted")
+
+    result = run_detection(cached_batch(), cached_batch().events[:400], config=config)
+    for component in deleted:
+        assert source_for[component] not in result.source_mix, (
+            f"{component} was deleted by the retention verdict but still decided "
+            f"{result.source_mix[source_for[component]]} events"
+        )
+
+
 def test_the_permissive_default_cannot_outlive_the_measurement():
     """`enabled()` defaults to True only while no verdict exists.
 

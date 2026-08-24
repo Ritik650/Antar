@@ -7,7 +7,7 @@
 PY ?= python
 
 .DEFAULT_GOAL := help
-.PHONY: help install lint format typecheck test coverage check simulate \
+.PHONY: help install lint format typecheck test coverage check gate simulate \
         calibration-report bakeoff evaluate figures register console api \
         seed-test-mode demo clean freeze
 
@@ -34,6 +34,11 @@ coverage:
 
 check:
 	@$(PY) tasks.py check
+
+# The single pre-commit / pre-push gate. CI runs this exact target; see
+# .github/workflows/ci.yml. A local pass is a convenience, CI is the verdict.
+gate:
+	@$(PY) tasks.py gate
 
 simulate:
 	@$(PY) tasks.py simulate $(if $(SCENARIO),SCENARIO=$(SCENARIO),) $(if $(SEED),SEED=$(SEED),) $(if $(POLICY),POLICY=$(POLICY),)

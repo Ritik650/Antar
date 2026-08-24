@@ -171,6 +171,37 @@ EXEMPT: dict[str, str] = {
         "Formats an already-computed curve into the sentence the README uses. No "
         "computation beyond the summary statistics the curve already holds."
     ),
+    "experiment.available_channels": (
+        "Reads the merchant's integrated channel list from config and maps it to the "
+        "Channel enum. Configuration in, enum out; no clock and no estimate."
+    ),
+    "phase_diagram.cell_scenario": (
+        "Builds a Scenario from two committed axis values. Pure dataclass replacement; "
+        "reads no clock and computes no estimate."
+    ),
+    "phase_diagram.scenario_anchors": (
+        "Reads the three named scenarios' committed parameters so they can be plotted "
+        "on the map. Constants in, constants out."
+    ),
+    "phase_diagram.render_ascii": (
+        "Renders an already-computed diagram as text. No computation beyond comparing "
+        "each cell against the indifference band the diagram already holds."
+    ),
+    "phase_diagram.write": (
+        "Serialises an already-computed diagram to disk. Every number in it was "
+        "produced by the policy runner, which is covered via experiment.run_experiment."
+    ),
+    "policies.value_of": (
+        "Expected value of one intervention under the ground-truth response model, at "
+        "a reference instant the caller supplies. Covered transitively by "
+        "experiment.run_experiment, which is registered."
+    ),
+    "policies.comparison_table": (
+        "Formats already-computed PolicyOutcome objects into rows. No computation."
+    ),
+    "policies.antar_minus_propensity_paise": (
+        "Subtracts two already-computed per-1000 figures. No clock, no estimation."
+    ),
     "specification_curve.write_curve": (
         "Serialises an already-computed curve to disk. The inference happened in "
         "`evaluate_specification`, which is registered."

@@ -24,6 +24,9 @@ uncomfortable enough to be worth reading in full.
 | D13 | Claim scan | The gate failed overnight with no code change | **High** — a pre-registered threshold moved with the calendar |
 | D14 | Exploration design | The first bake-off produced negative AUUC for everything | **High** — 74% of exploration rows were treated |
 | D15 | Sign-recovery metric | Adding a trivial baseline | **High** — no learner beats a constant predictor on F1 |
+| D16 | Retention measurement | A confidence interval of exactly (0, 0) | **High** — would have deleted two components on a measurement that could not see them |
+| D17 | Phase-diagram reporting | Running a single panel | **High** — printed a fabricated cross-panel comparison |
+| D18 | Phase-diagram panels | Two panels came out identical | **High** — the panel restriction never applied |
 
 ---
 
@@ -490,3 +493,124 @@ pre-registered rule selected `x_learner` and `x_learner` is what goes to the hol
 The finding is logged as a candidate amendment for any future protocol, where it can be
 committed **before** the numbers exist. That is the only order in which it would mean
 anything.
+
+
+---
+
+## D16 · The retention measurement could not see the thing it was measuring
+
+**Symptom.** The post-M6 ablation returned a confidence interval of **exactly (0, 0)**
+for both governed components, and the pre-registered rule duly resolved both to DELETE.
+
+A CI of exactly zero width is not a result. It is an instrument reading zero because it
+is not plugged in.
+
+**Root cause.** `PolicyRunner.candidate_values` passed `diagnosis=None` for every
+event. The detection layer had **no influence whatsoever** on the allocation: candidate
+values came from the ground-truth response model, and L2's `recommended_class` was
+never consulted. Removing the downtime cross-check therefore could not change the
+answer, because nothing downstream was reading it in the first place.
+
+Deleting two working components on that basis would have been a false verdict wearing
+the clothes of discipline — and it would have been *reported* as discipline, which is
+worse.
+
+**Fix.** L2's recommendation now gates Antar's candidate set: an `ISSUER_DOWN` diagnosis
+recommends WAIT and a `MANDATE_REVOKED` one recommends TERMINATE, and both remove the
+candidate before the LP sees it. That is the point at which the detection layer reaches
+the money, and therefore the only place its retention verdict can be measured.
+
+The gate applies to P3 alone, which is the honest representation of the three policies:
+"contact everyone" does not diagnose, and a propensity ranker is a pure ML score with no
+notion of root cause. Only P3 asks *why* the payment failed before deciding whether to
+ask again.
+
+**A second, smaller version of the same error.** Disabling the downtime cross-check was
+implemented as `downtime_overlap_tolerance_minutes: -1`. A window that strictly covers
+the attempt is still found at a negative tolerance, so the component stayed live and the
+"without" arm was not actually without it. Now `-100000`.
+
+**Effect on the verdict.** Re-measured across 3 seeds at 800 customers with L2 actually
+connected:
+
+| Component | Δ net per 1,000 | 95% CI | Verdict |
+|---|---|---|---|
+| `downtime_crosscheck` | ₹0.00 | [0, 0] | DELETE |
+| `changepoint_detector` | **−₹846.76** | [−2,540, 0] | DELETE |
+
+Both still DELETE — but now on a measurement that could have said otherwise, and with
+the changepoint detector shown to be *actively costing money* rather than merely not
+earning its keep.
+
+**The general lesson.** A null result from an ablation should be treated as suspicious
+until you have confirmed the component was connected. "No effect" and "no measurement"
+produce identical numbers.
+
+---
+
+## D17 · The phase diagram printed a comparison it had not computed
+
+**Symptom.** A single-panel smoke run printed:
+
+> Antar beats propensity targeting in 100% of the parameter space for a merchant with
+> every channel, and **0% for one with only SMS**.
+
+The SMS panel had not been run. Not one cell of it existed.
+
+**Root cause.** `_interpretation` read `win_share("reference_sms")`, which computes
+`wins / len(cells)` and returns `0.0` for an empty list. `cells == 0` and `wins == 0`
+produced the same number, and the sentence generator could not tell them apart.
+
+**Why it matters more than a display bug.** This is a *generated* sentence intended for
+the README and the pitch video — exactly the class of artifact PLAN.md rule 6 exists to
+protect ("never fabricate a number"). The machinery for generating prose from
+measurements is the machinery for generating confident prose from no measurement at all,
+and it did so on its first outing.
+
+**Fix.** `_interpretation` distinguishes "not computed" from "computed as zero" and says
+so explicitly: *"No cross-panel comparison is available — reference_sms was not run."*
+
+**The general lesson.** Any function that turns numbers into sentences needs an explicit
+branch for "there is no number", and that branch has to be exercised. A default of zero
+is a lie with a plausible face.
+
+
+---
+
+## D18 · The second phase-diagram panel was a copy of the first
+
+**Symptom.** Both panels finished. Their medians differed by **₹7 out of ₹1.9 million**,
+and the generated interpretation read:
+
+> The boundary is stable across panels (100% vs 100% of the grid). The merchant's
+> channel mix is not the deciding factor.
+
+Two panels agreeing to seven significant figures is not a finding about channel mix. It
+is one panel run twice.
+
+**Root cause.** `reference_sms` was implemented by overriding the *cost table*:
+
+```python
+cell_config = config.with_overrides(
+    {"simulator.costs.channel_paise": {"SMS": 25, "SILENT_RETRY": 0}}
+)
+```
+
+But the action set came from `EXPLORATION_CHANNELS`, a **module constant**, and cost
+lookups used `.get(channel, 0)`. So WhatsApp, email and voice remained fully available
+and became *free*. The panel intended to model a merchant with one integration modelled
+a merchant with four integrations and no marketing budget.
+
+**Fix.** `simulator.available_channels` in config, read by
+`ExperimentRunner`. The restriction now applies to the action set, which is the thing
+that needed restricting.
+
+**Why this one stings.** It is the same failure as D17, twenty minutes later: a
+generated sentence stating a comparison with total confidence when the underlying
+computation had not happened. D17 was "the panel was never run"; D18 is "the panel ran
+but was not the panel we said it was". Both would have gone into the README as findings.
+
+**The general lesson, now stated twice.** Configuration that *looks* like it restricts
+behaviour must be checked to actually restrict it. A cheap assertion — that the two
+panels differ at all — would have caught this immediately, and one now exists in
+`tests/unit/test_phase_diagram.py`.

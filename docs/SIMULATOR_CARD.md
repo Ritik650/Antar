@@ -580,3 +580,76 @@ commands do not reproduce, it is a defect — report it.
 | 2026-08-22 | §6.3.1 added: the measured negative-uplift shares, with the marginality of the base result and the fact that the gate initially failed both stated in the card rather than only in the test. | — |
 
 *(Append an entry for every parameter change, and never edit a previous entry.)*
+
+---
+
+## 15. The phase diagram — where this class of system pays for itself
+
+`docs/EVALUATION.md` §9.4, pre-registered before any cell was computed. 264 cells:
+11 self-heal levels × 12 opt-out levels × 2 channel-mix panels, each a full
+generate → detect → allocate cycle. Metric: **net expected rupees per 1,000 at-risk
+cycles, P3 (Antar) minus P2 (propensity targeting)**.
+
+### The map (`best_available` panel)
+
+```
+        self-heal ->
+        0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60
+ 0.005*   +    +    +    .    .    .    .    .    .    .    .
+ 0.010*   +    +    +    +    +    +    .    .    .    .    .
+ 0.020*   .    +    .    .    .    .    .    .    .    .    .
+ 0.035*   +    +    +    +    +    +    +    +    +    +    +
+ 0.050    +    +    +    +    +    +    +    +    +    +    +
+ 0.100    +    +    +    +    +    +    +    +    +    +    +
+   ...    (all + through 0.400)
+```
+`*` = disclosed post-hoc extension below the pre-registered range.
+
+### What it says
+
+| | `best_available` | `reference_sms` |
+|---|---|---|
+| Ahead in every pre-registered cell | yes | yes |
+| Decisive (outside the indifference band) | **83%** | **75%** |
+| Decisive at every self-heal level from | opt-out **0.035** | opt-out **0.035** |
+| Median advantage per 1,000 cycles | ₹971,262 | ₹1,346,912 |
+| Contact capacity binds up to | opt-out **0.05** | opt-out **0.05** |
+
+**Three findings, in order of usefulness.**
+
+1. **The boundary is at an opt-out sensitivity of ~0.035, not somewhere in the middle
+   of the grid.** Above it, uplift allocation is decisively better than propensity
+   targeting everywhere, at every self-heal rate. Below it the two become
+   indistinguishable. A merchant does not know which side they are on without measuring
+   their own post-notification cancellation rate — and that measurement, not this
+   simulator, is what would tell them.
+
+2. **The scarce resource changes across the boundary.** Contact capacity binds only at
+   opt-out ≤ 0.05; above that every capacity shadow price is **zero**, because Antar
+   declines slots it is entitled to use. Below it, capacity binds in every cell. So the
+   same merchant is running two different businesses depending on which side they sit:
+   one where outbound capacity is the constraint, one where customer tolerance is. See
+   `docs/LIMITATIONS.md` L14.
+
+3. **Channel mix changes the magnitude, not the sign.** An SMS-only merchant gains
+   *more* from uplift allocation (₹1.35M vs ₹0.97M per 1,000), because a propensity
+   ranker restricted to one channel has fewer ways to be accidentally right. Below the
+   boundary the multi-channel merchant already sees decisive gains in some cells while
+   the SMS-only one sees none.
+
+### What is wrong with it
+
+- **The sub-boundary region is noisy.** The `0.020` row of `best_available` is decisive
+  in 1 of 11 cells while `0.010` is decisive in 6 — non-monotone, and a property of
+  250 customers per cell rather than of the mechanism. The boundary should be read as
+  "somewhere in 0.02–0.035", not as a sharp line.
+- **The extension below 0.05 is post-hoc.** It was added after the pre-registered sweep
+  came back unanimous. It is labelled `*` in every rendering and `extended` in the
+  artifact, and no claim rests on it without saying so.
+- **Every rupee figure here is expected value under the ground-truth response model**,
+  not a realised outcome against the randomised control. That is the right choice for
+  locating a boundary — sampling noise across 264 cells would blur it — and the wrong
+  one for a headline. The inferential number comes from the holdout at M8.
+
+Regenerate with `python -m scripts.make_phase_diagram --customers 250 --extend`.
+Artifact: `artifacts/phase_diagram.json`.
