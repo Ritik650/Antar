@@ -1,0 +1,22 @@
+{
+  "changepoint_detector": {
+    "ci_excludes_zero": true,
+    "ci_high_paise": -37478,
+    "ci_low_paise": -144714,
+    "component": "changepoint_detector",
+    "delta_net_paise": -91096,
+    "keep": false,
+    "rationale": "Removing it *improves* net incremental recovery by Rs 911. DELETE.",
+    "scenario": "base"
+  },
+  "downtime_crosscheck": {
+    "ci_excludes_zero": true,
+    "ci_high_paise": -43305,
+    "ci_low_paise": -109864,
+    "component": "downtime_crosscheck",
+    "delta_net_paise": -72330,
+    "keep": false,
+    "rationale": "Removing it *improves* net incremental recovery by Rs 723. DELETE.",
+    "scenario": "base"
+  }
+}

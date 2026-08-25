@@ -1,0 +1,65 @@
+{
+  "quick": false,
+  "scenario": "base",
+  "seed": 20260822,
+  "stages": [
+    {
+      "stage": "1/8  Simulator calibration",
+      "ok": true,
+      "artifact": "calibration.json",
+      "artifact_written": true,
+      "seconds": 10.8
+    },
+    {
+      "stage": "2/8  Detection (L2)",
+      "ok": true,
+      "artifact": "detection_base.json",
+      "artifact_written": true,
+      "seconds": 22.9
+    },
+    {
+      "stage": "3/8  Uplift bake-off (L3)",
+      "ok": true,
+      "artifact": "bakeoff_base.json",
+      "artifact_written": true,
+      "seconds": 100.4
+    },
+    {
+      "stage": "4/8  Allocation, shadow prices, retention",
+      "ok": true,
+      "artifact": "allocation_base.json",
+      "artifact_written": true,
+      "seconds": 704.5
+    },
+    {
+      "stage": "5/8  Phase diagram",
+      "ok": true,
+      "artifact": "phase_diagram.json",
+      "artifact_written": true,
+      "seconds": 1614.5
+    },
+    {
+      "stage": "6/8  Specification curve",
+      "ok": true,
+      "artifact": "specification_curve_base.json",
+      "artifact_written": true,
+      "seconds": 124.5
+    },
+    {
+      "stage": "7/8  Pre-registered claims",
+      "ok": true,
+      "artifact": "claims.json",
+      "artifact_written": true,
+      "seconds": 2.8
+    },
+    {
+      "stage": "8/8  End-to-end batch and audit ledger",
+      "ok": true,
+      "artifact": "batch_base.json",
+      "artifact_written": true,
+      "seconds": 207.6
+    }
+  ],
+  "failed": [],
+  "simulated": true
+}

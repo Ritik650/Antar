@@ -198,6 +198,12 @@ def api(_: dict[str, str]) -> int:
     return run(PY, "-m", "uvicorn", "antar.api:app", "--host", "0.0.0.0", "--port", "8000")
 
 
+@target("capture-console")
+def capture_console(_: dict[str, str]) -> int:
+    """Screenshot the running console into docs/img/. Start `tasks.py console` first."""
+    return run(PY, "-m", "scripts.capture_console")
+
+
 @target("roundtrip")
 def roundtrip(_: dict[str, str]) -> int:
     """Real Razorpay test-mode round trip; writes artifacts/razorpay_roundtrip.json."""

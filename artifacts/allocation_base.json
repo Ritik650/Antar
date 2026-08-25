@@ -1,0 +1,91 @@
+{
+  "antar_minus_propensity_per_1000_rupees": 488797.14,
+  "policies": [
+    {
+      "abstentions": 2361,
+      "at_risk_events": 3432,
+      "candidates": 3148,
+      "channel_cost_rupees": 75.7,
+      "contacts": 787,
+      "expected_incremental_rupees": 389304.45,
+      "expected_optout_loss_rupees": 1914482.17,
+      "incremental_per_1000_at_risk_rupees": 113433.7,
+      "net_per_1000_at_risk_rupees": -444421.16,
+      "net_rupees": -1525253.42,
+      "optout_loss_per_1000_at_risk_rupees": 557832.8,
+      "policy": "contact_everyone"
+    },
+    {
+      "abstentions": 2361,
+      "at_risk_events": 3432,
+      "candidates": 3148,
+      "channel_cost_rupees": 92.85,
+      "contacts": 787,
+      "expected_incremental_rupees": 386034.44,
+      "expected_optout_loss_rupees": 1772821.52,
+      "incremental_per_1000_at_risk_rupees": 112480.9,
+      "net_per_1000_at_risk_rupees": -404102.54,
+      "net_rupees": -1386879.92,
+      "optout_loss_per_1000_at_risk_rupees": 516556.39,
+      "policy": "propensity"
+    },
+    {
+      "abstentions": 2806,
+      "at_risk_events": 3432,
+      "candidates": 3148,
+      "channel_cost_rupees": 118.7,
+      "contacts": 342,
+      "expected_incremental_rupees": 573613.87,
+      "expected_optout_loss_rupees": 282823.31,
+      "incremental_per_1000_at_risk_rupees": 167136.91,
+      "net_per_1000_at_risk_rupees": 84694.6,
+      "net_rupees": 290671.86,
+      "optout_loss_per_1000_at_risk_rupees": 82407.72,
+      "policy": "antar"
+    }
+  ],
+  "retention": [
+    {
+      "ci_excludes_zero": true,
+      "ci_high_paise": -43305,
+      "ci_low_paise": -109864,
+      "component": "downtime_crosscheck",
+      "delta_net_paise": -72330,
+      "keep": false,
+      "rationale": "Removing it *improves* net incremental recovery by Rs 723. DELETE.",
+      "scenario": "base"
+    },
+    {
+      "ci_excludes_zero": true,
+      "ci_high_paise": -37478,
+      "ci_low_paise": -144714,
+      "component": "changepoint_detector",
+      "delta_net_paise": -91096,
+      "keep": false,
+      "rationale": "Removing it *improves* net incremental recovery by Rs 911. DELETE.",
+      "scenario": "base"
+    }
+  ],
+  "retention_underpowered": [],
+  "scenario": "base",
+  "seed": 20260822,
+  "shadow_prices": {
+    "counterfactual_prices": [
+      {
+        "baseline_objective_rupees": 290671.86,
+        "events": 3432,
+        "explanation": "TCCCPR Schedule II para 3(1) Note-1 makes the 08:00-10:00 band default-OFF for every customer, so the permitted window opens at 10:00 rather than the 09:00 PLAN.md assumed from secondary sources. This is the value of that hour to this merchant. It is the price of a consumer protection, not an argument against one.",
+        "label": "TRAI-01 contact window (09:00 vs 10:00 opening)",
+        "method": "counterfactual_resolve",
+        "price_per_1000_events_rupees": 0.0,
+        "price_rupees": 0.0,
+        "relaxed_objective_rupees": 290671.86
+      }
+    ],
+    "framing": "These are the prices of constraints, including consumer-protection rules. A rule having a cost is not an argument against the rule; it is a fact about this merchant's operation.",
+    "lp_duals": [],
+    "slack_rows": [
+      "contact_capacity"
+    ]
+  }
+}

@@ -9,6 +9,16 @@ Razorpay AI Buildathon 2026 — Track 03.
 > documented in [`docs/SIMULATOR_CARD.md`](docs/SIMULATOR_CARD.md) and calibrated against
 > published Indian recurring-payments figures. No number here is a measured recovery
 > rate, and none should be quoted as one.
+>
+> **No real money has ever moved through this system, and no mandate charge has ever been
+> executed against Razorpay's sandbox** ([L19](docs/LIMITATIONS.md)). `tasks.py roundtrip`
+> proves the client, auth, idempotency and error parsing work against the real API — but
+> `charge_mandate`, the one endpoint this project's thesis is about, runs only against
+> synthesised fixtures. The error-code taxonomy comes from Razorpay's documentation, not
+> from codes observed on the wire.
+>
+> **The motivating hypothesis was tested and withdrawn.** See *"The motivating claim did
+> not survive its own test"* below.
 
 ---
 
@@ -243,18 +253,32 @@ taxonomy comes from Razorpay's documentation, not from codes observed on the wir
 
 > *"Why did you contact this customer at 11:04 on a Tuesday?"*
 
-One click, one paragraph, assembled entirely from the hash-chained ledger:
+![The Antar console, decision-trace view](docs/img/console_trace.png)
 
-> A payment of Rs 20,313.00 for cust_001571 failed with code BAD_REQUEST_ERROR. L2
-> classified it as AFA_REQUIRED at 97% confidence via table, and recommended CONTACT. L3
-> estimated an uplift of +0.3072 (95% CI +0.2572 to +0.3572) and chose VOICE scheduled
-> for 2026-04-02T19:20:00+05:30. […] The gate approved VOICE and the run is in dry-run,
-> so it was deliberately not sent.
+That is a real screenshot of the real console reading the real hash-chained ledger —
+14,278 entries, head `db7456ef…` — captured by `python -m scripts.capture_console`, which
+drives a headless browser against a live process and **fails rather than saving an image
+of a page that did not render**.
+
+One click, one paragraph, assembled entirely from the ledger and quoted here verbatim:
+
+> A payment of Rs 818.00 for cust_000730 failed with code BAD_REQUEST_ERROR. L2 classified it
+> as TECHNICAL_DECLINE at 98% confidence via table, and recommended CONTACT. L3 estimated an
+> uplift of +0.2043 (95% CI +0.1543 to +0.2543) and chose EMAIL scheduled for
+> 2026-04-02T10:00:00+05:30. No constraint was binding on this event; the schedule reflects
+> the estimated best moment rather than a limit. Selected by the allocator: expected recovery
+> exceeded the channel cost and the expected opt-out loss, and a contact slot was available.
+> The gate approved EMAIL at 2026-04-02T10:00:00+05:30 and the run is in dry-run, so it was
+> deliberately not sent. The message would have been: "Hello there, the payment of Rs 818 for
+> your subscription, due on 1 Apr 2026, could not be collected (your saved payment method was
+> declined). You can complete it here: https://pay.antar.example/WYFWHE25FBZT. This link
+> expires on 2 Apr 2026. To cancel the mandate, visit
+> https://pay.antar.example/WYFWHE25FBZT/stop." Not recovered. Cost incurred: Rs 0.05.
 
 Nothing in the console recomputes a decision. A console that recomputes is a second
 implementation of the decision path, and when the two disagree the operator cannot tell
-which one is lying. This one can only show what was recorded, which makes a screenshot of
-it evidence.
+which one is lying. This one can only show what was recorded, which is what makes a
+screenshot of it evidence rather than illustration.
 
 ---
 

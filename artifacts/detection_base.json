@@ -1,0 +1,154 @@
+{
+  "ablation": {
+    "full_minus_changepoint": {
+      "accuracy_when_resolved": 0.9183,
+      "issuer_down_precision": 0.7119,
+      "issuer_down_recall": 0.84,
+      "total_misclassification_cost_rupees": 162046.68,
+      "unknown_rate": 0.0
+    },
+    "full_minus_downtime": {
+      "accuracy_when_resolved": 0.9168,
+      "issuer_down_precision": 0.7292,
+      "issuer_down_recall": 0.7,
+      "total_misclassification_cost_rupees": 155339.52,
+      "unknown_rate": 0.0
+    },
+    "full_minus_mandate_fsm": {
+      "accuracy_when_resolved": 0.9183,
+      "issuer_down_precision": 0.6885,
+      "issuer_down_recall": 0.84,
+      "total_misclassification_cost_rupees": 163929.88,
+      "unknown_rate": 0.0
+    },
+    "plus_changepoint": {
+      "accuracy_when_resolved": 0.9747,
+      "issuer_down_precision": 0.8163,
+      "issuer_down_recall": 0.8,
+      "total_misclassification_cost_rupees": 899620.4,
+      "unknown_rate": 0.3419
+    },
+    "plus_classifier_full": {
+      "accuracy_when_resolved": 0.9168,
+      "issuer_down_precision": 0.7609,
+      "issuer_down_recall": 0.7,
+      "total_misclassification_cost_rupees": 153456.32,
+      "unknown_rate": 0.0
+    },
+    "plus_downtime_feed": {
+      "accuracy_when_resolved": 0.9815,
+      "issuer_down_precision": 0.8696,
+      "issuer_down_recall": 0.8,
+      "total_misclassification_cost_rupees": 899620.4,
+      "unknown_rate": 0.3464
+    },
+    "plus_mandate_fsm": {
+      "accuracy_when_resolved": 0.9951,
+      "issuer_down_precision": 1.0,
+      "issuer_down_recall": 0.4,
+      "total_misclassification_cost_rupees": 897729.8,
+      "unknown_rate": 0.3828
+    },
+    "table_only": {
+      "accuracy_when_resolved": 0.9951,
+      "issuer_down_precision": 1.0,
+      "issuer_down_recall": 0.4,
+      "total_misclassification_cost_rupees": 897729.8,
+      "unknown_rate": 0.3828
+    }
+  },
+  "changepoint": {
+    "clean_observations": 7492,
+    "detection_rate": 0.1226,
+    "false_alarm_rate": 0.0427,
+    "mean_detection_delay_hours": 3.22,
+    "median_detection_delay_hours": 2.628,
+    "windows_detected": 26,
+    "windows_missed": 186,
+    "windows_with_attempts": 212
+  },
+  "detection": {
+    "accuracy_when_resolved": 0.9168,
+    "evaluated_on": "control arm (never used for fitting)",
+    "n_events": 661,
+    "per_class": {
+      "AFA_REQUIRED": {
+        "precision": 0.9574,
+        "predicted": 47,
+        "recall": 0.9783,
+        "support": 46,
+        "wrong_action_cost_rupees": 0.0
+      },
+      "INSUFFICIENT_FUNDS": {
+        "precision": 0.9,
+        "predicted": 150,
+        "recall": 0.9122,
+        "support": 148,
+        "wrong_action_cost_rupees": 31403.87
+      },
+      "ISSUER_DOWN": {
+        "precision": 0.7609,
+        "predicted": 46,
+        "recall": 0.7,
+        "support": 50,
+        "wrong_action_cost_rupees": 70161.75
+      },
+      "MANDATE_REVOKED": {
+        "precision": 1.0,
+        "predicted": 22,
+        "recall": 0.88,
+        "support": 25,
+        "wrong_action_cost_rupees": 0.0
+      },
+      "RISK_DECLINE": {
+        "precision": 0.6875,
+        "predicted": 32,
+        "recall": 0.7097,
+        "support": 31,
+        "wrong_action_cost_rupees": 13128.3
+      },
+      "TECHNICAL_DECLINE": {
+        "precision": 0.9533,
+        "predicted": 364,
+        "recall": 0.9612,
+        "support": 361,
+        "wrong_action_cost_rupees": 38762.4
+      }
+    },
+    "scenario": "base",
+    "seed": 20260822,
+    "source_mix": {
+      "afa_boundary": 23,
+      "classifier": 253,
+      "table": 385
+    },
+    "total_wrong_action_cost_rupees": 153456.32,
+    "unknown_rate": 0.0,
+    "unknown_rate_caveat": "The UNKNOWN rate is a property of the generator as much as of the detector. The simulator draws error codes from the documented Razorpay taxonomy plus a deliberately unmapped minority (27 of 661 events here); a real error stream contains far more vendor variants and post-dated codes. Read this figure as a lower bound on the UNKNOWN rate Antar would see in production, not as evidence that the mapping is complete.",
+    "unmapped_codes": {
+      "abstained_to_unknown": 0,
+      "events": 27,
+      "resolved_correctly": 17,
+      "resolved_incorrectly": 10,
+      "share": 0.0408
+    }
+  },
+  "taxonomy_coverage": {
+    "ambiguous": [
+      "authentication_failed",
+      "declined_by_issuer",
+      "gateway_technical_error",
+      "incorrect_otp",
+      "network_error",
+      "payment_cancelled",
+      "payment_failed",
+      "payment_timed_out",
+      "server_error"
+    ],
+    "documented_but_unmapped": [],
+    "documented_reasons": 25,
+    "mapped_but_undocumented": [],
+    "resolved_by_table": 16,
+    "rules": 25
+  }
+}

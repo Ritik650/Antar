@@ -1,0 +1,5434 @@
+{
+  "min_qualifying_scenarios": 2,
+  "pre_registered": {
+    "action": "best_available",
+    "measurement_window_days": 30,
+    "negative_definition": "strict",
+    "reference_instant": "2026-04-28T11:04:00+05:30",
+    "seed": 20260822
+  },
+  "specifications": [
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.00333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.005
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.005
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.005
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.005
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.00667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.00667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.00667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.00667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.00667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.00667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.00667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.00667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.00667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.00667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.00667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.00833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.00833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.00833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.00833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.00833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.00833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.00833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.00833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.00833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.00833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.01333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.01333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.01333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.01333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.015
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.01667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.01833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.02
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.02
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.02
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.02
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.02
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.02167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.02167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.02167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.02167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.02167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.02167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.02167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.02333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.02333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.02333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.02333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.02333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.02333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.02333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.02333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.02333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.02333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.025
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.025
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.025
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.025
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.025
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.025
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.025
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.025
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.025
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.02667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.02667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.02667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.02667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.02667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.02667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.02833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.02833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.02833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.02833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.02833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": true,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.02833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.02833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.02833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.03
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.03167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.03167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.03167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.03167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.03167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.03333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.03333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.03333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.03333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.03333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.03333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.03333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.03333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.035
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.035
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.035
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.035
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.035
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.035
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.035
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.035
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.035
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.035
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.035
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.035
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.035
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.035
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.035
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.035
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.035
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.03667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.03667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.03667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.03667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.03667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.03667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.03667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.03833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.03833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.03833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.03833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.03833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.03833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.03833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.03833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.03833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.03833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.03833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.03833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.03833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.04
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.04
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.04
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.04
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.04
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.04
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.04
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.04
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.04
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.04
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.04167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.04167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.04167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.04167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.04167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.04167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.04167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.04167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.04167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.04167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.04167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.04167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.04167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.04167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.04167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.04167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.04333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.04333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.04333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.04333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.045
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.045
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.045
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.045
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.045
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.045
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.04667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.04667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.04667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.04667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.04667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.04667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.04833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.04833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.04833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.04833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.04833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.04833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.04833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.04833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.05
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.05
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.05167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.05167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.05167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.05167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.05333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.05333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.05333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.05333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.05333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.055
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.055
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.05667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.05667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.05667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.05667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.05667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.05833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.05833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.05833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.06
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.06
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.06
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.06
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.06167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.06167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.06333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.06333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.06333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.06333
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.06333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.06333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.06333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.065
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.065
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.065
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.065
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.06667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.06667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.06667
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.06833
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.06833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.06833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.06833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.06833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.06833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.07
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.07
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.07167
+    },
+    {
+      "action": "best_available",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.07167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.07167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.07167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.07167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.07167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.07333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.07333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.07333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.07333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.07333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.07333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.075
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.075
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.075
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.075
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.07667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.07667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.07667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.07667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.07667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.07667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.07833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.07833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.07833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.07833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.07833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.07833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.07833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.07833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.07833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.07833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.07833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.08167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.08167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.08167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.08167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.08167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.08167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.08167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.08167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.08333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.08333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.085
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.085
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "conservative_ci",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.085
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.085
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.085
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.085
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.085
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.085
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.08667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.08667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.08667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.09
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.09
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.09
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.09
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.09167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.09167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.09333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.09333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.09333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.095
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.095
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.095
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.09833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.1
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.10167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.10167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.10167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.10333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.105
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.10667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.10667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.10833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.10833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.10833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.11
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.11
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.11
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.11
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.11
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.11
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.11167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.11167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.11333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.11333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.11333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.11333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.11333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.11333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.11333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.115
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.115
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.11667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.11667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.11667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.11667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.11667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.11667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.11667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.11667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.11667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.11667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.11833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.11833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.11833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.11833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.12
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.12
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.12167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.12333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.12333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.12333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.12333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.12333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.125
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.12667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.12667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.13
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.13167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.13167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.13167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.13333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.13333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.135
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.135
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.135
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.135
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.13667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.13667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.13667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.13667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.13667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.14
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.14
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.14167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.14167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.14167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.14333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.145
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.145
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.14667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.14667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.14667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.14667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.14667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.14667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.14667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.14667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.14667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.14833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.14833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.14833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.15
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.15
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.15167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.155
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-28T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.15667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.15667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.15667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.15667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.15833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.15833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.15833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.16
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.16
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.16
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.16167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.165
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.165
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.16667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.16667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.16667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.16833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.17
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.17167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.17167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.17167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "margin",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.17333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.17333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.17333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-20T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.17333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260826,
+      "share": 0.175
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-12T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.17667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.17667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260823,
+      "share": 0.17667
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.18167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.18167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.18167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.18167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-05-09T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.18167
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260825,
+      "share": 0.18333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 15,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-21T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.18833
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 30,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.19
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260824,
+      "share": 0.19333
+    },
+    {
+      "action": "reference_sms",
+      "measurement_window_days": 60,
+      "negative_definition": "strict",
+      "pre_registered": false,
+      "reference_instant": "2026-04-03T11:04:00+05:30",
+      "scenario": "base",
+      "seed": 20260822,
+      "share": 0.195
+    }
+  ],
+  "summary": {
+    "fraction_clearing_threshold": 0.4574,
+    "max": 0.195,
+    "median": 0.04333,
+    "min": 0.00333,
+    "n_specifications": 540,
+    "p25": 0.02333,
+    "p75": 0.09375,
+    "pre_registered_percentile": 28.7,
+    "pre_registered_share": 0.028333333333333332,
+    "scenario": "base",
+    "supported": false,
+    "threshold": 0.05,
+    "variance_by_dimension": {
+      "action": 0.03664,
+      "measurement_window_days": 0.0015,
+      "negative_definition": 0.02214,
+      "reference_instant": 0.00717,
+      "seed": 0.00218
+    }
+  },
+  "verdict": "Across 540 analytic specifications, only 46% clear the pre-registered 5% bar (median 4.33%). Per docs/EVALUATION.md 9.5 the base-scenario claim is reported as **unsupported**: a result that survives only its own analytic choices is not a result."
+}

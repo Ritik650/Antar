@@ -1,0 +1,957 @@
+{
+  "caveat": "Validation AUUC of the selected model is NOT an unbiased estimate of its performance: it won partly on merit and partly on noise, having been chosen on this same split. Only the control holdout is inferential. docs/EVALUATION.md 6.2.2.",
+  "disqualified": {
+    "causal_forest": "negative-region recall 0.071 is below the pre-registered floor of 0.1. A model that cannot find the sleeping-dogs population cannot support the claim the system is built on."
+  },
+  "n_train": 1845,
+  "n_validation": 787,
+  "negative_prevalence": 0.10801,
+  "reports": {
+    "always_abstain": {
+      "abstention": {
+        "forgone_paise": 15702021,
+        "n_abstained": 787,
+        "n_correctly_abstained": 85,
+        "net_paise": -11207520,
+        "net_rupees": -112075.2,
+        "saved_paise": 4494501
+      },
+      "auuc": 0.285063,
+      "calibration": {
+        "deciles": [
+          {
+            "bias": -1.020084,
+            "decile": 0,
+            "mean_predicted": -1.0,
+            "mean_true": 0.020084,
+            "n": 79
+          },
+          {
+            "bias": -1.015137,
+            "decile": 1,
+            "mean_predicted": -1.0,
+            "mean_true": 0.015137,
+            "n": 79
+          },
+          {
+            "bias": -1.01207,
+            "decile": 2,
+            "mean_predicted": -1.0,
+            "mean_true": 0.01207,
+            "n": 79
+          },
+          {
+            "bias": -1.013118,
+            "decile": 3,
+            "mean_predicted": -1.0,
+            "mean_true": 0.013118,
+            "n": 79
+          },
+          {
+            "bias": -1.011588,
+            "decile": 4,
+            "mean_predicted": -1.0,
+            "mean_true": 0.011588,
+            "n": 79
+          },
+          {
+            "bias": -1.013852,
+            "decile": 5,
+            "mean_predicted": -1.0,
+            "mean_true": 0.013852,
+            "n": 79
+          },
+          {
+            "bias": -1.01138,
+            "decile": 6,
+            "mean_predicted": -1.0,
+            "mean_true": 0.01138,
+            "n": 79
+          },
+          {
+            "bias": -1.017115,
+            "decile": 7,
+            "mean_predicted": -1.0,
+            "mean_true": 0.017115,
+            "n": 78
+          },
+          {
+            "bias": -1.015188,
+            "decile": 8,
+            "mean_predicted": -1.0,
+            "mean_true": 0.015188,
+            "n": 78
+          },
+          {
+            "bias": -1.019251,
+            "decile": 9,
+            "mean_predicted": -1.0,
+            "mean_true": 0.019251,
+            "n": 78
+          }
+        ],
+        "negative_region_bias": -1.020084
+      },
+      "disqualification_reason": "",
+      "disqualified": false,
+      "fit_seconds": 0.0,
+      "name": "always_abstain",
+      "notes": "",
+      "qini": -0.214936,
+      "qini_at_20": -0.5581,
+      "sign": {
+        "actually_negative": 85,
+        "f1": 0.19495,
+        "population": 787,
+        "precision": 0.10801,
+        "predicted_negative": 787,
+        "prevalence": 0.10801,
+        "recall": 1.0,
+        "true_positives": 85
+      }
+    },
+    "always_contact": {
+      "abstention": {
+        "forgone_paise": 0,
+        "n_abstained": 0,
+        "n_correctly_abstained": 0,
+        "net_paise": 0,
+        "net_rupees": 0.0,
+        "saved_paise": 0
+      },
+      "auuc": 0.285063,
+      "calibration": {
+        "deciles": [
+          {
+            "bias": 0.979916,
+            "decile": 0,
+            "mean_predicted": 1.0,
+            "mean_true": 0.020084,
+            "n": 79
+          },
+          {
+            "bias": 0.984863,
+            "decile": 1,
+            "mean_predicted": 1.0,
+            "mean_true": 0.015137,
+            "n": 79
+          },
+          {
+            "bias": 0.98793,
+            "decile": 2,
+            "mean_predicted": 1.0,
+            "mean_true": 0.01207,
+            "n": 79
+          },
+          {
+            "bias": 0.986882,
+            "decile": 3,
+            "mean_predicted": 1.0,
+            "mean_true": 0.013118,
+            "n": 79
+          },
+          {
+            "bias": 0.988412,
+            "decile": 4,
+            "mean_predicted": 1.0,
+            "mean_true": 0.011588,
+            "n": 79
+          },
+          {
+            "bias": 0.986148,
+            "decile": 5,
+            "mean_predicted": 1.0,
+            "mean_true": 0.013852,
+            "n": 79
+          },
+          {
+            "bias": 0.98862,
+            "decile": 6,
+            "mean_predicted": 1.0,
+            "mean_true": 0.01138,
+            "n": 79
+          },
+          {
+            "bias": 0.982885,
+            "decile": 7,
+            "mean_predicted": 1.0,
+            "mean_true": 0.017115,
+            "n": 78
+          },
+          {
+            "bias": 0.984812,
+            "decile": 8,
+            "mean_predicted": 1.0,
+            "mean_true": 0.015188,
+            "n": 78
+          },
+          {
+            "bias": 0.980749,
+            "decile": 9,
+            "mean_predicted": 1.0,
+            "mean_true": 0.019251,
+            "n": 78
+          }
+        ],
+        "negative_region_bias": 0.979916
+      },
+      "disqualification_reason": "",
+      "disqualified": false,
+      "fit_seconds": 0.0,
+      "name": "always_contact",
+      "notes": "",
+      "qini": -0.214936,
+      "qini_at_20": -0.5581,
+      "sign": {
+        "actually_negative": 85,
+        "f1": 0.0,
+        "population": 787,
+        "precision": 0.0,
+        "predicted_negative": 0,
+        "prevalence": 0.10801,
+        "recall": 0.0,
+        "true_positives": 0
+      }
+    },
+    "causal_forest": {
+      "abstention": {
+        "forgone_paise": 8273,
+        "n_abstained": 34,
+        "n_correctly_abstained": 6,
+        "net_paise": 54931,
+        "net_rupees": 549.31,
+        "saved_paise": 63204
+      },
+      "auuc": 0.761315,
+      "calibration": {
+        "deciles": [
+          {
+            "bias": -0.006215,
+            "decile": 0,
+            "mean_predicted": -0.000745,
+            "mean_true": 0.00547,
+            "n": 79
+          },
+          {
+            "bias": 0.000154,
+            "decile": 1,
+            "mean_predicted": 0.014611,
+            "mean_true": 0.014457,
+            "n": 79
+          },
+          {
+            "bias": 0.014894,
+            "decile": 2,
+            "mean_predicted": 0.024998,
+            "mean_true": 0.010104,
+            "n": 79
+          },
+          {
+            "bias": 0.019554,
+            "decile": 3,
+            "mean_predicted": 0.034162,
+            "mean_true": 0.014608,
+            "n": 79
+          },
+          {
+            "bias": 0.021278,
+            "decile": 4,
+            "mean_predicted": 0.04174,
+            "mean_true": 0.020462,
+            "n": 79
+          },
+          {
+            "bias": 0.027751,
+            "decile": 5,
+            "mean_predicted": 0.048456,
+            "mean_true": 0.020705,
+            "n": 79
+          },
+          {
+            "bias": 0.035059,
+            "decile": 6,
+            "mean_predicted": 0.055539,
+            "mean_true": 0.02048,
+            "n": 79
+          },
+          {
+            "bias": 0.054707,
+            "decile": 7,
+            "mean_predicted": 0.062283,
+            "mean_true": 0.007576,
+            "n": 78
+          },
+          {
+            "bias": 0.055412,
+            "decile": 8,
+            "mean_predicted": 0.068443,
+            "mean_true": 0.013031,
+            "n": 78
+          },
+          {
+            "bias": 0.054824,
+            "decile": 9,
+            "mean_predicted": 0.0766,
+            "mean_true": 0.021775,
+            "n": 78
+          }
+        ],
+        "negative_region_bias": -0.006215
+      },
+      "disqualification_reason": "negative-region recall 0.071 is below the pre-registered floor of 0.1. A model that cannot find the sleeping-dogs population cannot support the claim the system is built on.",
+      "disqualified": true,
+      "fit_seconds": 8.98,
+      "name": "causal_forest",
+      "notes": "",
+      "qini": 0.261316,
+      "qini_at_20": 7.1828,
+      "sign": {
+        "actually_negative": 85,
+        "f1": 0.10084,
+        "population": 787,
+        "precision": 0.17647,
+        "predicted_negative": 34,
+        "prevalence": 0.10801,
+        "recall": 0.07059,
+        "true_positives": 6
+      }
+    },
+    "propensity": {
+      "abstention": {
+        "forgone_paise": 0,
+        "n_abstained": 0,
+        "n_correctly_abstained": 0,
+        "net_paise": 0,
+        "net_rupees": 0.0,
+        "saved_paise": 0
+      },
+      "auuc": 0.24259,
+      "calibration": {
+        "deciles": [
+          {
+            "bias": 0.017698,
+            "decile": 0,
+            "mean_predicted": 0.029354,
+            "mean_true": 0.011656,
+            "n": 79
+          },
+          {
+            "bias": 0.033081,
+            "decile": 1,
+            "mean_predicted": 0.054415,
+            "mean_true": 0.021334,
+            "n": 79
+          },
+          {
+            "bias": 0.056889,
+            "decile": 2,
+            "mean_predicted": 0.07191,
+            "mean_true": 0.015021,
+            "n": 79
+          },
+          {
+            "bias": 0.075827,
+            "decile": 3,
+            "mean_predicted": 0.087247,
+            "mean_true": 0.011419,
+            "n": 79
+          },
+          {
+            "bias": 0.081127,
+            "decile": 4,
+            "mean_predicted": 0.106034,
+            "mean_true": 0.024908,
+            "n": 79
+          },
+          {
+            "bias": 0.108765,
+            "decile": 5,
+            "mean_predicted": 0.125318,
+            "mean_true": 0.016553,
+            "n": 79
+          },
+          {
+            "bias": 0.130535,
+            "decile": 6,
+            "mean_predicted": 0.149851,
+            "mean_true": 0.019316,
+            "n": 79
+          },
+          {
+            "bias": 0.165098,
+            "decile": 7,
+            "mean_predicted": 0.175902,
+            "mean_true": 0.010804,
+            "n": 78
+          },
+          {
+            "bias": 0.207925,
+            "decile": 8,
+            "mean_predicted": 0.215747,
+            "mean_true": 0.007822,
+            "n": 78
+          },
+          {
+            "bias": 0.345617,
+            "decile": 9,
+            "mean_predicted": 0.355273,
+            "mean_true": 0.009656,
+            "n": 78
+          }
+        ],
+        "negative_region_bias": 0.017698
+      },
+      "disqualification_reason": "",
+      "disqualified": false,
+      "fit_seconds": 0.7,
+      "name": "propensity",
+      "notes": "",
+      "qini": -0.25741,
+      "qini_at_20": -6.3372,
+      "sign": {
+        "actually_negative": 85,
+        "f1": 0.0,
+        "population": 787,
+        "precision": 0.0,
+        "predicted_negative": 0,
+        "prevalence": 0.10801,
+        "recall": 0.0,
+        "true_positives": 0
+      }
+    },
+    "r_learner": {
+      "abstention": {
+        "forgone_paise": 3068078,
+        "n_abstained": 272,
+        "n_correctly_abstained": 29,
+        "net_paise": -527537,
+        "net_rupees": -5275.37,
+        "saved_paise": 2540541
+      },
+      "auuc": 0.870769,
+      "calibration": {
+        "deciles": [
+          {
+            "bias": -0.160105,
+            "decile": 0,
+            "mean_predicted": -0.149956,
+            "mean_true": 0.010148,
+            "n": 79
+          },
+          {
+            "bias": -0.077997,
+            "decile": 1,
+            "mean_predicted": -0.067186,
+            "mean_true": 0.01081,
+            "n": 79
+          },
+          {
+            "bias": -0.034726,
+            "decile": 2,
+            "mean_predicted": -0.028151,
+            "mean_true": 0.006574,
+            "n": 79
+          },
+          {
+            "bias": -0.01954,
+            "decile": 3,
+            "mean_predicted": 0.001497,
+            "mean_true": 0.021037,
+            "n": 79
+          },
+          {
+            "bias": 0.001296,
+            "decile": 4,
+            "mean_predicted": 0.023198,
+            "mean_true": 0.021902,
+            "n": 79
+          },
+          {
+            "bias": 0.028806,
+            "decile": 5,
+            "mean_predicted": 0.044112,
+            "mean_true": 0.015306,
+            "n": 79
+          },
+          {
+            "bias": 0.054408,
+            "decile": 6,
+            "mean_predicted": 0.073382,
+            "mean_true": 0.018974,
+            "n": 79
+          },
+          {
+            "bias": 0.089425,
+            "decile": 7,
+            "mean_predicted": 0.105711,
+            "mean_true": 0.016286,
+            "n": 78
+          },
+          {
+            "bias": 0.12635,
+            "decile": 8,
+            "mean_predicted": 0.144819,
+            "mean_true": 0.01847,
+            "n": 78
+          },
+          {
+            "bias": 0.209785,
+            "decile": 9,
+            "mean_predicted": 0.218965,
+            "mean_true": 0.00918,
+            "n": 78
+          }
+        ],
+        "negative_region_bias": -0.160105
+      },
+      "disqualification_reason": "",
+      "disqualified": false,
+      "fit_seconds": 1.3,
+      "name": "r_learner",
+      "notes": "",
+      "qini": 0.37077,
+      "qini_at_20": 7.4583,
+      "sign": {
+        "actually_negative": 85,
+        "f1": 0.16246,
+        "population": 787,
+        "precision": 0.10662,
+        "predicted_negative": 272,
+        "prevalence": 0.10801,
+        "recall": 0.34118,
+        "true_positives": 29
+      }
+    },
+    "random": {
+      "abstention": {
+        "forgone_paise": 8616769,
+        "n_abstained": 376,
+        "n_correctly_abstained": 43,
+        "net_paise": -6039460,
+        "net_rupees": -60394.6,
+        "saved_paise": 2577309
+      },
+      "auuc": 0.399026,
+      "calibration": {
+        "deciles": [
+          {
+            "bias": -0.022603,
+            "decile": 0,
+            "mean_predicted": -0.016713,
+            "mean_true": 0.00589,
+            "n": 79
+          },
+          {
+            "bias": -0.025611,
+            "decile": 1,
+            "mean_predicted": -0.010217,
+            "mean_true": 0.015393,
+            "n": 79
+          },
+          {
+            "bias": -0.024179,
+            "decile": 2,
+            "mean_predicted": -0.006206,
+            "mean_true": 0.017973,
+            "n": 79
+          },
+          {
+            "bias": -0.017872,
+            "decile": 3,
+            "mean_predicted": -0.003347,
+            "mean_true": 0.014525,
+            "n": 79
+          },
+          {
+            "bias": -0.015492,
+            "decile": 4,
+            "mean_predicted": -0.000672,
+            "mean_true": 0.01482,
+            "n": 79
+          },
+          {
+            "bias": -0.017169,
+            "decile": 5,
+            "mean_predicted": 0.001641,
+            "mean_true": 0.018811,
+            "n": 79
+          },
+          {
+            "bias": -0.015814,
+            "decile": 6,
+            "mean_predicted": 0.003737,
+            "mean_true": 0.019551,
+            "n": 79
+          },
+          {
+            "bias": -0.008476,
+            "decile": 7,
+            "mean_predicted": 0.007183,
+            "mean_true": 0.015659,
+            "n": 78
+          },
+          {
+            "bias": -0.005956,
+            "decile": 8,
+            "mean_predicted": 0.010439,
+            "mean_true": 0.016395,
+            "n": 78
+          },
+          {
+            "bias": 0.007787,
+            "decile": 9,
+            "mean_predicted": 0.01743,
+            "mean_true": 0.009642,
+            "n": 78
+          }
+        ],
+        "negative_region_bias": -0.022603
+      },
+      "disqualification_reason": "",
+      "disqualified": false,
+      "fit_seconds": 0.0,
+      "name": "random",
+      "notes": "",
+      "qini": -0.100973,
+      "qini_at_20": 3.8065,
+      "sign": {
+        "actually_negative": 85,
+        "f1": 0.18655,
+        "population": 787,
+        "precision": 0.11436,
+        "predicted_negative": 376,
+        "prevalence": 0.10801,
+        "recall": 0.50588,
+        "true_positives": 43
+      }
+    },
+    "t_learner": {
+      "abstention": {
+        "forgone_paise": 2293003,
+        "n_abstained": 258,
+        "n_correctly_abstained": 32,
+        "net_paise": -623649,
+        "net_rupees": -6236.49,
+        "saved_paise": 1669354
+      },
+      "auuc": 0.724441,
+      "calibration": {
+        "deciles": [
+          {
+            "bias": -0.212861,
+            "decile": 0,
+            "mean_predicted": -0.201094,
+            "mean_true": 0.011767,
+            "n": 79
+          },
+          {
+            "bias": -0.079202,
+            "decile": 1,
+            "mean_predicted": -0.06855,
+            "mean_true": 0.010653,
+            "n": 79
+          },
+          {
+            "bias": -0.041771,
+            "decile": 2,
+            "mean_predicted": -0.023991,
+            "mean_true": 0.01778,
+            "n": 79
+          },
+          {
+            "bias": -0.011117,
+            "decile": 3,
+            "mean_predicted": 0.00484,
+            "mean_true": 0.015957,
+            "n": 79
+          },
+          {
+            "bias": 0.009348,
+            "decile": 4,
+            "mean_predicted": 0.028959,
+            "mean_true": 0.019611,
+            "n": 79
+          },
+          {
+            "bias": 0.035352,
+            "decile": 5,
+            "mean_predicted": 0.05638,
+            "mean_true": 0.021028,
+            "n": 79
+          },
+          {
+            "bias": 0.066802,
+            "decile": 6,
+            "mean_predicted": 0.08793,
+            "mean_true": 0.021128,
+            "n": 79
+          },
+          {
+            "bias": 0.124349,
+            "decile": 7,
+            "mean_predicted": 0.130921,
+            "mean_true": 0.006572,
+            "n": 78
+          },
+          {
+            "bias": 0.185159,
+            "decile": 8,
+            "mean_predicted": 0.196132,
+            "mean_true": 0.010973,
+            "n": 78
+          },
+          {
+            "bias": 0.34745,
+            "decile": 9,
+            "mean_predicted": 0.3605,
+            "mean_true": 0.01305,
+            "n": 78
+          }
+        ],
+        "negative_region_bias": -0.212861
+      },
+      "disqualification_reason": "",
+      "disqualified": false,
+      "fit_seconds": 0.78,
+      "name": "t_learner",
+      "notes": "",
+      "qini": 0.224442,
+      "qini_at_20": 4.3596,
+      "sign": {
+        "actually_negative": 85,
+        "f1": 0.18659,
+        "population": 787,
+        "precision": 0.12403,
+        "predicted_negative": 258,
+        "prevalence": 0.10801,
+        "recall": 0.37647,
+        "true_positives": 32
+      }
+    },
+    "x_learner": {
+      "abstention": {
+        "forgone_paise": 1754090,
+        "n_abstained": 225,
+        "n_correctly_abstained": 26,
+        "net_paise": -292399,
+        "net_rupees": -2923.99,
+        "saved_paise": 1461691
+      },
+      "auuc": 0.891728,
+      "calibration": {
+        "deciles": [
+          {
+            "bias": -0.149405,
+            "decile": 0,
+            "mean_predicted": -0.140381,
+            "mean_true": 0.009024,
+            "n": 79
+          },
+          {
+            "bias": -0.06181,
+            "decile": 1,
+            "mean_predicted": -0.05331,
+            "mean_true": 0.0085,
+            "n": 79
+          },
+          {
+            "bias": -0.032803,
+            "decile": 2,
+            "mean_predicted": -0.014016,
+            "mean_true": 0.018788,
+            "n": 79
+          },
+          {
+            "bias": 0.004751,
+            "decile": 3,
+            "mean_predicted": 0.018891,
+            "mean_true": 0.014141,
+            "n": 79
+          },
+          {
+            "bias": 0.027543,
+            "decile": 4,
+            "mean_predicted": 0.049444,
+            "mean_true": 0.0219,
+            "n": 79
+          },
+          {
+            "bias": 0.060455,
+            "decile": 5,
+            "mean_predicted": 0.076074,
+            "mean_true": 0.015619,
+            "n": 79
+          },
+          {
+            "bias": 0.081844,
+            "decile": 6,
+            "mean_predicted": 0.102646,
+            "mean_true": 0.020802,
+            "n": 79
+          },
+          {
+            "bias": 0.124274,
+            "decile": 7,
+            "mean_predicted": 0.139412,
+            "mean_true": 0.015137,
+            "n": 78
+          },
+          {
+            "bias": 0.172597,
+            "decile": 8,
+            "mean_predicted": 0.182549,
+            "mean_true": 0.009952,
+            "n": 78
+          },
+          {
+            "bias": 0.246141,
+            "decile": 9,
+            "mean_predicted": 0.260914,
+            "mean_true": 0.014772,
+            "n": 78
+          }
+        ],
+        "negative_region_bias": -0.149405
+      },
+      "disqualification_reason": "",
+      "disqualified": false,
+      "fit_seconds": 1.51,
+      "name": "x_learner",
+      "notes": "",
+      "qini": 0.391729,
+      "qini_at_20": 6.9787,
+      "sign": {
+        "actually_negative": 85,
+        "f1": 0.16774,
+        "population": 787,
+        "precision": 0.11556,
+        "predicted_negative": 225,
+        "prevalence": 0.10801,
+        "recall": 0.30588,
+        "true_positives": 26
+      }
+    }
+  },
+  "scores": {
+    "r_learner": -0.19247,
+    "t_learner": -0.01079,
+    "x_learner": 0.20326
+  },
+  "selected": "x_learner",
+  "selection_rationale": "x_learner: score +0.203 (AUUC 0.8917, negative-region F1 0.168, precision 0.116, recall 0.306). Runner-up t_learner by +0.214. Selected on validation only; the holdout has not been touched.",
+  "selection_rule": "0.5*z(validation AUUC) + 0.5*z(negative-region sign F1), after disqualifying any learner with negative-region recall < 0.1",
+  "table": [
+    {
+      "abstention_net_rupees": -2923.99,
+      "auuc": 0.89173,
+      "disqualified": false,
+      "is_baseline": false,
+      "learner": "x_learner",
+      "negative_bias": -0.14941,
+      "qini": 0.39173,
+      "score": 0.20326,
+      "selected": true,
+      "sign_f1": 0.16774,
+      "sign_precision": 0.11556,
+      "sign_recall": 0.30588
+    },
+    {
+      "abstention_net_rupees": -6236.49,
+      "auuc": 0.72444,
+      "disqualified": false,
+      "is_baseline": false,
+      "learner": "t_learner",
+      "negative_bias": -0.21286,
+      "qini": 0.22444,
+      "score": -0.01079,
+      "selected": false,
+      "sign_f1": 0.18659,
+      "sign_precision": 0.12403,
+      "sign_recall": 0.37647
+    },
+    {
+      "abstention_net_rupees": -5275.37,
+      "auuc": 0.87077,
+      "disqualified": false,
+      "is_baseline": false,
+      "learner": "r_learner",
+      "negative_bias": -0.1601,
+      "qini": 0.37077,
+      "score": -0.19247,
+      "selected": false,
+      "sign_f1": 0.16246,
+      "sign_precision": 0.10662,
+      "sign_recall": 0.34118
+    },
+    {
+      "abstention_net_rupees": 549.31,
+      "auuc": 0.76131,
+      "disqualified": true,
+      "is_baseline": false,
+      "learner": "causal_forest",
+      "negative_bias": -0.00621,
+      "qini": 0.26132,
+      "score": NaN,
+      "selected": false,
+      "sign_f1": 0.10084,
+      "sign_precision": 0.17647,
+      "sign_recall": 0.07059
+    },
+    {
+      "abstention_net_rupees": -60394.6,
+      "auuc": 0.39903,
+      "disqualified": false,
+      "is_baseline": true,
+      "learner": "random",
+      "negative_bias": -0.0226,
+      "qini": -0.10097,
+      "score": NaN,
+      "selected": false,
+      "sign_f1": 0.18655,
+      "sign_precision": 0.11436,
+      "sign_recall": 0.50588
+    },
+    {
+      "abstention_net_rupees": 0.0,
+      "auuc": 0.24259,
+      "disqualified": false,
+      "is_baseline": true,
+      "learner": "propensity",
+      "negative_bias": 0.0177,
+      "qini": -0.25741,
+      "score": NaN,
+      "selected": false,
+      "sign_f1": 0.0,
+      "sign_precision": 0.0,
+      "sign_recall": 0.0
+    },
+    {
+      "abstention_net_rupees": -112075.2,
+      "auuc": 0.28506,
+      "disqualified": false,
+      "is_baseline": true,
+      "learner": "always_abstain",
+      "negative_bias": -1.02008,
+      "qini": -0.21494,
+      "score": NaN,
+      "selected": false,
+      "sign_f1": 0.19495,
+      "sign_precision": 0.10801,
+      "sign_recall": 1.0
+    },
+    {
+      "abstention_net_rupees": 0.0,
+      "auuc": 0.28506,
+      "disqualified": false,
+      "is_baseline": true,
+      "learner": "always_contact",
+      "negative_bias": 0.97992,
+      "qini": -0.21494,
+      "score": NaN,
+      "selected": false,
+      "sign_f1": 0.0,
+      "sign_precision": 0.0,
+      "sign_recall": 0.0
+    }
+  ]
+}
