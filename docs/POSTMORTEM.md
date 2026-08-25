@@ -1477,3 +1477,40 @@ percentile". This wrote "nan". **Every generated sentence in this project needs 
 for "unknown", and the ones that lack it do not fail loudly — they assert something
 false in confident prose.** A grep for `or float('nan')`, `or 0`, and `.get(...) or` in
 any string-formatting path is now part of the pre-freeze checklist.
+
+---
+
+## D37 · The provenance guard was pointed at artifacts it was never meant to judge
+
+**Found by:** CI's `N4` job, on the very step added an hour earlier to make artifact
+checks fatal.
+**Severity:** medium — it failed the build on numbers that were all correct.
+**Status:** fixed.
+
+D28's fix let the artifact checks skip on a clean checkout and made them fatal only where
+the evaluation had actually run — CI's `N4` job, via `ANTAR_REQUIRE_ARTIFACTS=1`. Correct
+as far as it went, and it missed that **`N4` runs `evaluate QUICK=1`**.
+
+QUICK mode is smaller batches on the same code path. `run_evaluation` prints, in its own
+banner, *"the numbers will differ from the full run"*. The README quotes the **full** run.
+So the provenance test compared the README against quick-mode artifacts and reported every
+correctly-generated figure as unexplained:
+
+```
+README.md:41  99292   in: | Contact everyone | 787 | ₹99,292 | ₹557,833 | **−₹458,563** |
+```
+
+Nothing was wrong with that number. It simply came from a different-sized run.
+
+**Fix.** `run_evaluation` already records `{"quick": true}` in `artifacts/evaluation.json`.
+The provenance test reads it and skips with an explanation. The **consistency** and
+**magnitude** tests keep running fatally, because internal relations — a delta equalling
+the difference of its parts, a ratio staying inside (0, 1] — hold at any batch size.
+Provenance is the only one of the three that is scale-dependent.
+
+**The pattern, and it is now the fourth instance.** D28's meta-tests, D34's vacuity guard,
+and this one are all the same mistake: **a guard applied to a state it was not designed
+to judge.** The check itself was right each time. What was wrong was the assumption about
+which data it would see — a clean checkout, an underpowered sample, a quick run. A guard
+needs to know not just what it is testing but *what situation it is in*, and that is
+apparently much easier to get wrong than the assertion itself.

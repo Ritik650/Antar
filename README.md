@@ -360,7 +360,7 @@ four that most affect how you should read this README:
 
 ## What went wrong while building this
 
-[`docs/POSTMORTEM.md`](docs/POSTMORTEM.md) has 36 entries, each with the defect, the root
+[`docs/POSTMORTEM.md`](docs/POSTMORTEM.md) has 37 entries, each with the defect, the root
 cause, the fix, and — where it matters — the order in which things were discovered. It is
 the most useful document in the repository. Four of them:
 

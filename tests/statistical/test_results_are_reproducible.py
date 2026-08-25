@@ -145,6 +145,27 @@ def expand(tokens: set[str]) -> set[str]:
     return out
 
 
+def artifacts_are_from_a_quick_run() -> bool:
+    """Did the artifacts on disk come from `evaluate QUICK=1`?
+
+    QUICK mode is smaller batches on the same code path, and `run_evaluation` says in
+    its own banner that the numbers will differ from the full run. The README quotes the
+    **full** run, so checking it against quick artifacts compares two things that are
+    not supposed to agree - which is what this test did on CI's N4 job, where it failed
+    on every correctly-generated number. POSTMORTEM D37.
+
+    Provenance is only meaningful against a full run. Internal consistency and magnitude
+    hold at any scale, and those tests keep running.
+    """
+    marker = artifacts_dir() / "evaluation.json"
+    if not marker.exists():
+        return False
+    try:
+        return bool(json.loads(marker.read_text(encoding="utf-8")).get("quick"))
+    except json.JSONDecodeError:
+        return False
+
+
 @pytest.fixture(scope="module")
 def artifact_numbers() -> set[str]:
     files = sorted(artifacts_dir().glob("*.json"))
@@ -190,6 +211,13 @@ def test_the_readme_quotes_results():
 
 def test_every_number_in_a_results_table_exists_in_an_artifact(artifact_numbers):
     """N4. A figure that appears nowhere in `artifacts/` was typed, not measured."""
+    if artifacts_are_from_a_quick_run():
+        pytest.skip(
+            "artifacts came from `evaluate QUICK=1`, whose numbers differ from the full "
+            "run the README quotes. Provenance is checked against a full run; the "
+            "consistency and magnitude tests still run here."
+        )
+
     unexplained: list[str] = []
     for line_number, line in result_lines():
         for token in numbers_in(line):
