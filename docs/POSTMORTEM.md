@@ -1647,3 +1647,36 @@ mean what `SIMULATOR_CARD.md` §8 says they mean.
 not assert *what the measurement found*. The first is a control; the second is a thumb on
 the scale, and it is invisible for exactly as long as the finding happens to be
 favourable.
+
+---
+
+## D40 · A guard that enforced correctly and claimed loosely
+
+**Found by:** external review, greping the committed artifacts for a README figure.
+**Severity:** low in effect, and worth recording anyway.
+**Status:** fixed.
+
+`₹84,695` appears in the README's headline table. `grep 84695 artifacts/*.json` returns
+nothing. The figure is real — `allocation_base.json` stores `84694.6` — and the provenance
+guard passes, because `readings_of` accepts roundings and unit conversions by design.
+
+**So the enforcement was right and the stated rule was wrong.** Four places said the guard
+checks that "every number in the README appears in an artifact", which literally read
+means a verbatim match, and that is not what it does or should do. Rounding ₹84,694.6 to
+₹84,695 in prose is legitimate; a rule forbidding it would make the README unreadable
+without making it more honest.
+
+**Fix.** The rule now reads: *every number in a README results table is an artifact value,
+or a rounding or unit conversion of one — and nothing else.* Stated identically in the
+test docstring, its failure message, `run_evaluation`'s header, `SUBMISSION.md` and the
+README's own verification list.
+
+`test_the_tolerance_admits_roundings_and_rejects_different_numbers` pins both edges:
+`84,695`, `₹84,694.60` and `8469460` are accepted; `84,700`, `8,469`, `846,946` and
+`84,695.5` are refused. The phrase "and nothing else" is only worth writing if something
+checks it.
+
+**Why a low-severity entry is here at all.** This project's argument is that its statements
+match its evidence. A control whose description overstates what it does is a small instance
+of exactly the failure the other thirty-nine entries are about — and it is the instance
+that would be quoted back if a reviewer found it before we did. One did.

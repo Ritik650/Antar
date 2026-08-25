@@ -210,7 +210,22 @@ def test_the_readme_quotes_results():
 
 
 def test_every_number_in_a_results_table_exists_in_an_artifact(artifact_numbers):
-    """N4. A figure that appears nowhere in `artifacts/` was typed, not measured."""
+    """N4, stated precisely: **every number in a README results table is an artifact
+    value, or a rounding or unit conversion of one.**
+
+    Not "appears verbatim in an artifact". `allocation_base.json` stores `84694.6` and
+    the README says `₹84,695`; the artifact stores paise and the prose says rupees. Both
+    are the same measurement, and forbidding either would make the README unreadable
+    without making it more honest.
+
+    What the tolerance deliberately does *not* admit is a different number. `readings_of`
+    generates only unit changes (x100, /100) and roundings to four decimal places. A
+    figure that needs any other transformation to match is a figure nobody measured.
+
+    An external reviewer noticed that `84695` does not literally `grep` out of any JSON
+    and asked whether the guard's claim matched its enforcement. It did not — the
+    enforcement was right and the wording was loose. POSTMORTEM D40.
+    """
     if artifacts_are_from_a_quick_run():
         pytest.skip(
             "artifacts came from `evaluate QUICK=1`, whose numbers differ from the full "
@@ -226,9 +241,9 @@ def test_every_number_in_a_results_table_exists_in_an_artifact(artifact_numbers)
             unexplained.append(f"README.md:{line_number}  {token}   in: {line[:90]}")
 
     assert not unexplained, (
-        "these numbers appear in the README but in no artifact. Either they were typed "
-        "by hand, or the artifact that produced them is stale. Run "
-        "`python tasks.py evaluate`.\n  " + "\n  ".join(unexplained)
+        "these numbers in the README are not an artifact value, nor a rounding or "
+        "unit conversion of one. Either they were typed by hand, or the artifact that "
+        "produced them is stale. Run `python tasks.py evaluate`.\n  " + "\n  ".join(unexplained)
     )
 
 
@@ -368,3 +383,27 @@ def test_the_readme_states_the_right_number_of_regulations():
     assert stated == len(reg.REGULATIONS), (
         f"the README says {stated} regulations; there are {len(reg.REGULATIONS)}"
     )
+
+
+def test_the_tolerance_admits_roundings_and_rejects_different_numbers():
+    """The rule's boundary, asserted rather than described.
+
+    The wording says the guard admits a rounding or a unit conversion "and nothing else".
+    That sentence is only worth writing if something checks it, so this pins both sides:
+    a legitimate reading is accepted, and a number that merely *looks* close is not.
+    """
+    stored = readings_of(84694.6)
+
+    # What the README legitimately prints.
+    assert normalise("84,695") in stored
+    assert normalise("₹84,694.60") in stored
+    # Unit conversion: the same figure in paise.
+    assert normalise("8469460") in stored
+
+    # And what it may not. Each of these is a *different measurement*, and a guard that
+    # waved them through would be checking nothing.
+    for impostor in ("84,700", "8,469", "846,946", "84,695.5"):
+        assert normalise(impostor) not in stored, (
+            f"{impostor} is not a rounding or unit conversion of 84694.6, and the "
+            "tolerance must not accept it"
+        )

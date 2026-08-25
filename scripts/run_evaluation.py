@@ -12,7 +12,8 @@ Each stage writes a JSON artifact. This script then assembles `artifacts/RESULTS
 **from those artifacts** — not from anything it computed itself and not from anything a
 person typed. The README quotes `RESULTS.md`, and
 `tests/statistical/test_results_are_reproducible.py` checks that every number in the
-README appears in an artifact.
+README is an artifact value, or a rounding or unit conversion of one — the README says
+`₹84,695` where the artifact stores `84694.6`, and both are the same measurement.
 
 The chain is: code → artifact → RESULTS.md → README. There is no step in it where a
 human hand can insert a number, which is the only version of N4 that means anything.
