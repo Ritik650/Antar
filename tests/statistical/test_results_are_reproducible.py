@@ -407,3 +407,72 @@ def test_the_tolerance_admits_roundings_and_rejects_different_numbers():
             f"{impostor} is not a rounding or unit conversion of 84694.6, and the "
             "tolerance must not accept it"
         )
+
+
+# ------------------------------------------------- the rule states itself once
+
+PROVENANCE_RULE = "an artifact value, or a rounding or unit conversion of one"
+"""The canonical wording. Every site that describes the provenance guard uses it
+verbatim, and `test_the_provenance_rule_is_worded_identically_everywhere` fails when any
+one of them drifts."""
+
+RULE_SITES = (
+    "README.md",
+    "docs/SUBMISSION.md",
+    "docs/DECISIONS.md",
+    "scripts/run_evaluation.py",
+    "tests/statistical/test_magnitudes_are_plausible.py",
+    "tests/statistical/test_results_are_reproducible.py",
+)
+
+
+def test_the_provenance_rule_is_worded_identically_everywhere():
+    """D40, one layer down.
+
+    D40 corrected the guard's description from "appears in an artifact" to what it
+    actually enforces — and then the postmortem entry claimed the new wording was
+    "stated identically in four places" when two of the four edits had silently done
+    nothing. A bare `str.replace` does not fail on a missing anchor.
+
+    So the claim of uniformity is now the thing under test. Five lines, and it closes
+    the class: any site that drifts, or any new site that describes the rule loosely,
+    fails here with its own name.
+    """
+    missing = [
+        site
+        for site in RULE_SITES
+        if PROVENANCE_RULE not in (repo_root() / site).read_text(encoding="utf-8")
+    ]
+    assert not missing, (
+        f"these files describe the provenance guard without the canonical wording "
+        f"{PROVENANCE_RULE!r}:\n  " + "\n  ".join(missing)
+        + "\n\nThe postmortem claims the rule is stated identically everywhere. This is "
+        "what makes that claim true rather than asserted."
+    )
+
+
+def test_the_superseded_wording_is_gone():
+    """The other half: the loose sentence D40 removed must not come back.
+
+    Two exemptions, both structural rather than convenient:
+
+      * `docs/POSTMORTEM.md` — D40 quotes the old wording in order to explain what was
+        wrong with it, and an entry that could not quote the defect could not describe it.
+      * **This file** — it has to name the forbidden phrases in order to search for them.
+        A check cannot be its own violation.
+    """
+    exempt = {"POSTMORTEM.md", Path(__file__).name}
+    offenders: list[str] = []
+    for path in sorted(repo_root().rglob("*.py")) + sorted(repo_root().rglob("*.md")):
+        if any(part in {".venv", "__pycache__", ".git"} for part in path.parts):
+            continue
+        if path.name in exempt:
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for phrase in ("appears in an artifact", "appear in an artifact"):
+            if phrase in text:
+                offenders.append(f"{path.relative_to(repo_root())}  ({phrase!r})")
+
+    assert not offenders, (
+        "the wording D40 removed has come back:\n  " + "\n  ".join(offenders)
+    )

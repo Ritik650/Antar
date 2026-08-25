@@ -1680,3 +1680,40 @@ checks it.
 match its evidence. A control whose description overstates what it does is a small instance
 of exactly the failure the other thirty-nine entries are about — and it is the instance
 that would be quoted back if a reviewer found it before we did. One did.
+
+---
+
+### D40, one layer down — appended 25 Aug 2026
+
+**The fix above said the wording was "stated identically in four places". It was not, and
+this entry asserted that it was.** The same reviewer checked and found the superseded
+phrasing still in `tests/statistical/test_magnitudes_are_plausible.py` and
+`docs/DECISIONS.md`, and absent from `README.md` entirely.
+
+**Root cause: a silent no-op.** The propagation script used a bare `str.replace`, which
+returns the string unchanged when the anchor is missing rather than raising. Two of the
+four edits did nothing, and one of those targeted `README.md` with an anchor that only
+existed in `docs/SUBMISSION.md`. Every earlier patch in this build used
+`assert OLD in s` for exactly this reason; that one did not, and nothing checked the
+result.
+
+**So D40's own failure mode reproduced inside D40's fix**: a confident claim of uniformity
+with nothing behind it, written in the entry whose subject is confident claims with
+nothing behind them.
+
+**Fix.** The canonical sentence — *"an artifact value, or a rounding or unit conversion of
+one"* — now lives once, as `PROVENANCE_RULE` in
+`tests/statistical/test_results_are_reproducible.py`, and two tests enforce it:
+
+  * `test_the_provenance_rule_is_worded_identically_everywhere` fails, naming the file,
+    if any of the six sites drifts from it.
+  * `test_the_superseded_wording_is_gone` sweeps every `.py` and `.md` in the repository
+    for the phrasing D40 removed, exempting only the postmortem (which must quote the
+    defect to explain it) and the test itself (which must name the phrases to search for
+    them).
+
+**The pattern worth naming.** Three of the last four review cycles reported an item closed
+that was not, and each time the verification came from outside rather than from a guard.
+The lesson this log keeps arriving at — *a confident statement needs something behind it* —
+applies to statements about the repository just as much as to statements about the data,
+and until now nothing in the build checked the first kind.

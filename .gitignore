@@ -49,10 +49,13 @@ artifacts/figures/*
 # Local throwaway experiments; never part of a milestone.
 .scratch/
 
-# Preparation material, not part of the submission. These stay on disk and out of
-# the repository: the build plan, a video script and rehearsal notes are working
-# documents, not project artifacts.
+# Preparation material, not part of the submission. The build plan is a working
+# document and the video script is a shooting script; neither is a project artifact.
+#
+# `docs/PANEL_DEFENCE.md` is NOT here: PLAN.md section 15 lists it as an M10
+# deliverable and a reviewer named it a graded artifact, so it is committed. The
+# distinction is whether a document is evidence about the project (committed) or
+# scaffolding for the person presenting it (not).
 PLAN.md
 docs/VIDEO.md
-docs/PANEL_DEFENCE.md
 docs/SUBMISSION.md

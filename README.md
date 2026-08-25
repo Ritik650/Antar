@@ -483,7 +483,7 @@ the most useful document in the repository. Four of them:
 | `antar/simulator/` | The generator. Read `SIMULATOR_CARD.md` before trusting any number |
 | `antar/pipeline.py` | All five layers in sequence — the path the ledger records |
 | `tests/` | unit · property · integration · chaos · adversarial · statistical |
-| `docs/` | Decisions, limitations, postmortem, evaluation protocol, clock audit |
+| `docs/` | Decisions, limitations, postmortem, evaluation protocol, clock audit, panel defence |
 | `artifacts/` | Everything `tasks.py evaluate` produces, including `RESULTS.md` |
 
 ---
@@ -495,7 +495,7 @@ the most useful document in the repository. Four of them:
 | **N1** | The LLM writes language only. It fills one slot; it never chooses an action, an amount, or a recipient. |
 | **N2** | Every money action goes through `PolicyGate`. There is no bypass path, including in tests — enforced by an introspective coverage test that discovers the executors rather than listing them. |
 | **N3** | The randomised holdout is never used for training and never acted on. |
-| **N4** | `python tasks.py evaluate` reproduces every number in this README. |
+| **N4** | `python tasks.py evaluate` reproduces every number in this README. Enforced as: every figure in a results table is an artifact value, or a rounding or unit conversion of one, and nothing else. |
 | **N5** | Regulations are data, with citations, verified against primary sources. |
 | **N6** | Simulated rates are never presented as real ones. |
 

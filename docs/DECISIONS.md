@@ -572,7 +572,7 @@ derived figure in an artifact is recomputable from that artifact's own parts, an
 README appears in some artifact.
 
 **Consequence.** The two together give N4 teeth: provenance from the second, meaning from
-the first. Neither is sufficient alone — a number can appear in an artifact under a
+the first. Neither is sufficient alone — a number can be an artifact value, or a rounding or unit conversion of one and still carry a
 completely different meaning, which is precisely what D24 was. Both were written *against
 the stale artifacts* and both failed immediately, which is the only evidence that a guard
 works.

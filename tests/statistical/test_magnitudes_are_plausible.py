@@ -1,8 +1,8 @@
 """Is this number a *plausible size*? The question the other two guards do not ask.
 
-`test_results_are_reproducible.py` checks **provenance**: every number in the README
-appears in an artifact. `test_artifacts_are_self_consistent.py` checks **internal
-consistency**: every derived figure equals its own components.
+`test_results_are_reproducible.py` checks **provenance**: every number in the README is
+an artifact value, or a rounding or unit conversion of one. `test_artifacts_are_self_consistent.py` checks **internal consistency**: every
+derived figure equals its own components.
 
 Both would have passed on a headline that was ten times too large, as long as it was
 consistently ten times too large and appeared somewhere. That is the gap D24 actually
