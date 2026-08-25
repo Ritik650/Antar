@@ -11,11 +11,11 @@ Razorpay AI Buildathon 2026 — Track 03.
 > rate, and none should be quoted as one.
 >
 > **No real money has ever moved through this system, and no mandate charge has ever been
-> executed against Razorpay's sandbox** ([L19](docs/LIMITATIONS.md)). `tasks.py roundtrip`
-> proves the client, auth, idempotency and error parsing work against the real API — but
-> `charge_mandate`, the one endpoint this project's thesis is about, runs only against
-> synthesised fixtures. The error-code taxonomy comes from Razorpay's documentation, not
-> from codes observed on the wire.
+> executed against Razorpay's sandbox** ([L19](docs/LIMITATIONS.md)). The integration
+> itself is real and the evidence is committed — `artifacts/razorpay_roundtrip.json`,
+> 6 of 7 live test-mode calls, including a replayed idempotency key that
+> returned the same order. But `charge_mandate`, the one endpoint this project's thesis is
+> about, runs only against synthesised fixtures.
 >
 > **The motivating hypothesis was tested and withdrawn.** See *"The motivating claim did
 > not survive its own test"* below.
@@ -236,16 +236,28 @@ python tasks.py roundtrip        # real API round trip -> artifacts/razorpay_rou
 python tasks.py seed-test-mode   # seed subscriptions and mandates
 ```
 
-`roundtrip` executes the downtime feed, an order creation, an **idempotent replay of the
-same key**, a payment link with notifications forced off, and a deliberate 400 to capture
-the real error envelope. It records endpoint, status, latency and response *shape* — no
-amounts, no contact details, ids truncated — so the artifact is evidence the integration
-ran, not a dump of an account.
+**This has been run, and the artifact is committed.**
+`artifacts/razorpay_roundtrip.json` records 6 of 7 successful live calls:
 
-**No mandate charge has ever been executed** ([L19](docs/LIMITATIONS.md)). That needs an
-authenticated e-mandate a script cannot create unattended, so the one endpoint this
-project's thesis is about is exercised against synthesised fixtures only. The error-code
-taxonomy comes from Razorpay's documentation, not from codes observed on the wire.
+- `POST /orders`, then the **same idempotency key again → the same order returned.** That
+  is the property `PolicyGate` depends on to make a retry a replay rather than a second
+  charge, now checked against Razorpay rather than assumed.
+- A deliberate 400 capturing the real error envelope — `code`, `source`, `step`, `reason`
+  — confirming the field names `antar/signals/razorpay_errors.py` parses.
+- A payment link with `notify.sms` and `notify.email` forced false.
+
+Endpoint, status, latency and response *shape* only: no amounts, no contact details, ids
+truncated. Evidence the integration ran, not a dump of an account.
+
+**It also found two bugs in itself.** Two calls were written against signatures that did
+not exist and failed before leaving the process, and Razorpay rejected a contact number
+for *"Recurring digits"* — a validation rule in none of the documentation we had read. No
+fixture would have surfaced either.
+
+**`charge_mandate` has still never been executed** ([L19](docs/LIMITATIONS.md)). It needs
+an authenticated e-mandate a script cannot create unattended, so the one endpoint the
+thesis is about is exercised against synthesised fixtures only, and the error-code
+taxonomy comes from documentation rather than codes observed on the wire.
 
 ---
 

@@ -151,7 +151,7 @@ def main() -> int:
             lambda: client.create_order(
                 amount_paise=args.amount_paise,
                 currency="INR",
-                receipt="antar-roundtrip",
+                notes={"source": "antar-roundtrip"},
                 key=idempotency_key("roundtrip", "order"),
             ),
         )
@@ -164,10 +164,32 @@ def main() -> int:
             lambda: client.create_order(
                 amount_paise=args.amount_paise,
                 currency="INR",
-                receipt="antar-roundtrip",
+                notes={"source": "antar-roundtrip"},
                 key=idempotency_key("roundtrip", "order"),
             ),
         )
+
+        # The property that matters, evidenced without publishing either id: did the
+        # replayed idempotency key return the *same* order? This is what `PolicyGate`
+        # relies on to make a retried action a replay rather than a second charge, and
+        # it is the one claim in this file that a truncated id cannot support.
+        first = next((r for r in records if r["call"] == "POST /orders"), None)
+        replay = next(
+            (r for r in records if r["call"] == "POST /orders (idempotent replay)"), None
+        )
+        if first and replay and first.get("ok") and replay.get("ok"):
+            records.append(
+                {
+                    "call": "idempotency: replay returned the same order",
+                    "ok": first["id"] == replay["id"] and first["id"] is not None,
+                    "latency_ms": 0,
+                    "note": (
+                        "ids compared in memory and not recorded. Equal ids mean "
+                        "Razorpay honoured the idempotency key rather than creating a "
+                        "second order."
+                    ),
+                }
+            )
 
         # 4. A payment link, with notification forced off by the executor.
         attempt(
@@ -175,6 +197,16 @@ def main() -> int:
             "POST /payment_links",
             lambda: client.create_payment_link(
                 amount_paise=args.amount_paise,
+                # A synthetic contact. `create_payment_link` forces notify.sms and
+                # notify.email to false, so nothing is delivered to it - the call
+                # exercises the endpoint, not a customer.
+                customer={
+                    "name": "Antar Roundtrip",
+                    "email": "roundtrip@antar.example",
+                    # Razorpay rejects repeated digits: "Recurring digits in customer
+                    # contact are disallowed", captured on the first run.
+                    "contact": "+919876543210",
+                },
                 description="Antar round-trip check",
                 key=idempotency_key("roundtrip", "link"),
             ),

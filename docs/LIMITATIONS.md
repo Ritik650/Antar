@@ -440,28 +440,58 @@ curve over it is the obvious next piece of work and is not in this build.
 
 ---
 
-## L19 · No mandate charge has ever been executed against Razorpay
+## L19 · The integration is real; the recovery action has never run against it
 
-`python tasks.py roundtrip` executes a real test-mode round trip — downtime feed, order
-creation, an idempotent replay of the same key, a payment link, and a deliberate 400 to
-capture the real error envelope — and writes `artifacts/razorpay_roundtrip.json`.
+**Executed on 25 Aug 2026** against a Razorpay test-mode account.
+`python tasks.py roundtrip` → `artifacts/razorpay_roundtrip.json`, committed.
 
-**What that does not cover, and it is the interesting half.** No `charge_mandate` call has
-ever been made. A test-mode mandate charge requires an authenticated subscription with a
-customer who has completed an e-mandate flow, and creating one is not something a script
-can do unattended. So the endpoint Antar's whole thesis is about — the retry of a failed
+| Call | Result |
+|---|---|
+| `GET /payments/downtimes` | ok — the feed L1 consumes for `ISSUER_DOWN` |
+| `POST /orders` | ok |
+| `POST /orders` with the **same idempotency key** | ok, **and it returned the same order** |
+| `POST /payment_links` | ok, with `notify.sms` and `notify.email` forced false |
+| `GET /payments/{unknown}` | **deliberate 400**, to capture the real error envelope |
+| `GET /orders/{id}` | ok |
+
+**6 of 7 calls succeeded.** The one failure is the intended one.
+
+**What this establishes.** Auth, the idempotency header, request signing, response parsing
+and the error path all work against the live API rather than against a fixture. The
+idempotency result is the load-bearing one: `PolicyGate` treats a retried action as a
+replay rather than a second charge, and that assumption is now checked against Razorpay
+instead of assumed. Ids were compared in memory and are not recorded.
+
+**The real error envelope**, which is the field set `antar/signals/razorpay_errors.py`
+claims to parse:
+
+```json
+{"code": "BAD_REQUEST_ERROR", "source": "internal",
+ "step": "payment_initiation", "reason": "input_validation_failed"}
+```
+
+Those four field names are now confirmed observed, not inferred from documentation.
+
+**What it does NOT establish, and this is the half that matters.** **`charge_mandate` has
+never been executed.** A test-mode mandate charge needs an authenticated subscription
+where a customer has completed an e-mandate flow, which is a manual step no script can do
+unattended. So the single endpoint this project's thesis is about — retrying a failed
 recurring debit — is exercised only against synthesised fixtures (ADR-0007).
 
-**What this means for the error taxonomy.** `antar/signals/razorpay_errors.py` maps
-error codes to failure classes, and those mappings came from Razorpay's published
-documentation rather than from codes observed on the wire. The round trip captures the
-*envelope* — that `code`, `source`, `step` and `reason` are the field names, and what a
-real 400 looks like — but not the population of codes a live merchant would see. The
-`UNKNOWN` rate of 0.0 reported in detection is a simulator property for exactly this
-reason.
+**Consequence for the error taxonomy.** The round trip confirms the *envelope*. It does not
+sample the *population* of error codes a live merchant sees, because it never provoked a
+real decline. `razorpay_errors.py` maps codes to failure classes from Razorpay's published
+documentation, and the `UNKNOWN` rate of 0.0 in detection is a simulator property for
+exactly this reason.
 
-**Honest position.** The integration is real and the round trip proves the client, the
-auth, the idempotency header and the error parsing all work against Razorpay. The
-*recovery action itself* has never run against their sandbox. A reviewer should read the
-recovery numbers as simulator output and the integration as tested-but-narrow, and the
-gap between those two statements is this entry.
+**Two defects the round trip found, which is the argument for running it.** Two calls in
+`record_roundtrip.py` were written against signatures that did not exist
+(`create_order(receipt=...)`, `create_payment_link` without `customer`) and failed in 0 ms
+without leaving the process — the client was right and the caller was wrong, and no
+fixture would have shown that. Razorpay then rejected the first contact number with
+*"Recurring digits in customer contact are disallowed"*, a validation rule that appears in
+no documentation we had read.
+
+**Honest position.** The integration is tested and narrow. The recovery numbers are
+simulator output. The gap between those two statements is this entry, and the README says
+so in its opening block rather than here.

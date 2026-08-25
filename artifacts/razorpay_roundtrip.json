@@ -1,0 +1,163 @@
+{
+  "calls": 7,
+  "key_id_prefix": "rzp_test_TU5...",
+  "mode": "test",
+  "note": "Field names and shapes only - no amounts, no contact details, ids truncated. Evidence that the integration executed, not an account dump.",
+  "records": [
+    {
+      "call": "GET /payments/downtimes",
+      "field_shape": {
+        "count": "int",
+        "entity": "str",
+        "items": [
+          {
+            "begin": "int",
+            "created_at": "int",
+            "end": "null",
+            "entity": "str",
+            "id": "str",
+            "instrument": {
+              "bank": "..."
+            },
+            "method": "str",
+            "scheduled": "bool",
+            "severity": "str",
+            "status": "str",
+            "updated_at": "int"
+          }
+        ]
+      },
+      "id": null,
+      "latency_ms": 187,
+      "ok": true
+    },
+    {
+      "call": "POST /orders",
+      "field_shape": {
+        "amount": "int",
+        "amount_due": "int",
+        "amount_paid": "int",
+        "attempts": "int",
+        "created_at": "int",
+        "currency": "str",
+        "entity": "str",
+        "id": "str",
+        "notes": {
+          "source": "str"
+        },
+        "offer_id": "null",
+        "receipt": "null",
+        "status": "str"
+      },
+      "id": "order_TU...",
+      "latency_ms": 107,
+      "ok": true
+    },
+    {
+      "call": "POST /orders (idempotent replay)",
+      "field_shape": {
+        "amount": "int",
+        "amount_due": "int",
+        "amount_paid": "int",
+        "attempts": "int",
+        "created_at": "int",
+        "currency": "str",
+        "entity": "str",
+        "id": "str",
+        "notes": {
+          "source": "str"
+        },
+        "offer_id": "null",
+        "receipt": "null",
+        "status": "str"
+      },
+      "id": "order_TU...",
+      "latency_ms": 127,
+      "ok": true
+    },
+    {
+      "call": "idempotency: replay returned the same order",
+      "latency_ms": 0,
+      "note": "ids compared in memory and not recorded. Equal ids mean Razorpay honoured the idempotency key rather than creating a second order.",
+      "ok": true
+    },
+    {
+      "call": "POST /payment_links",
+      "field_shape": {
+        "accept_partial": "bool",
+        "allow_full_payment": "bool",
+        "amount": "int",
+        "amount_paid": "int",
+        "cancelled_at": "int",
+        "created_at": "int",
+        "currency": "str",
+        "customer": {
+          "contact": "str",
+          "email": "str",
+          "name": "str"
+        },
+        "description": "str",
+        "expire_by": "int",
+        "expired_at": "int",
+        "first_min_partial_amount": "int",
+        "id": "str",
+        "notes": "null",
+        "notify": {
+          "email": "bool",
+          "sms": "bool",
+          "whatsapp": "bool"
+        },
+        "payment_plan": "bool",
+        "payments": "null",
+        "reference_id": "str",
+        "reminder_enable": "bool",
+        "reminders": [],
+        "short_url": "str",
+        "status": "str",
+        "updated_at": "int",
+        "upi_link": "bool",
+        "user_id": "str",
+        "whatsapp_link": "bool"
+      },
+      "id": "plink_TU...",
+      "latency_ms": 477,
+      "ok": true
+    },
+    {
+      "call": "GET /payments/{unknown} (expected failure)",
+      "code": "BAD_REQUEST_ERROR",
+      "error_class": "RazorpayError",
+      "latency_ms": 473,
+      "message": "The id provided does not exist",
+      "ok": false,
+      "reason": "input_validation_failed",
+      "source": "internal",
+      "step": "payment_initiation"
+    },
+    {
+      "call": "GET /orders/{id}",
+      "field_shape": {
+        "amount": "int",
+        "amount_due": "int",
+        "amount_paid": "int",
+        "attempts": "int",
+        "checkout": "null",
+        "created_at": "int",
+        "currency": "str",
+        "description": "null",
+        "entity": "str",
+        "id": "str",
+        "notes": {
+          "source": "str"
+        },
+        "offer_id": "null",
+        "receipt": "null",
+        "status": "str"
+      },
+      "id": "order_TU...",
+      "latency_ms": 528,
+      "ok": true
+    }
+  ],
+  "succeeded": 6
+}

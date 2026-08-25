@@ -301,3 +301,62 @@ def test_the_deployed_model_is_the_one_the_rule_selected():
         "explaining why the rule is being overridden - but do not let them disagree "
         "silently."
     )
+
+
+def test_the_razorpay_roundtrip_shows_what_it_claims():
+    """The live-integration evidence, checked rather than trusted.
+
+    `docs/LIMITATIONS.md` L19 and the README both assert that a replayed idempotency key
+    returned the same order. That is the property `PolicyGate` depends on to make a retry
+    a replay rather than a second charge, and it is the one claim in the round-trip
+    artifact that a truncated id cannot support on its own.
+    """
+    data = load("razorpay_roundtrip.json")
+
+    assert data["mode"] == "test", "the artifact must come from a test-mode account"
+    assert data["key_id_prefix"].startswith("rzp_test_")
+    assert data["succeeded"] >= 1
+
+    by_call = {r["call"]: r for r in data["records"]}
+
+    idempotency = by_call.get("idempotency: replay returned the same order")
+    assert idempotency is not None, (
+        "the artifact does not record the idempotency comparison, so the README's claim "
+        "about it rests on nothing"
+    )
+    assert idempotency["ok"], (
+        "a replayed idempotency key did NOT return the same order. PolicyGate treats a "
+        "retried action as a replay on the strength of this; if it is false, a retry can "
+        "charge twice."
+    )
+
+    # The deliberate 400 is the evidence that the error envelope was really observed.
+    failure = next((r for r in data["records"] if "unknown" in r["call"]), None)
+    assert failure is not None and not failure["ok"]
+    for field in ("code", "source", "step", "reason"):
+        assert failure.get(field), (
+            f"the captured error envelope has no {field!r}. "
+            "antar/signals/razorpay_errors.py parses that field, and this artifact is "
+            "what shows the name is real rather than inferred from documentation."
+        )
+
+
+def test_the_roundtrip_artifact_carries_no_credentials():
+    """It is committed, so this is a security control and not a tidiness one."""
+    import json as _json
+    import re
+
+    from antar.config import artifacts_dir
+
+    path = artifacts_dir() / "razorpay_roundtrip.json"
+    if not path.exists():
+        pytest.skip("no roundtrip artifact")
+    raw = path.read_text(encoding="utf-8")
+
+    # A full test key is 20+ characters after the prefix; the artifact stores 3.
+    assert not re.search(r"rzp_test_[A-Za-z0-9]{8,}", raw), "a full key id is in the artifact"
+    assert "key_secret" not in raw.lower()
+    for record in _json.loads(raw)["records"]:
+        recorded = record.get("id")
+        if recorded:
+            assert recorded.endswith("..."), f"{recorded} is not truncated"
