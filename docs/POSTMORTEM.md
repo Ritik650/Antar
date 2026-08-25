@@ -1712,8 +1712,23 @@ one"* — now lives once, as `PROVENANCE_RULE` in
     defect to explain it) and the test itself (which must name the phrases to search for
     them).
 
+**And the fix had a bug of its own, caught by running the check it enables.** The list of
+sites included `docs/SUBMISSION.md`, which is gitignored on purpose. On the author's disk
+the file exists and the test passes; on any clean checkout `read_text` raises
+`FileNotFoundError`. That is **D28's lesson arriving for the third time** — after the
+artifact meta-tests and the retention vacuity guard — *a guard that assumes a state it was
+not designed for*. Sites are now split into committed (required) and local-only (checked
+when present), and the split is verified by hiding the file and re-running.
+
 **The pattern worth naming.** Three of the last four review cycles reported an item closed
 that was not, and each time the verification came from outside rather than from a guard.
 The lesson this log keeps arriving at — *a confident statement needs something behind it* —
 applies to statements about the repository just as much as to statements about the data,
 and until now nothing in the build checked the first kind.
+
+**The narrower lesson, stated because it has now cost four separate defects.** Before
+writing a guard, ask what states the thing being guarded can legitimately be in: a fresh
+clone with no artifacts, a batch too small to measure, a quick run whose numbers differ by
+design, a file deliberately absent from the repository. Every one of those was a real
+state, and every one produced a red build from a correct assertion pointed at the wrong
+situation.

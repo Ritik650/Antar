@@ -418,12 +418,20 @@ one of them drifts."""
 
 RULE_SITES = (
     "README.md",
-    "docs/SUBMISSION.md",
     "docs/DECISIONS.md",
     "scripts/run_evaluation.py",
     "tests/statistical/test_magnitudes_are_plausible.py",
     "tests/statistical/test_results_are_reproducible.py",
 )
+"""Committed files that describe the guard. Every one must carry `PROVENANCE_RULE`."""
+
+OPTIONAL_RULE_SITES = ("docs/SUBMISSION.md",)
+"""Sites that exist on the author's disk but are deliberately not in the repository.
+
+Checked when present and skipped when absent. `docs/SUBMISSION.md` is form-answer
+material, gitignored on purpose - and listing it as required made this test raise
+`FileNotFoundError` on any clean checkout, which is D28's lesson arriving for the third
+time: a guard that assumes a state it was not designed for."""
 
 
 def test_the_provenance_rule_is_worded_identically_everywhere():
@@ -438,9 +446,12 @@ def test_the_provenance_rule_is_worded_identically_everywhere():
     the class: any site that drifts, or any new site that describes the rule loosely,
     fails here with its own name.
     """
+    checked = list(RULE_SITES) + [
+        site for site in OPTIONAL_RULE_SITES if (repo_root() / site).exists()
+    ]
     missing = [
         site
-        for site in RULE_SITES
+        for site in checked
         if PROVENANCE_RULE not in (repo_root() / site).read_text(encoding="utf-8")
     ]
     assert not missing, (
