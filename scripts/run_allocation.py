@@ -174,10 +174,38 @@ def main() -> int:
     seeds = [int(s) for s in config.get("eval.seeds")][: args.retention_seeds]
     print(f"  measuring across {len(seeds)} seeds (the sampling distribution that applies)")
     verdicts = []
+    underpowered_components: list[str] = []
     for component in ("downtime_crosscheck", "changepoint_detector"):
-        retention_delta, ci, with_totals, without_totals = retention_across_seeds(
-            config, args.scenario, component, seeds
-        )
+        (
+            retention_delta,
+            ci,
+            with_totals,
+            without_totals,
+            underpowered,
+        ) = retention_across_seeds(config, args.scenario, component, seeds)
+
+        if underpowered:
+            # Not adjudicated. The pre-registered rule resolves *ambiguity* to DELETE;
+            # it does not resolve *absence of measurement* to anything, and D25 is the
+            # whole reason that distinction is now explicit. The standing verdict from
+            # the last powered run remains in force.
+            print(f"  {component:22s} NOT ADJUDICATED (underpowered)")
+            print(
+                f"    with Rs {np.mean(with_totals) / 100:>12,.0f}/1000  "
+                f"without Rs {np.mean(without_totals) / 100:>12,.0f}/1000  "
+                "delta Rs       0.00"
+            )
+            print(
+                "    Both arms scored identically on every seed, so this sample could "
+                "not have detected"
+            )
+            print(
+                "    an effect. Expected on a small batch. No verdict recorded; the "
+                "standing one stands."
+            )
+            underpowered_components.append(component)
+            continue
+
         verdict = decide(
             component,
             delta_net_paise=round(retention_delta),
@@ -193,7 +221,17 @@ def main() -> int:
             f"delta Rs {retention_delta / 100:>10,.2f}"
         )
         print(f"    {verdict.rationale}")
-    write_verdicts(verdicts)
+    if verdicts:
+        write_verdicts(verdicts)
+    else:
+        print(
+            "\n  Nothing was adjudicated on this run, so artifacts/retention.json is "
+            "left untouched."
+        )
+        print(
+            "  Overwriting a powered verdict with an unpowered silence is how D25 "
+            "happened."
+        )
 
     out = artifacts_dir() / f"allocation_{args.scenario}.json"
     out.write_text(
@@ -207,6 +245,7 @@ def main() -> int:
                     _as_allocation(antar), [price]
                 ),
                 "retention": [v.as_dict() for v in verdicts],
+                "retention_underpowered": underpowered_components,
             },
             indent=2,
             sort_keys=True,
@@ -275,8 +314,19 @@ def retention_across_seeds(config, scenario: str, component: str, seeds: list[in
         },
     }[component]
 
-    enabled = config.with_overrides({flags[component]: True})
-    stripped = enabled.with_overrides({flags[component]: False, **extra_off})
+    flag = flags[component]
+    enabled = config.with_overrides({flag: True})
+    stripped = enabled.with_overrides({flag: False, **extra_off})
+
+    # D25's actual cause was that the two arms shared a configuration. Assert *that*,
+    # here, where it is cheap and unambiguous - rather than inferring it afterwards from
+    # the two arms scoring the same, which is a symptom with an innocent explanation.
+    if not (bool(enabled.get(flag)) and not bool(stripped.get(flag))):
+        raise RuntimeError(
+            f"the retention arms for {component!r} do not differ in {flag!r}: "
+            f"enabled={enabled.get(flag)!r}, stripped={stripped.get(flag)!r}. "
+            "The measurement would compare a detector against itself. POSTMORTEM D25."
+        )
 
     deltas: list[float] = []
     with_totals: list[float] = []
@@ -303,18 +353,18 @@ def retention_across_seeds(config, scenario: str, component: str, seeds: list[in
         without_totals.append(without.net_per_1000_paise)
         deltas.append(with_component.net_per_1000_paise - without.net_per_1000_paise)
 
-    # A measurement in which the two arms never differ has measured nothing. Reporting
-    # it as "delta 0, CI (0, 0), DELETE" would be a verdict wearing the clothes of
-    # evidence - and it is exactly what this function produced once the components it
-    # judges were switched off (D25). Fail loudly instead.
-    if all(w == wo for w, wo in zip(with_totals, without_totals, strict=True)):
-        raise RuntimeError(
-            f"the retention measurement for {component!r} is vacuous: the enabled and "
-            "stripped arms produced identical results on every seed, so the component "
-            "had no influence to measure. Either the override no longer disables it, "
-            "or the component is already inert. A zero delta from this state is not "
-            "evidence for DELETE - it is the absence of evidence. See POSTMORTEM D25."
-        )
+    # The arms are guaranteed to differ in configuration by the check above, so if they
+    # still score identically the component genuinely had no influence *on this sample*.
+    # That is underpowered, not broken - and on a small batch it is the expected result,
+    # because a detector cannot change an allocation that has almost no candidates to
+    # change. The first version raised here, which turned `evaluate QUICK=1` into a hard
+    # failure on CI while the full-size run was fine. POSTMORTEM D34.
+    #
+    # It is still not evidence for DELETE. The caller is told, and the pre-registered
+    # verdict is left un-adjudicated rather than resolved by a zero nobody measured.
+    underpowered = all(
+        w == wo for w, wo in zip(with_totals, without_totals, strict=True)
+    )
 
     array = np.asarray(deltas, dtype=float)
     if array.std() < 1e-9:
@@ -326,7 +376,7 @@ def retention_across_seeds(config, scenario: str, component: str, seeds: list[in
         )
         ci = (float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5)))
 
-    return float(array.mean()), ci, with_totals, without_totals
+    return float(array.mean()), ci, with_totals, without_totals, underpowered
 
 
 if __name__ == "__main__":

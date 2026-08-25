@@ -34,10 +34,29 @@ until it meant nothing.
 from __future__ import annotations
 
 import json
+import os
 
 import pytest
 
 from antar.config import artifacts_dir, get_config
+
+REQUIRE_ARTIFACTS = os.environ.get("ANTAR_REQUIRE_ARTIFACTS") == "1"
+"""Whether a missing artifact is a failure or a skip.
+
+Both readings are right in different places, and conflating them is what turned this
+file red on a clean checkout (POSTMORTEM D28).
+
+  * **A fresh clone has no artifacts, and that is correct.** `python tasks.py evaluate`
+    is what produces them, and it takes tens of minutes. Failing here would mean a
+    contributor cannot run the suite without first running the evaluation, and would
+    make CI's lint-and-test job depend on a forty-minute job it does not need.
+  * **After the evaluation has run, a skip is a lie.** That is the vacuum this file was
+    written to prevent: a suite that passes because it checked nothing.
+
+So the distinction is set by the caller. CI's `reproducibility` job runs the evaluation
+and then re-runs these tests with `ANTAR_REQUIRE_ARTIFACTS=1`, which is the only place
+the artifacts are known to exist.
+"""
 
 CHECKED: list[str] = []
 
@@ -229,7 +248,21 @@ def test_the_specification_curve_reports_shares_not_counts():
 
 
 def test_at_least_one_artifact_was_checked():
+    """Guards against the whole file passing by skipping.
+
+    Only meaningful once the evaluation has run - see `REQUIRE_ARTIFACTS`.
+    """
+    if not REQUIRE_ARTIFACTS:
+        if CHECKED:
+            return
+        pytest.skip(
+            "no artifacts present. This is normal on a fresh checkout; run "
+            "`python tasks.py evaluate`, or set ANTAR_REQUIRE_ARTIFACTS=1 to make "
+            "their absence a failure."
+        )
     assert CHECKED, (
-        "no artifact was available, so every magnitude check above skipped. Run "
-        "`python tasks.py evaluate` before trusting this file's silence."
+        "ANTAR_REQUIRE_ARTIFACTS=1 was set - the evaluation is supposed to have run - "
+        "but every check in this file skipped for want of an artifact. Either the "
+        "evaluation did not write what it claims to, or the loader is looking in the "
+        "wrong place. A suite that passes by checking nothing is worse than no suite."
     )

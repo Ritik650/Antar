@@ -123,7 +123,14 @@ def test_the_recorded_uplift_came_from_a_model(batch):
         for entry in ledger.entries(kind=LedgerKind.DECISION)
     ]
     assert estimates
-    assert result.model_version.startswith("x_learner-"), result.model_version
+    # Against the constant, not a literal. A hardcoded "x_learner-" here would have to
+    # be edited every time the pre-registered rule selects a different learner - and a
+    # test that must be edited to stay green is a test that will be edited without
+    # thought. `test_the_deployed_model_is_the_one_the_rule_selected` is what ties the
+    # constant to the bake-off.
+    from antar.pipeline import UPLIFT_MODEL
+
+    assert result.model_version.startswith(f"{UPLIFT_MODEL}-"), result.model_version
     assert len(set(estimates)) > 1, (
         "every decision recorded the same uplift, which is what an unfitted model "
         "looks like - and an unfitted model under a capacity constraint is 'contact "

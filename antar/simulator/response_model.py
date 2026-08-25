@@ -79,6 +79,17 @@ CHANNEL_INTRUSIVENESS: dict[Channel, float] = {
     Channel.SILENT_RETRY: 0.85,
 }
 
+BASELINE_INTRUSIVENESS = 0.40
+"""Intrusiveness of the mandate's own pre-debit notification, against SMS at 1.00.
+
+**Chosen, not measured.** A mandatory pre-debit notice is expected, is not a dunning
+message, and carries none of the "we are chasing you" signal that makes a recovery
+contact provoke cancellation - but it carries the same cancel affordance, because
+RBI-EM-02 requires it to. Strictly between zero and SMS is the only defensible range;
+0.40 is a point inside it and nothing more. Pre-registered in docs/EVALUATION.md
+section 3.3 before the re-run, so the number it produces was not chosen to flatter."""
+
+
 BASE_OPTOUT_HAZARD = 0.075
 """P(opt-out | one notification, reference sensitivity, no churn intent). Invented."""
 
@@ -133,6 +144,21 @@ class GroundTruth:
     p_optout: float
     p_recover_treated: float
     p_recover_untreated: float
+    p_optout_baseline: float = 0.0
+    """The hazard this customer carries with **no** Antar contact.
+
+    Non-zero since D28: a control customer still receives the mandate's pre-debit
+    notification, and that notification carries the opt-out route. Pricing a contact
+    against a baseline of zero charges it for harm that would have happened anyway."""
+
+    @property
+    def optout_uplift(self) -> float:
+        """The *incremental* opt-out risk a contact creates. The harm actually caused.
+
+        Clamped at zero: a contact that appears to reduce cancellation is not credited,
+        because that is a claim this design cannot support and every incentive to make.
+        """
+        return max(0.0, self.p_optout - self.p_optout_baseline)
 
     @property
     def uplift(self) -> float:
@@ -228,17 +254,29 @@ class ResponseModel:
         category, anything that could carry a planted answer. It is a function of
         the notification event and two latents.
         """
-        if intervention is None:
-            # The counterfactual. Control customers still receive the pre-debit
-            # notification for their *scheduled* debit, because that is the issuer's
-            # obligation rather than our action - but they receive no additional
-            # Antar-initiated one. docs/EVALUATION.md section 3.2.
-            return 0.0
         if self.scenario.is_validation_mode:
+            # Not a claim about customers. This switch makes the anti-circularity
+            # harness deterministic, and it applies to both arms equally.
             return 0.0
 
         hazard = BASE_OPTOUT_HAZARD * latents.optout_sensitivity / REFERENCE_OPTOUT_SENSITIVITY
-        hazard *= CHANNEL_INTRUSIVENESS[intervention.channel]
+
+        if intervention is None:
+            # The counterfactual, and it is **not zero**.
+            #
+            # Control customers still receive the pre-debit notification for their
+            # scheduled debit - the issuer's obligation, not Antar's action - and under
+            # RBI-EM-02 that notification must carry a way to cancel. The mechanism this
+            # entire project rests on is that the notification *is* the opt-out prompt.
+            # So a control arm that receives notifications cannot have a zero opt-out
+            # hazard, and an earlier version of this function asserted exactly that,
+            # under a comment saying control customers do receive the notification.
+            # Both halves true, the connective false. POSTMORTEM D28,
+            # docs/EVALUATION.md section 3.3.
+            hazard *= BASELINE_INTRUSIVENESS
+        else:
+            hazard *= CHANNEL_INTRUSIVENESS[intervention.channel]
+
         if latents.intent_to_churn:
             hazard *= CHURN_INTENT_MULTIPLIER
         hazard *= 1.0 + NOTIFICATION_FATIGUE * prior_notifications
@@ -267,6 +305,11 @@ class ResponseModel:
         p_optout = self.optout_probability(
             latents, intervention, prior_notifications=prior_notifications
         )
+        # What this customer risks with no contact at all. Since D28 this is not zero,
+        # and the difference - not the level - is the harm a contact causes.
+        p_optout_baseline = self.optout_probability(
+            latents, None, prior_notifications=prior_notifications
+        )
 
         # The card writes this as `p_self_heal + (1-p_self_heal)*p_persuaded -
         # p_optout`. We use the exact factorisation, of which that expression is the
@@ -286,6 +329,7 @@ class ResponseModel:
             p_optout=p_optout,
             p_recover_treated=float(min(max(p_treated, 0.0), 1.0)),
             p_recover_untreated=p_self_heal,
+            p_optout_baseline=p_optout_baseline,
         )
 
     def sample(

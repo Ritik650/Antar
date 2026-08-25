@@ -43,7 +43,8 @@ def main() -> int:
         status = "clean" if report.taxonomy_clean else f"DIRTY {report.undocumented_reasons}"
         print(
             f"  {report.scenario:13s} events={report.summary['at_risk_events']:5d} "
-            f"taxonomy={status} ambiguous={report.ambiguous_share:.1%}"
+            f"taxonomy={status} ambiguous={report.ambiguous_share:.1%} "
+            f"deliberately-unmapped={report.deliberately_unmapped_share:.1%}"
         )
     return 0 if all(r.taxonomy_clean for r in reports) else 1
 

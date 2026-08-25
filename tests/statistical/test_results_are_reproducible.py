@@ -74,8 +74,24 @@ def normalise(token: str) -> str:
     return f"{value:.6g}"
 
 
+CODE_SPAN = re.compile(r"`[^`]*`")
+CLOCK = re.compile(r"[0-9]{1,2}:[0-9]{2}")
+"""Wall-clock times. `02:44` in the provenance table is when a commit was made and
+`10:00-21:00` is a regulatory window; neither is a measured result, and both would
+otherwise be demanded of the artifacts."""
+
+
 def numbers_in(text: str) -> set[str]:
-    return {normalise(match.group()) for match in NUMBER.finditer(text)}
+    """Numbers stated as *results*, with identifiers removed first.
+
+    Inline code spans and wall-clock times are stripped before extraction. A digit
+    inside backticks is part of a name - a commit hash, a model version like
+    `x_learner-n541`, a policy hash - and `02:44` is when something happened. Neither is
+    a measurement. Without this the provenance table read as a wall of unexplained
+    figures, which is the kind of false positive that trains someone to ignore a test.
+    """
+    cleaned = CLOCK.sub(" ", CODE_SPAN.sub(" ", text))
+    return {normalise(match.group()) for match in NUMBER.finditer(cleaned)}
 
 
 def _walk(node: object, sink: set[str]) -> None:

@@ -1112,7 +1112,13 @@ The headline was therefore overstated by 3436/3148 = **9.2%**.
 **Fix.** `PolicyOutcome` carries `candidates` and `at_risk_events` as separate fields.
 The per-1,000 metrics divide by `at_risk_events`. The corrected headline is
 **₹1,033,289 per 1,000 at-risk cycles**, and every downstream artifact, figure and
-document now uses it.
+document was regenerated onto it.
+
+> **Superseded.** That figure stood only until D28 and D32 corrected the control-arm
+> opt-out hazard and the harm pricing. The current headline is **₹503,628**. The
+> denominator correction described here is unchanged and still in force; only the
+> quantity it divides has moved. This entry is left as written because the point of it
+> is the defect, not the number.
 
 **The second thing the check found, which matters more than the first.** Decomposing the
 headline (per 1,000 at-risk cycles):
@@ -1141,3 +1147,333 @@ produces a number that is perfectly traceable, perfectly consistent, and off by 
 of a hundred. `tests/statistical/test_magnitudes_are_plausible.py` is the third guard, and
 it works by reducing every headline to a dimensionless ratio — because a ratio cannot have
 a units error at all.
+
+---
+
+## D28 · The control arm could not opt out, under a comment saying it received the prompt
+
+**Found by:** external review of `response_model.py`, reading the comment against the
+code beneath it.
+**Severity:** critical — it sat under the headline and made a modelling artefact look
+like a modelling limitation.
+**Status:** fixed, by pre-registered amendment (`docs/EVALUATION.md` §3.3).
+
+**The defect.**
+
+```python
+if intervention is None:
+    # Control customers still receive the pre-debit notification for their
+    # *scheduled* debit, because that is the issuer's obligation rather than
+    # our action - but they receive no additional Antar-initiated one.
+    return 0.0
+```
+
+Both halves are individually defensible. Together they contradict the mechanism this
+entire project is built on. Antar's thesis is that **the notification is the opt-out
+prompt** — RBI-EM-02 requires every pre-debit notification to carry a way to cancel, and
+that is *why* contacting a customer can destroy a mandate. If a notification is what
+surfaces the cancel button, and control customers receive one, the control hazard cannot
+be zero.
+
+Same shape as D22: two true statements joined by a false connective.
+
+**What it did to a documented limitation.** L17 said the opt-out cost was *"a causal
+effect only by construction"* — because the untreated arm had zero opt-outs, so there was
+nothing to difference — and presented that as an inherent property of the simulator. It
+was not. It was this one `return 0.0`. Describing a bug as a design limitation is a worse
+failure than the bug, because it stops anyone looking for the bug.
+
+**A test was enforcing it.** `test_no_intervention_means_no_induced_optout` asserted
+`optout_probability(latents, None) == 0.0`, with a docstring that itself said control
+customers receive the notification. A test that encodes a defect as an invariant is worse
+than no test: it makes fixing the defect look like breaking the code. Replaced by
+`test_the_control_arm_has_a_real_opt_out_hazard` and
+`test_contacting_raises_the_hazard_above_the_control_baseline`.
+
+**The fix.** The control arm uses the same hazard expression with a
+`BASELINE_INTRUSIVENESS = 0.40` factor in place of the per-channel one — chosen, not
+measured, and labelled as such. `is_validation_mode` still returns 0.0, symmetrically for
+both arms, and a test now asserts that symmetry.
+
+**Measured effect, base scenario, seed 7:**
+
+| Arm | Before | After |
+|---|---|---|
+| Control opt-out rate | 0 / 2,996 = **0.0000** | 170 / 2,996 = **0.0567** |
+| Treated opt-out rate | 35 / 260 = 0.1346 | 35 / 260 = 0.1346 |
+| **Causal effect** | 0.1346 *(assumed)* | **+0.0779** *(measured)* |
+
+The true effect is **58% of what was previously assumed**, so the harm-avoidance term
+that carried 99.4% of the headline shrinks accordingly. The pre-registered amendment
+committed to reporting that whichever way it fell.
+
+---
+
+## D29 · `make evaluate` did not write a file two documents said it wrote
+
+**Found by:** the first CI run, which was also the first time `make evaluate` had ever
+been executed end to end.
+**Severity:** medium — a documented output did not exist and a CI step could only fail.
+**Status:** fixed.
+
+`docs/SIMULATOR_CARD.md` §10 and `antar/eval/claims.py` both state that `make evaluate`
+writes `artifacts/claims.json`, and `.github/workflows/ci.yml` diffs it across two runs to
+prove determinism. `scripts/run_evaluation.py` was written in M8 with seven stages, and
+the claims registry was not one of them. The file was never written, so the CI step could
+only ever fail.
+
+Nothing noticed because **CI had never run**: the repository was pushed for the first time
+at the end of M10. Every "green" up to that point was a local `tasks.py gate`, which does
+not run `evaluate`.
+
+`scripts/run_claims.py` is now stage 7 of 8. The claim adjudicates as **supported** —
+negative-uplift mass ≥5% in 2 of 3 scenarios (base 0.0575, conservative 0.3625,
+aggressive 0.0000), against a pre-registered floor of 2.
+
+---
+
+## D30 · A single arrow character killed the evaluation on the platform it was built on
+
+**Found by:** running `python tasks.py evaluate` for the first time.
+**Severity:** low in effect, high in what it says.
+**Status:** fixed.
+
+`scripts/run_evaluation.py` prints its own module docstring, which contains
+`code → artifact → RESULTS.md → README`. A Windows console defaults to cp1252, which
+cannot encode `U+2192`, so stage zero died with a `UnicodeEncodeError` before any work
+happened.
+
+It would not have failed on CI, which runs Linux with a UTF-8 locale. **A build that
+works on CI and dies on the developer's own machine is the worst orientation for this
+difference**, because the person most likely to hit it is the one under time pressure at
+2am, and the failure looks like the evaluation being broken rather than the console being
+narrow.
+
+`tasks.run` now forces `PYTHONIOENCODING=utf-8` on every child process, and
+`run_evaluation` reconfigures its own streams with `errors="replace"`. A report that
+loses a glyph beats an evaluation that does not run.
+
+---
+
+## D31 · The calibration gate had been failing since 22 August and nobody had run it
+
+**Found by:** the same first end-to-end `make evaluate`.
+**Severity:** medium — the first stage of the N4 pipeline returned non-zero on every run.
+**Status:** fixed.
+
+`scripts/calibration_report.py` exits non-zero unless every scenario reports
+`taxonomy_clean`, and `taxonomy_clean` was `not undocumented_reasons` — any error reason
+outside the documented Razorpay taxonomy.
+
+But the simulator emits five such reasons **on purpose**. `failure_emission.UNMAPPED_CODES`
+adds `acquirer_declined`, `mandate_amount_mismatch`, `npci_error_u69`,
+`unexpected_gateway_response` and `upi_psp_unavailable` at `UNMAPPED_SHARE = 0.03`,
+because a real error stream contains vendor variants and post-dated codes, and a simulator
+whose every code is mappable flatters the detector. Its own comment says
+*"`test_taxonomy_realism` knows to exclude them."* `calibration_report` did not.
+
+So from the moment `UNMAPPED_CODES` landed (`c449af6`, 22 Aug), stage 1 of `make evaluate`
+returned 1 — for three days, undetected, because **the N4 promise was asserted in the
+README and never exercised**. That is the same failure as D29 and it has the same root:
+the pipeline was assembled from stages that had each been run individually and never in
+sequence.
+
+**Fix.** The report now separates *deliberate* gaps from *accidental* ones. Deliberate
+reasons are excluded from `undocumented_reasons` and surfaced as
+`deliberately_unmapped_share`, which measures **3.2–3.3%** against the configured 3%.
+Anything outside the taxonomy that is *not* on the deliberate list is still dirty and
+still fails the build.
+
+**A second thing this exposed.** The committed `calibration.json` reported an ambiguous
+code share of **24.94%**; re-running it reports **35.5%**. The artifact predated
+`c449af6` and had never been regenerated, so a number in the README came from a build
+three days stale. `make evaluate` regenerating everything is exactly the mechanism that
+was supposed to prevent that, and it had never been run.
+
+---
+
+## D32 · The amendment fixed the simulator and the value function kept the old assumption
+
+**Found by:** running the evaluation after D28 and seeing the headline move the **wrong
+way** — pre-registered expectation #2 said it should fall, and it rose from ₹1,033,289 to
+₹1,121,895 per 1,000 at-risk cycles.
+**Severity:** high — the fix did not reach the number it was meant to fix.
+**Status:** fixed.
+
+**Why the headline rose.** D28 gave the control arm a real opt-out hazard. But
+`eval/policies.py::value_of` prices harm as:
+
+```python
+expected_optout_loss_paise = truth.p_optout * amount * optout_loss_multiplier
+```
+
+That is the **level**, not the uplift. It was harmless only while the control hazard was
+hard-coded to zero — with a zero baseline, level and uplift are the same number. The
+moment D28 made the baseline non-zero, this expression began charging every contact for
+cancellations that would have happened anyway.
+
+So the amendment changed the simulator and left the pricing asserting the very thing the
+amendment had just disproved. The headline moved only because the propensity model,
+refitted on a log where control customers now opt out, selected different customers.
+
+**Fix.** `GroundTruth` carries `p_optout_baseline`, and `optout_uplift` is
+`max(0, p_optout − p_optout_baseline)`. `value_of` prices the uplift. On a sample
+customer: level 0.1020, baseline 0.0408, **incremental 0.0612** — the harm actually
+caused, 60% of what was previously charged.
+
+**The lesson, and it is the third variant of the same one.** D22 was the production path
+using the oracle's valuation. D27 was a metric divided by the wrong denominator. This is a
+*correction* that stopped at the layer it was written in. **A fix to a model is not a fix
+to the things that consume the model**, and the only reason this was caught is that the
+amendment pre-committed to a direction and the result went the other way. Had it
+pre-committed to nothing, ₹1,121,895 would have been reported as an improvement.
+
+**Pre-registered expectation #2 was wrong, and that is recorded as such.**
+`docs/EVALUATION.md` §3.3 predicted the headline would fall on the amendment alone. It
+rose. The prediction failing is what surfaced D32, which is the entire argument for
+writing predictions down before running anything.
+
+---
+
+## D33 · Known asymmetry, deliberately not fixed before the freeze
+
+**Status:** open, documented, direction of bias stated.
+
+`GroundTruth` computes the two arms asymmetrically:
+
+```python
+p_treated   = (1 - p_optout) * (p_self_heal + (1 - p_self_heal) * p_persuaded)
+p_untreated = p_self_heal
+```
+
+The treated arm is discounted by its opt-out hazard; the untreated arm is not — even
+though, since D28, control customers have a non-zero hazard of their own. The consistent
+form would be `p_untreated = (1 - p_optout_baseline) * p_self_heal`.
+
+**It is not being changed, and the reason is discipline rather than difficulty.** The
+amendment pre-registered in `docs/EVALUATION.md` §3.3 was about the opt-out *hazard*. It
+said nothing about `p_recover_untreated`. Making this change now would move numbers **in
+Antar's favour** — a lower untreated baseline makes every uplift look better — on a
+change nobody committed to in advance, three days before submission. That is exactly the
+manoeuvre pre-registration exists to prevent, and doing it because it is defensible on
+the merits is how the practice dies.
+
+**Direction of the bias, so a reader can correct for it.** The current form *understates*
+Antar's uplift: the treated arm pays an opt-out penalty the untreated arm does not. Antar
+therefore looks slightly **worse** than the consistent model would make it look. Being
+wrong in that direction is the acceptable one.
+
+Recorded as the first item of future work in `docs/PANEL_DEFENCE.md` question 9.
+
+---
+
+## D34 · My own vacuity guard failed the build on a small sample
+
+**Found by:** the CI `N4 - make evaluate from a clean checkout` job, which runs
+`evaluate QUICK=1`.
+**Severity:** high — it made the reproducibility job unpassable.
+**Status:** fixed.
+
+D25 added a guard: if the retention ablation's two arms score identically on every seed,
+raise, because a zero delta from a dead measurement is not evidence for DELETE. Correct
+in intent. Wrong in what it tested.
+
+**It tested the symptom, not the cause.** D25's actual defect was that the two arms shared
+a *configuration* — the with-component arm inherited the shipped default, which the rule's
+own verdict had switched off. That is precisely checkable at construction time. Instead the
+guard inferred it afterwards from the two arms scoring the same, and that symptom has a
+completely innocent explanation: **on a small batch the component genuinely has no
+influence**, because a detector cannot change an allocation that has almost no candidates
+to change.
+
+So `evaluate QUICK=1` — 600 customers, 785 events — hit the guard and died:
+
+```
+RuntimeError: the retention measurement for 'downtime_crosscheck' is vacuous ...
+```
+
+while the full-size run measured −₹284 and −₹243 quite happily. **A guard that only passes
+at full scale makes the fast path unusable**, and the fast path is the one CI runs.
+
+**Fix, in two parts.**
+
+1. **Check the cause where it is unambiguous.** At construction: assert the enabled arm
+   really has the flag on and the stripped arm really has it off. That is D25, exactly,
+   and it cannot be confused with anything else.
+2. **Coinciding arms is now a reported finding, not a crash.** The component is
+   `NOT ADJUDICATED (underpowered)`, no verdict is written, `artifacts/retention.json` is
+   left untouched, and the artifact records `retention_underpowered`. The pre-registered
+   rule resolves *ambiguity* to DELETE; it does not resolve *absence of measurement* to
+   anything, and refusing to overwrite a powered verdict with an unpowered silence is the
+   whole lesson of D25.
+
+**The pattern.** This is the third guard in this build to misfire on its own project —
+after the leak scan and the inferential registry — and the second (with D28's meta-tests)
+to do it by conflating "this has not run yet" with "this ran and found nothing". Guards
+need the same care about *what state they are in* as the code they guard.
+
+---
+
+## D35 · A generated sentence that could not say "unknown" said something false
+
+**Found by:** reading the CI log of `evaluate QUICK=1`.
+**Severity:** low, but it wrote a wrong sentence into `RESULTS.md`.
+**Status:** fixed.
+
+`verdict_line()` builds the specification-curve sentence the README quotes. On a truncated
+run — `--limit 60`, which QUICK mode uses — the pre-registered specification is not in the
+evaluated set, so its percentile is `None`, and the sentence rendered:
+
+> The pre-registered specification sits at the **Noneth** percentile of that distribution.
+
+The console print above it was worse: it reported `share above zero: None` on *every* run,
+because `share_positive` is not a key that summary produces. A field nobody reads, printing
+nothing, for the entire life of the script.
+
+**Fix.** The sentence now says the specification was not among those evaluated and that
+this makes the line weaker evidence than the full curve, and the console prints
+"not in this run's set". **A generated sentence that has no way to express "unknown" will
+express something false instead** — which is the same failure as D17, where a phase-diagram
+summary stated a comparison it had never computed.
+
+---
+
+## D36 · A generated summary printed the literal word "nan" as a finding
+
+**Found by:** reading `RESULTS.md` after the post-amendment re-run.
+**Severity:** medium — it published a false sentence.
+**Status:** fixed.
+
+The phase-diagram interpretation, which `RESULTS.md` and the README quote verbatim, read:
+
+> A disclosed extension below 0.05 locates it: the advantage becomes decisive at an
+> opt-out sensitivity of **nan** in both panels.
+
+The cause was written down on purpose:
+
+```python
+f"sensitivity of {boundary_best or float('nan'):.3f} in both panels. "
+```
+
+`decisive_boundary()` correctly returns `None` when no opt-out level is a decisive win at
+every self-heal level. The formatter turned that honest `None` into a NaN and then into
+prose. **A function that says "I could not find it" was overruled by its own renderer.**
+
+**A second defect in the same sentence.** It went on:
+
+> below the boundary a multi-channel merchant already sees decisive gains in places,
+> while an SMS-only merchant **sees none**.
+
+That clause was hardcoded. It was true when written and became false when the shares came
+out at 51% and 52% — the sentence asserted a contrast its own adjacent numbers denied.
+
+**Fix.** When the boundary is `None` the summary says the extension did not locate it and
+that the boundary lies below the extension floor. The panel contrast is now derived from
+the two shares: within five points, "the channel mix does not change how often the
+advantage is decisive"; otherwise it names whichever panel actually leads.
+
+**Third time.** D17 printed a comparison it had never computed. D35 wrote "the Noneth
+percentile". This wrote "nan". **Every generated sentence in this project needs a branch
+for "unknown", and the ones that lack it do not fail loudly — they assert something
+false in confident prose.** A grep for `or float('nan')`, `or 0`, and `.get(...) or` in
+any string-formatting path is now part of the pre-freeze checklist.

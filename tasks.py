@@ -39,6 +39,12 @@ def target(name: str) -> Callable[[Callable[[dict[str, str]], int]], Callable[..
 
 
 def run(*cmd: str, env: dict[str, str] | None = None) -> int:
+    # Force UTF-8 on child stdio. A Windows console defaults to cp1252, and a
+    # single arrow in a module docstring was enough to kill `evaluate` at stage
+    # zero with a UnicodeEncodeError - on the one platform this was built on, and
+    # not on CI, which is the worst possible place for a difference. POSTMORTEM D30.
+    env = {**os.environ, **(env or {}), "PYTHONIOENCODING": "utf-8"}
+
     printable = " ".join(cmd)
     print(f"\n$ {printable}", flush=True)
     merged = {**os.environ, **(env or {})}
@@ -138,6 +144,12 @@ def calibration_report(args: dict[str, str]) -> int:
 @target("bakeoff")
 def bakeoff(args: dict[str, str]) -> int:
     return run(PY, "-m", "scripts.run_bakeoff", "--scenario", args.get("SCENARIO", "base"))
+
+
+@target("claims")
+def claims(_: dict[str, str]) -> int:
+    """Adjudicate the pre-registered claims; writes artifacts/claims.json."""
+    return run(PY, "-m", "scripts.run_claims")
 
 
 @target("spec-curve")

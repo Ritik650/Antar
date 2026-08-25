@@ -46,10 +46,17 @@ def main() -> int:
     print(f"  {time.perf_counter() - started:.0f}s")
 
     summary = curve.summary()
+    percentile = summary.get("pre_registered_percentile")
     print(f"\n  median: {summary.get('median')}")
-    print(f"  share above zero: {summary.get('share_positive')}")
-    print(f"  pre-registered specification sits at percentile: "
-          f"{summary.get('pre_registered_percentile')}")
+    print(f"  share clearing the bar: {summary.get('fraction_clearing_threshold')}")
+    # `share_positive` is not a key this summary produces, so the old line printed
+    # "None" every run and nobody read it. Report the percentile honestly instead:
+    # a truncated run legitimately excludes the pre-registered specification, and
+    # "not in this run's set" is information where "None" is noise. POSTMORTEM D35.
+    print(
+        "  pre-registered specification percentile: "
+        + (f"{percentile}" if percentile is not None else "not in this run's set")
+    )
     print(f"\n  {verdict_line(curve)}")
 
     if summary.get("variance_by_dimension"):

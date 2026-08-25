@@ -348,14 +348,29 @@ def verdict_line(curve: SpecificationCurve) -> str:
     """The sentence the README uses. Generated, never typed."""
     summary = curve.summary()
     if curve.supported:
+        # The percentile only exists if the pre-registered specification is *in* the
+        # evaluated set. A truncated run - `--limit`, as CI's QUICK mode uses - can
+        # legitimately exclude it, and an earlier version rendered that as "the Noneth
+        # percentile" straight into RESULTS.md. A generated sentence that cannot say
+        # "unknown" will say something false instead. POSTMORTEM D35.
+        percentile = summary["pre_registered_percentile"]
+        placement = (
+            f"The pre-registered specification sits at the {percentile}th percentile "
+            "of that distribution."
+            if percentile is not None
+            else (
+                "The pre-registered specification was not among the specifications "
+                "evaluated on this run, so its percentile is not reported. That "
+                "happens on a truncated run and means this line is weaker evidence "
+                "than the full curve."
+            )
+        )
         return (
             f"Across {summary['n_specifications']} analytic specifications, the "
             f"{curve.scenario} negative-uplift share has a median of "
             f"{summary['median']:.2%} (IQR {summary['p25']:.2%}-{summary['p75']:.2%}), "
             f"and {summary['fraction_clearing_threshold']:.0%} of specifications clear "
-            f"the pre-registered {curve.threshold:.0%} bar. The pre-registered "
-            f"specification sits at the {summary['pre_registered_percentile']}th "
-            "percentile of that distribution."
+            f"the pre-registered {curve.threshold:.0%} bar. " + placement
         )
     return (
         f"Across {summary['n_specifications']} analytic specifications, only "

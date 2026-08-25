@@ -63,7 +63,7 @@ def stages(*, quick: bool, scenario: str, seed: int) -> list[Stage]:
     customers = ["--customers", "600"] if quick else []
     return [
         Stage(
-            "1/7  Simulator calibration",
+            "1/8  Simulator calibration",
             "scripts.calibration_report",
             ["--scenario", "all"],
             "calibration.json",
@@ -71,7 +71,7 @@ def stages(*, quick: bool, scenario: str, seed: int) -> list[Stage]:
             "it claims to? Everything downstream is worthless if not.",
         ),
         Stage(
-            "2/7  Detection (L2)",
+            "2/8  Detection (L2)",
             "scripts.detection_report",
             ["--scenario", scenario],
             f"detection_{scenario}.json",
@@ -79,7 +79,7 @@ def stages(*, quick: bool, scenario: str, seed: int) -> list[Stage]:
             "false positive - and the ablation that says which components earn a place.",
         ),
         Stage(
-            "3/7  Uplift bake-off (L3)",
+            "3/8  Uplift bake-off (L3)",
             "scripts.run_bakeoff",
             ["--scenario", scenario, *(["--timebox", "60"] if quick else [])],
             f"bakeoff_{scenario}.json",
@@ -87,7 +87,7 @@ def stages(*, quick: bool, scenario: str, seed: int) -> list[Stage]:
             "the negative region is the deliverable, not population Qini.",
         ),
         Stage(
-            "4/7  Allocation, shadow prices, retention",
+            "4/8  Allocation, shadow prices, retention",
             "scripts.run_allocation",
             ["--scenario", scenario, *customers, *(["--retention-seeds", "3"] if quick else [])],
             f"allocation_{scenario}.json",
@@ -95,7 +95,7 @@ def stages(*, quick: bool, scenario: str, seed: int) -> list[Stage]:
             "the counterfactual price of the 10:00-21:00 window, and the L7 verdict.",
         ),
         Stage(
-            "5/7  Phase diagram",
+            "5/8  Phase diagram",
             "scripts.make_phase_diagram",
             ["--customers", "250" if quick else "400"],
             "phase_diagram.json",
@@ -103,7 +103,7 @@ def stages(*, quick: bool, scenario: str, seed: int) -> list[Stage]:
             "from a simulator is worth more than a point estimate from one.",
         ),
         Stage(
-            "6/7  Specification curve",
+            "6/8  Specification curve",
             "scripts.run_spec_curve",
             ["--scenario", scenario, *(["--customers", "300", "--limit", "60"] if quick else [])],
             f"specification_curve_{scenario}.json",
@@ -111,7 +111,15 @@ def stages(*, quick: bool, scenario: str, seed: int) -> list[Stage]:
             "headline is a distribution rather than one lucky cell.",
         ),
         Stage(
-            "7/7  End-to-end batch and audit ledger",
+            "7/8  Pre-registered claims",
+            "scripts.run_claims",
+            ["--customers", "600"] if quick else [],
+            "claims.json",
+            "Adjudicate every claim whose test was fixed in advance. A claim that "
+            "fails its own test is marked WITHDRAWN and nothing downstream may state it.",
+        ),
+        Stage(
+            "8/8  End-to-end batch and audit ledger",
             "scripts.run_batch",
             ["--scenario", scenario, *customers],
             f"batch_{scenario}.json",
@@ -122,6 +130,14 @@ def stages(*, quick: bool, scenario: str, seed: int) -> list[Stage]:
 
 
 def main() -> int:
+    # See tasks.py: a cp1252 console cannot encode the arrows in this module's own
+    # docstring. Replace rather than raise - a report that loses one glyph is better
+    # than an evaluation that does not run.
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="replace")
+
     config = get_config()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--quick", action="store_true", help="smaller batches, same code path")
@@ -417,11 +433,15 @@ def _section_allocation(add, scenario):
             f"{harm_gap / total:.1%} |")
         add("")
         add(
-            "**The headline is not a recovery number.** It is overwhelmingly a "
-            "harm-avoidance number, and that harm is priced at an assumed 6x "
-            "cancellation cost - a config constant, not a measurement. See "
-            "`docs/LIMITATIONS.md` L18. The comparison that survives without it is the "
-            f"contact count: {antar['contacts']} against {ranker['contacts']}."
+            f"**The headline is {harm_gap / total:.0%} harm avoidance and "
+            f"{recovery_gap / total:.0%} extra recovery.** The harm term is priced at an "
+            "assumed 6x cancellation cost - a config constant, not a measurement - so it "
+            "scales linearly with an assumption (`docs/LIMITATIONS.md` L18). What does "
+            "not depend on that assumption at all: Antar recovers "
+            f"Rs {antar['incremental_per_1000_at_risk_rupees']:,.0f} per 1,000 at-risk "
+            f"cycles against the ranker's "
+            f"Rs {ranker['incremental_per_1000_at_risk_rupees']:,.0f}, while sending "
+            f"{antar['contacts']} messages against {ranker['contacts']}."
         )
         add("")
     prices = data.get("shadow_prices") or {}

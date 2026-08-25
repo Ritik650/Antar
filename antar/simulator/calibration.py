@@ -38,13 +38,35 @@ class CalibrationReport:
     summary: dict[str, Any]
     error_reason_counts: dict[str, int]
     undocumented_reasons: list[str] = field(default_factory=list)
+    """Reasons outside the taxonomy that are **not** deliberate.
+
+    `failure_emission.UNMAPPED_CODES` emits five reasons outside the documented
+    taxonomy on purpose - `UNMAPPED_SHARE` of failures - because a real error stream
+    contains vendor variants and post-dated codes and a simulator whose every code is
+    mappable would flatter the detector. Those are excluded here.
+
+    Anything left is a reason the generator emits and the taxonomy cannot explain,
+    which is a defect in one of the two."""
+
+    deliberately_unmapped_reasons: list[str] = field(default_factory=list)
+    """The `UNMAPPED_CODES` actually observed. Reported, never counted as dirty."""
+
     ambiguous_share: float = 0.0
     segment_coverage: dict[str, int] = field(default_factory=dict)
     amount_distribution: dict[str, Any] = field(default_factory=dict)
 
     @property
     def taxonomy_clean(self) -> bool:
+        """No *accidental* gaps. Deliberate ones are a feature and are excluded."""
         return not self.undocumented_reasons
+
+    @property
+    def deliberately_unmapped_share(self) -> float:
+        total = sum(self.error_reason_counts.values())
+        if not total:
+            return 0.0
+        seen = set(self.deliberately_unmapped_reasons)
+        return sum(v for k, v in self.error_reason_counts.items() if k in seen) / total
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -53,6 +75,8 @@ class CalibrationReport:
             "summary": self.summary,
             "taxonomy_clean": self.taxonomy_clean,
             "undocumented_reasons": self.undocumented_reasons,
+            "deliberately_unmapped_reasons": self.deliberately_unmapped_reasons,
+            "deliberately_unmapped_share": round(self.deliberately_unmapped_share, 4),
             "ambiguous_code_share": round(self.ambiguous_share, 4),
             "error_reason_counts": dict(sorted(self.error_reason_counts.items())),
             "segment_coverage": dict(sorted(self.segment_coverage.items())),
@@ -62,7 +86,16 @@ class CalibrationReport:
 
 def build_report(batch: SimulatedBatch) -> CalibrationReport:
     reasons = Counter(e.error_reason or "" for e in batch.events)
-    undocumented = sorted(r for r in reasons if not rz.is_documented(r))
+
+    # The deliberate ones are not a finding. Conflating "outside the taxonomy" with
+    # "we failed to document it" made `calibration_report` exit non-zero on every run
+    # from the moment UNMAPPED_CODES was introduced - and nothing noticed for three
+    # days, because `make evaluate` had never been run end to end. POSTMORTEM D31.
+    deliberate = failure_emission.UNMAPPED_REASONS
+    undocumented = sorted(
+        r for r in reasons if r and r not in deliberate and not rz.is_documented(r)
+    )
+    observed_deliberate = sorted(r for r in reasons if r in deliberate)
     ambiguous = failure_emission.ambiguous_reasons()
     ambiguous_count = sum(count for reason, count in reasons.items() if reason in ambiguous)
 
@@ -75,6 +108,7 @@ def build_report(batch: SimulatedBatch) -> CalibrationReport:
         summary=batch_summary(batch),
         error_reason_counts=dict(reasons),
         undocumented_reasons=undocumented,
+        deliberately_unmapped_reasons=observed_deliberate,
         ambiguous_share=(ambiguous_count / len(batch.events)) if batch.events else 0.0,
         segment_coverage=dict(Counter(e.segment_key for e in batch.events)),
         amount_distribution={

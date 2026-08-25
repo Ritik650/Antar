@@ -38,34 +38,32 @@ Three policies, same batch, same contact capacity, same simulator. All figures p
 
 | Policy | Contacts | Expected recovery | Expected opt-out loss | **Net** |
 |---|---:|---:|---:|---:|
-| Contact everyone | 787 | ₹99,292 | ₹1,277,181 | **−₹1,177,911** |
-| Propensity targeting | 787 | ₹97,475 | ₹1,093,712 | **−₹996,264** |
-| **Antar** | **156** | **₹103,797** | **₹66,750** | **+₹37,025** |
+| Contact everyone | 787 | ₹99,292 | ₹557,833 | **−₹458,563** |
+| Propensity targeting | 787 | ₹96,323 | ₹516,556 | **−₹420,261** |
+| **Antar** | **338** | **₹164,469** | **₹81,068** | **+₹83,367** |
 
-**The comparison that needs no assumptions: Antar sends 156 messages where the ranker
-sends 787, and recovers slightly more.** A fifth of the contact volume, a marginally
-better recovery number. That is the result, and nothing in it depends on how you price a
-cancellation.
+**Antar recovers ₹164,469 per 1,000 at-risk cycles against the ranker's
+₹96,323 — 71% more money — while sending 338 messages against 787.**
+Less than half the contact volume, substantially more recovered. That comparison involves
+no assumption about what a cancellation costs.
 
-**The headline, and what it actually is.** Antar minus propensity targeting comes to
-**₹1,033,289 per 1,000 at-risk cycles** — but read its decomposition before quoting it:
+**The headline, and what it is made of.** Antar minus propensity targeting is
+**₹503,628 per 1,000 at-risk cycles**:
 
-| Where the ₹1,033,289 comes from | Share |
+| Where the ₹503,628 comes from | Share |
 |---|---:|
-| Difference in expected recovery | ₹6,322 — **0.6%** |
-| Difference in avoided cancellation harm | ₹1,026,962 — **99.4%** |
+| Difference in expected recovery | ₹68,147 — **14%** |
+| Difference in avoided cancellation harm | ₹435,489 — **86%** |
 
-**This is not a recovery number.** It is a harm-avoidance number, and that harm is priced
-at an *assumed* 6× cancellation cost — a config constant, not a measurement, which scales
-99.4% of it linearly ([L18](docs/LIMITATIONS.md)). Halve the assumption and the headline
-roughly halves. The contact-count comparison above does not move at all.
+The harm term is priced at an *assumed* 6× cancellation cost — a config constant, not a
+measurement — so 86% of the headline scales linearly with an assumption
+([L18](docs/LIMITATIONS.md)). The recovery row does not.
 
 Beating "contact everyone" is easy and proves nothing. The comparison that matters is the
 second row.
 
-*(Source: `artifacts/allocation_base.json`, reproduced by `python tasks.py evaluate`. The
-denominator is at-risk cycles, not candidates — the code divided by the latter until M10,
-overstating the headline by 9%: POSTMORTEM D27.)*
+*(Source: `artifacts/allocation_base.json`, reproduced by `python tasks.py evaluate`.
+Denominator is at-risk cycles, not candidates — POSTMORTEM D27.)*
 
 ---
 
@@ -125,14 +123,17 @@ show, not evidence the mapping is complete.
 
 ### Uplift (L3)
 
-Four learners, one pre-registered selection rule, selected **`x_learner`** (AUUC 0.978,
-negative-region sign F1 0.236).
+Four learners, one pre-registered selection rule, selected **`r_learner`** (AUUC 0.871,
+negative-region sign F1 **0.469**, precision 0.684).
 
-**The uncomfortable finding is reported, not buried.** No learner beats a trivial "always
-abstain" predictor on negative-region sign F1 — 0.261 against the best learner's 0.254.
-A better criterion would have selected `r_learner`. We kept `x_learner` because the rule
-was fixed before the numbers existed and re-opening it after seeing them is how
-pre-registration dies ([ADR-0016](docs/DECISIONS.md), POSTMORTEM D15).
+**The winner changed, and the rule did not.** Until the D28/D32 corrections this was
+`x_learner` at sign F1 0.246 — worse than a trivial "always abstain" predictor's 0.261,
+which we reported rather than hid ([ADR-0016](docs/DECISIONS.md), POSTMORTEM D15). Fixing
+the simulator changed the data underneath the bake-off, the *same unchanged rule* then
+selected `r_learner`, and its sign F1 of **0.469** now clears the abstain baseline
+comfortably. The rule was never re-opened; the results moved because a bug was fixed.
+`pipeline.UPLIFT_MODEL` is asserted equal to the bake-off's selection by a test, so the
+shipped model cannot drift from the procedure that chose it.
 
 ### Does the headline survive other analytic choices?
 
@@ -146,13 +147,25 @@ want to be wrong in.
 A point estimate from a simulator is worth very little. A **boundary condition** from one
 is a contribution.
 
-**264 cells**, self-heal probability × opt-out sensitivity, two channel-mix panels. Antar
-wins every cell of the pre-registered grid — so a disclosed post-hoc extension below the
-committed floor was needed to locate the boundary, at an **opt-out sensitivity of ≈0.035**
-([ADR-0020](docs/DECISIONS.md)). Below that, contact capacity binds; above it, the scarce
-resource is customer tolerance and every capacity shadow price is **₹0**. That is why the
-"one more slot is worth ₹X" demo does not exist here, and we say so
-([L14](docs/LIMITATIONS.md)) rather than quoting a number from a regime we did not measure.
+A grid over self-heal probability × opt-out sensitivity, in two channel-mix panels.
+Antar wins **every cell of the pre-registered grid**, which means the indifference
+boundary lies at or below the committed floor — outside the space we pre-registered, and
+that is itself the finding. A disclosed post-hoc extension below the floor
+([ADR-0020](docs/DECISIONS.md)) is what locates it.
+
+The exact boundary is quoted in `artifacts/RESULTS.md` rather than here, because it moved
+when the control-arm opt-out defect was fixed (POSTMORTEM D28) and a number pinned in
+prose is a number that goes stale. When the extension does not locate a boundary at all,
+the summary says so rather than reaching for one — it used to print the literal word
+`nan` (D36).
+
+**The regime finding is the durable part.** In the base scenario every capacity shadow
+price is **₹0**, because Antar declines slots it is entitled to use: the scarce resource
+is customer tolerance, not outbound capacity. Below the boundary that reverses and
+capacity binds. Those are two regimes needing opposite systems. It is also why the "one
+more slot is worth ₹X" demo does not exist here, and we say so
+([L14](docs/LIMITATIONS.md)) rather than quoting a number from a regime we did not
+measure.
 
 ### Two components were deleted by their own measurement
 
@@ -163,8 +176,8 @@ number means the component was *costing* money:
 
 | Component | Δ net (with − without) | 95% CI | Verdict |
 |---|---:|---|---|
-| `downtime_crosscheck` | −₹284.35 | (−₹429.04, −₹130.76) | **DELETE** |
-| `changepoint_detector` | −₹243.09 | (−₹451.75, −₹66.62) | **DELETE** |
+| `downtime_crosscheck` | −₹710.33 | (−₹1,078.35, −₹424.54) | **DELETE** |
+| `changepoint_detector` | −₹887.72 | (−₹1,407.17, −₹368.28) | **DELETE** |
 
 Both intervals exclude zero, on the side that says these components were not merely
 unproven but actively harmful: their false alarms vetoed contacts the allocator correctly
@@ -256,6 +269,48 @@ cannot silently bypass the gate.
 
 ---
 
+## Pre-registration, and what git can and cannot prove
+
+Several claims here rest on a rule having been fixed *before* the number that tests it
+existed. That is checkable, so here are the commits — and the one place the evidence is
+thinner than I would like.
+
+| What | Commit | When | Gap to the run |
+|---|---|---|---|
+| `docs/EVALUATION.md` first committed | `ebe3ad7` | 22 Aug 19:29 | before anything was fitted |
+| Component-retention rule + phase-diagram grid | `c449af6` | 22 Aug 21:34 | **45 hours** before M6 (`7b914a1`, 24 Aug 18:57) |
+| Uplift selection rule amended | `e8bc14e` | 23 Aug 02:44 | **38 minutes** before M5 (`180ed69`, 23 Aug 03:22) |
+| Control-arm opt-out hazard amended | `39fa411` | 25 Aug 02:25 | before the re-run it forced |
+
+```bash
+git log --format="%h %ad %s" --date=iso   # verify any of the above
+```
+
+**The 45-hour gap is the strong one.** The retention rule was written before the
+allocator it judges existed, and it later deleted two components — see
+[L13](docs/LIMITATIONS.md).
+
+**The 38-minute gap is the weak one, and I would rather say so than have it found.** The
+selection-rule amendment precedes the bake-off in commit order, but by half an hour in the
+same working session. The ordering is real; the *separation* is not meaningful. A reader
+who wants to discount that one is entitled to. What it still rules out is amending the
+rule after seeing which learner won — and [ADR-0016](docs/DECISIONS.md) records that we
+then kept `x_learner` even though a better criterion would have chosen `r_learner`, which
+is the behaviour the pre-registration was for.
+
+**What git does not prove.** `artifacts/` was committed only at the end, so the timestamps
+above attest when each *rule* was written, not when each *run* happened. There is no
+cryptographic link between a pre-registration and the result it governs. The audit ledger
+hash-chains decisions within a run; it does not chain across runs, and nothing here should
+be read as claiming otherwise. Run timing is attested by the ADR log and the postmortem,
+which are ordinary prose and worth exactly what prose is worth.
+
+If I were doing it again: commit each artifact in the same commit as the run that produced
+it, and publish the ledger head. That turns "trust the narrative" into "check the hash",
+and it costs nothing at the time.
+
+---
+
 ## Honest limitations
 
 ### On "sleeping dogs", precisely
@@ -267,9 +322,11 @@ layers, because the honest version is a conditional and the headline version is 
 1. **They exist in the simulator's ground truth.** `SIMULATOR_CARD.md` generates
    customers with negative treatment effects, and the median specification finds a
    negative-uplift share of 9.5% across 540 analyses.
-2. **They are not reliably identifiable at this decision count.** No learner beats a
-   trivial "always abstain" predictor on negative-region sign F1 — 0.261 against the best
-   learner's 0.254. Antar does not demonstrate that it can pick them out individually.
+2. **They are now identifiable, where before they were not.** Until the D28/D32
+   corrections no learner beat a trivial "always abstain" predictor on negative-region
+   sign F1 (0.261 against 0.246). `r_learner` now reaches **0.469** at 0.684 precision.
+   That is a real improvement and it still is not a solved problem: recall is 0.357, so
+   roughly two in three sleeping dogs are missed.
 3. **Abstaining is money-positive anyway.** The allocator does not need to identify
    *which* customer is a sleeping dog. It needs the expected harm of a contact to exceed
    its expected benefit, which is a population-level quantity, and that is what produces
@@ -281,7 +338,7 @@ claiming more than its own bake-off supports.
 
 ---
 
-The full list is [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) — eighteen entries. The
+The full list is [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) — 18 entries. The
 four that most affect how you should read this README:
 
 1. **It is a simulator.** Calibrated, documented, and still a simulator. Every rate on
@@ -303,7 +360,7 @@ four that most affect how you should read this README:
 
 ## What went wrong while building this
 
-[`docs/POSTMORTEM.md`](docs/POSTMORTEM.md) has 27 entries, each with the defect, the root
+[`docs/POSTMORTEM.md`](docs/POSTMORTEM.md) has 36 entries, each with the defect, the root
 cause, the fix, and — where it matters — the order in which things were discovered. It is
 the most useful document in the repository. Four of them:
 
@@ -326,6 +383,13 @@ the most useful document in the repository. Four of them:
   *size*. The check that does — recovery as a fraction of money at risk, because a ratio
   cannot have a units error — came back sane at 1.12%, and revealed that the primary
   metric had been dividing by the wrong denominator.
+- **D28** — the simulator returned a hard zero opt-out hazard for the control arm, under a
+  comment saying control customers receive the notification that carries the opt-out
+  route. A test was enforcing it as an invariant. Fixing it turned an assumed causal
+  effect into a measured one.
+- **D32** — the D28 fix did not reach the number it was written to fix, because the value
+  function still priced harm at its *level* rather than its uplift. Found because the
+  pre-registered amendment predicted a direction and the result went the other way.
 
 ---
 

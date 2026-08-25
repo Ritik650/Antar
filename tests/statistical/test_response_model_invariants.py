@@ -7,7 +7,7 @@ nothing downstream objects.
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import numpy as np
 import pytest
@@ -116,19 +116,105 @@ def test_probabilities_stay_in_range_across_the_whole_population():
                 assert 0.0 <= value <= 1.0, f"{name}={value} out of range for {failure_class}"
 
 
-def test_no_intervention_means_no_induced_optout():
-    """The counterfactual. docs/EVALUATION.md section 3.2.
+def test_the_control_arm_has_a_real_opt_out_hazard():
+    """The counterfactual is **not zero**. docs/EVALUATION.md section 3.3.
 
-    Control customers still receive the pre-debit notification for their *scheduled*
-    debit, because that is the issuer's obligation. They receive no Antar-initiated
-    one, so Antar induces no opt-out in them - by construction, not by assumption.
+    This test used to assert `optout_probability(latents, None) == 0.0`, and in doing so
+    encoded the defect as an invariant. Its own docstring said control customers receive
+    the pre-debit notification, and then asserted that receiving one carries no risk of
+    opting out - when the notification carrying an opt-out route is the entire mechanism
+    the project describes. POSTMORTEM D28.
+
+    A test that enforces a bug is worse than no test, because it makes fixing the bug
+    look like breaking the code.
     """
     scenario = get_scenario("conservative")
     model = ResponseModel(scenario, SEED)
     store = LatentStore(scenario, SEED)
+
     for index in range(200):
         latents = store.get(f"cust_{index:06d}")
-        assert model.optout_probability(latents, None) == 0.0
+        control = model.optout_probability(latents, None)
+        assert control > 0.0, (
+            "a control customer receives the mandate's pre-debit notification, which "
+            "under RBI-EM-02 must carry a way to cancel. Their hazard cannot be zero."
+        )
+        assert control <= MAX_OPTOUT
+
+
+def test_contacting_raises_the_hazard_above_the_control_baseline():
+    """The causal effect, as an invariant rather than an assumption.
+
+    Antar's contact must be strictly *worse* than the notification the customer was
+    getting anyway, on every channel. If it were not, there would be no harm to price
+    and no reason for the system to exist.
+    """
+    scenario = get_scenario("base")
+    model = ResponseModel(scenario, SEED)
+    store = LatentStore(scenario, SEED)
+    reference = datetime(2026, 4, 2, 11, 4, tzinfo=clock.IST)
+
+    for index in range(100):
+        latents = store.get(f"cust_{index:06d}")
+        control = model.optout_probability(latents, None)
+
+        for channel in CONTACT_CHANNELS:
+            treated = model.optout_probability(
+                latents,
+                Intervention(
+                    intervention_id=f"int_{index}",
+                    event_id=f"evt_{index}",
+                    channel=channel,
+                    message_class=MessageClass.TRANSACTIONAL,
+                    scheduled_for=reference,
+                ),
+            )
+            # EMAIL is the one channel less intrusive than SMS, but every contact
+            # channel still sits above the bare notification baseline of 0.40.
+            assert treated > control, (
+                f"{channel.value} produces a hazard of {treated:.4f}, which is not "
+                f"above the control baseline of {control:.4f}. Contacting must cost "
+                "something or the whole objective is degenerate."
+            )
+
+
+def test_validation_mode_zeroes_both_arms_not_just_one():
+    """The one place a zero hazard is correct, and it must apply symmetrically.
+
+    `is_validation_mode` exists to make the anti-circularity harness deterministic. If
+    it zeroed only the control arm it would manufacture exactly the artefact D28 was
+    about.
+    """
+    scenario = get_scenario("base")
+    if not getattr(scenario, "is_validation_mode", False):
+        import dataclasses
+
+        if dataclasses.is_dataclass(scenario):
+            try:
+                scenario = dataclasses.replace(scenario, is_validation_mode=True)
+            except (TypeError, ValueError):
+                pytest.skip("scenario is not constructible with is_validation_mode")
+        else:
+            pytest.skip("scenario is not a dataclass")
+
+    model = ResponseModel(scenario, SEED)
+    latents = LatentStore(scenario, SEED).get("cust_000001")
+    reference = datetime(2026, 4, 2, 11, 4, tzinfo=clock.IST)
+
+    assert model.optout_probability(latents, None) == 0.0
+    assert (
+        model.optout_probability(
+            latents,
+            Intervention(
+                intervention_id="int_1",
+                event_id="evt_1",
+                channel=Channel.SMS,
+                message_class=MessageClass.TRANSACTIONAL,
+                scheduled_for=reference,
+            ),
+        )
+        == 0.0
+    )
 
 
 def test_revoked_mandates_never_recover():

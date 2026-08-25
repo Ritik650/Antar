@@ -21,10 +21,29 @@ into a no-op that nobody notices.
 from __future__ import annotations
 
 import json
+import os
 
 import pytest
 
 from antar.config import artifacts_dir
+
+REQUIRE_ARTIFACTS = os.environ.get("ANTAR_REQUIRE_ARTIFACTS") == "1"
+"""Whether a missing artifact is a failure or a skip.
+
+Both readings are right in different places, and conflating them is what turned this
+file red on a clean checkout (POSTMORTEM D28).
+
+  * **A fresh clone has no artifacts, and that is correct.** `python tasks.py evaluate`
+    is what produces them, and it takes tens of minutes. Failing here would mean a
+    contributor cannot run the suite without first running the evaluation, and would
+    make CI's lint-and-test job depend on a forty-minute job it does not need.
+  * **After the evaluation has run, a skip is a lie.** That is the vacuum this file was
+    written to prevent: a suite that passes because it checked nothing.
+
+So the distinction is set by the caller. CI's `reproducibility` job runs the evaluation
+and then re-runs these tests with `ANTAR_REQUIRE_ARTIFACTS=1`, which is the only place
+the artifacts are known to exist.
+"""
 
 CHECKED: list[str] = []
 
@@ -184,11 +203,23 @@ def test_the_curve_reports_as_many_results_as_it_claims():
 
 
 def test_at_least_one_artifact_was_checked():
-    """Without this, a missing `artifacts/` directory turns the whole file green by
-    skipping, and a suite that passes by not running is worse than no suite."""
+    """Guards against the whole file passing by skipping.
+
+    Only meaningful once the evaluation has run - see `REQUIRE_ARTIFACTS`.
+    """
+    if not REQUIRE_ARTIFACTS:
+        if CHECKED:
+            return
+        pytest.skip(
+            "no artifacts present. This is normal on a fresh checkout; run "
+            "`python tasks.py evaluate`, or set ANTAR_REQUIRE_ARTIFACTS=1 to make "
+            "their absence a failure."
+        )
     assert CHECKED, (
-        "no artifact was available to check. Run `python tasks.py evaluate` before "
-        "trusting this file's silence."
+        "ANTAR_REQUIRE_ARTIFACTS=1 was set - the evaluation is supposed to have run - "
+        "but every check in this file skipped for want of an artifact. Either the "
+        "evaluation did not write what it claims to, or the loader is looking in the "
+        "wrong place. A suite that passes by checking nothing is worse than no suite."
     )
 
 
@@ -238,8 +269,35 @@ def test_the_harm_term_dominates_the_headline_and_is_disclosed():
         - by_policy["antar"]["optout_loss_per_1000_at_risk_rupees"]
     )
     share = harm_gap / data["antar_minus_propensity_per_1000_rupees"]
-    assert share > 0.90, (
-        f"avoided harm is only {share:.1%} of the headline. The README, L18 and the "
-        "video script all say it is overwhelmingly a harm-avoidance number. Update them "
-        "or explain why not."
+
+    # The bound was 0.90 when the harm share was 99.4%. After D28 and D32 it is 86.5%,
+    # and this test failing is what forced the README, L18 and the video script to be
+    # rewritten rather than left saying "overwhelmingly". The bound is now the claim the
+    # docs actually make: harm dominates, but recovery is a material minority.
+    assert 0.5 < share < 0.95, (
+        f"avoided harm is {share:.1%} of the headline. The docs describe it as the "
+        "dominant term with recovery a material minority. Outside this band that "
+        "description is wrong - update the prose, do not widen the bound."
+    )
+
+
+def test_the_deployed_model_is_the_one_the_rule_selected():
+    """`pipeline.UPLIFT_MODEL` must equal the bake-off's selection.
+
+    The pre-registered rule in `docs/EVALUATION.md` 6.2 determines which learner ships.
+    A hardcoded constant that drifts from it means the trace says one model and the
+    selection procedure says another - and the whole pre-registration argument rests on
+    those being the same thing.
+
+    This caught a real divergence: the constant stayed `x_learner` after the D28/D32
+    corrections changed the data and the rule switched to `r_learner`.
+    """
+    from antar.pipeline import UPLIFT_MODEL
+
+    selected = load("bakeoff_base.json")["selected"]
+    assert selected == UPLIFT_MODEL, (
+        f"pipeline.UPLIFT_MODEL is {UPLIFT_MODEL!r} but the pre-registered selection "
+        f"rule chose {selected!r}. Either ship what the rule selected, or record an ADR "
+        "explaining why the rule is being overridden - but do not let them disagree "
+        "silently."
     )

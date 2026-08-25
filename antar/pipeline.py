@@ -48,9 +48,20 @@ from antar.signals.schemas import (
     Outcome,
 )
 
-UPLIFT_MODEL = "x_learner"
-"""The pre-registered winner. Changing this is a protocol amendment, not a tweak —
-see ADR-0016 and the amendment discipline in EVALUATION.md §6.2."""
+UPLIFT_MODEL = "r_learner"
+"""Whatever the pre-registered selection rule most recently chose.
+
+**Not a free choice.** `docs/EVALUATION.md` §6.2 fixes the rule; the bake-off applies it;
+this constant records the answer. `test_the_deployed_model_is_the_one_the_rule_selected`
+fails if it drifts from `artifacts/bakeoff_base.json`, so it cannot quietly disagree with
+the procedure that is supposed to determine it.
+
+It was `x_learner` until the D28/D32 corrections changed the exploration data underneath
+the bake-off, and the *same unchanged rule* then selected `r_learner` — on a much better
+negative-region F1 (0.469 against x_learner's 0.246), which is the metric the amended
+rule was written to prioritise. ADR-0016's principle is intact: the rule was not
+re-opened after seeing results. The results moved because a bug was fixed, and the rule
+was allowed to say what it says."""
 
 
 @dataclass

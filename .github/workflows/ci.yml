@@ -94,6 +94,15 @@ jobs:
           python tasks.py evaluate QUICK=1
           diff /tmp/claims-first.json artifacts/claims.json
 
+      # The artifact checks are skipped by the `gate` job, because a clean checkout has
+      # no artifacts and that is a legitimate state. Here they are not optional: the
+      # evaluation has just run twice, so anything that skips is a check that silently
+      # found nothing to look at. See POSTMORTEM D28.
+      - name: Artifact checks, with their absence made fatal
+        env:
+          ANTAR_REQUIRE_ARTIFACTS: "1"
+        run: python -m pytest tests/statistical -q
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

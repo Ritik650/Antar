@@ -344,20 +344,57 @@ def _interpretation(panels: dict[str, Any]) -> str:
     if a >= 0.99 and b >= 0.99:
         decisive_best = best.get("decisive_win_share", 0.0)
         decisive_sms = sms.get("decisive_win_share", 0.0)
+
+        # Where the boundary is, or an admission that this grid did not find it.
+        #
+        # This read `{boundary_best or float("nan"):.3f}` and printed the literal word
+        # "nan" into the summary whenever no opt-out level qualified - a generated
+        # sentence asserting a boundary that had not been located. Third time in this
+        # build: D17 stated a comparison it had not computed, D35 wrote "the Noneth
+        # percentile". POSTMORTEM D36.
+        if boundary_best is None:
+            located = (
+                "The extension did not locate it either: no opt-out level in the "
+                "extended range is a decisive win at every self-heal level, so the "
+                "boundary is below the extension floor and this grid does not say "
+                "where."
+            )
+        else:
+            located = (
+                "A disclosed extension below 0.05 locates it: the advantage becomes "
+                f"decisive at an opt-out sensitivity of {boundary_best:.3f}."
+            )
+
+        # The comparison follows the numbers rather than asserting a fixed story. An
+        # earlier version always claimed the SMS-only merchant "sees none", which was
+        # true when written and false once the shares came out at 51% and 52%.
+        gap = decisive_best - decisive_sms
+        if abs(gap) < 0.05:
+            contrast = (
+                "The two panels are within a few points of each other, so the channel "
+                "mix does not change how often the advantage is decisive."
+            )
+        elif gap > 0:
+            contrast = (
+                "A multi-channel merchant sees decisive gains in more of the grid than "
+                "an SMS-only one."
+            )
+        else:
+            contrast = (
+                "An SMS-only merchant sees decisive gains in more of the grid than a "
+                "multi-channel one, because a propensity ranker with a single channel "
+                "has fewer ways to be accidentally right."
+            )
+
         return (
             "**Antar is ahead in every cell of the pre-registered grid in both "
             f"panels** ({sign_claim}), so the indifference boundary lies at or below "
             "the bottom edge of the committed opt-out range (0.05) - outside the space "
-            "we pre-registered, which is itself the finding. A disclosed extension "
-            f"below 0.05 locates it: the advantage becomes decisive at an opt-out "
-            f"sensitivity of {boundary_best or float('nan'):.3f} in both panels. "
+            f"we pre-registered, which is itself the finding. {located} "
             f"Counting only cells outside the indifference band, Antar wins "
             f"{decisive_best:.0%} of the multi-channel grid and {decisive_sms:.0%} of "
-            "the SMS-only one: below the boundary a multi-channel merchant already sees "
-            "decisive gains in places, while an SMS-only merchant sees none. The "
-            f"magnitudes differ too - {magnitude_claim} - the SMS-only merchant gaining "
-            "more, because a propensity ranker with a single channel has fewer ways to "
-            "be accidentally right."
+            f"the SMS-only one. {contrast} The magnitudes differ too - "
+            f"{magnitude_claim}."
         )
     return (
         f"The sign of the advantage is stable across panels ({sign_claim}), but the "

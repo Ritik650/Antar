@@ -145,10 +145,19 @@ def value_of(
         expected_incremental_paise=truth.uplift * amount,
         channel_cost_paise=cost,
         discount_paise=float(intervention.discount_paise) if intervention else 0.0,
-        # The opt-out term. An induced cancellation costs the cycle *and* the mandate
-        # behind it, which is why `optout_loss_multiplier` is greater than one and why
-        # some perfectly compliant actions are worth less than doing nothing.
-        expected_optout_loss_paise=truth.p_optout * amount * optout_loss_multiplier,
+        # The opt-out term, and it is an **uplift**, not a level.
+        #
+        # An induced cancellation costs the cycle *and* the mandate behind it, which is
+        # why `optout_loss_multiplier` is greater than one and why some perfectly
+        # compliant actions are worth less than doing nothing. But the cost of a contact
+        # is only the cancellation it *causes* - the customer was already receiving a
+        # pre-debit notification carrying the same opt-out route.
+        #
+        # This used `truth.p_optout`, the level. That was harmless only while the
+        # control-arm hazard was hard-coded to zero, and once D28 fixed that, pricing
+        # the level charged every contact for harm that would have happened anyway.
+        # POSTMORTEM D32.
+        expected_optout_loss_paise=truth.optout_uplift * amount * optout_loss_multiplier,
     )
 
 

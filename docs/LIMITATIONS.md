@@ -360,87 +360,79 @@ That is a design change rather than a tuning change, and it landed outside the M
 
 ---
 
-## L17 · The opt-out cost is a causal effect only by construction
+## L17 · The opt-out contrast is measured, but spontaneous churn is still unmodelled
 
-`OptoutRisk` estimates the harm term in L3's objective. It is **not** an uplift learner,
-and it cannot be one on this data.
+**Superseded in part on 25 Aug 2026.** This entry used to say the opt-out cost was "a
+causal effect only by construction", because no untreated customer ever opted out. That
+was not a property of the design — it was a hard-coded `return 0.0` (POSTMORTEM D28), and
+calling it a limitation stopped anyone looking for the bug.
 
-Base scenario, seed 7:
+After the pre-registered amendment in `docs/EVALUATION.md` §3.3, both arms have a real
+hazard. Base scenario, seed 7:
 
 | Arm | Opt-outs | Rows | Rate |
-|---|---|---|---|
-| Untreated | 0 | 2,996 | 0.000 |
-| Treated | 35 | 260 | 0.135 |
+|---|---:|---:|---:|
+| Untreated | 170 | 2,996 | **0.0567** |
+| Treated | 35 | 260 | **0.1346** |
+| **Causal effect** | | | **+0.0779** |
 
-The control arm has a single class. There is nothing to difference. This is a property
-of `SIMULATOR_CARD.md`'s response model, which represents opt-out purely as a hazard
-triggered by contact — spontaneous cancellation is not modelled at all, and real
-customers cancel subscriptions on Sunday afternoons for reasons no merchant caused.
+`OptoutRisk` now subtracts a non-zero measured baseline, and `value_of` prices the
+**incremental** harm rather than the level (POSTMORTEM D32).
 
-`OptoutRisk` therefore fits `P(optout | X, treated)` on the treated arm and subtracts the
-**measured** untreated rate rather than assuming it is zero. On this data the subtraction
-is a no-op. The code is written so that a simulator with spontaneous churn, or real data,
-would be estimated properly without changing the estimator.
+**What is still true, and is the real limitation.** The control hazard is
+*notification-driven*: it models a customer opting out because the mandate's own
+pre-debit notice carried a cancel route. It does **not** model spontaneous cancellation —
+a customer who cancels on a Sunday afternoon for reasons no merchant caused. Real
+baseline churn is out of scope, so the measured contrast above is still an upper bound on
+the harm attributable to contact.
 
-**The claim this permits, and the one it does not.** We may say: *in this simulator, the
-opt-out cost Antar prices is the full causal effect of contacting.* We may not say: *this
-is how you would estimate opt-out harm in production.* In production the untreated rate
-is not zero, and the difference between the two rates — not the treated rate — is the
-number that belongs in the objective.
-
-**Direction of the error, if we are wrong.** Overstating the untreated baseline would
-make contacts look *safer* than they are. Our baseline is measured, and measured at zero,
-so Antar prices opt-out harm at its maximum defensible value here. The bias, if any,
-is toward contacting less than optimal — which is the side of this particular error we
-would choose.
+**The constant that sets the baseline is chosen, not measured.**
+`BASELINE_INTRUSIVENESS = 0.40` against SMS at 1.00. It was pre-registered before the
+re-run so it was not chosen to flatter, but nothing calibrates it. Halving it roughly
+doubles the measured causal effect.
 
 ---
 
-## L18 · 99.4% of the headline is a harm term scaled by an assumed constant
+## L18 · 86% of the headline is a harm term scaled by an assumed constant
 
-The primary result — Antar minus propensity targeting, **₹1,033,289 per 1,000 at-risk
+The primary result — Antar minus propensity targeting, **₹503,628 per 1,000 at-risk
 cycles** — decomposes as:
 
 | Component | Per 1,000 at-risk cycles | Share |
 |---|---:|---:|
-| Difference in expected recovery | ₹6,322 | 0.6% |
-| Difference in avoided opt-out loss | ₹1,026,962 | **99.4%** |
+| Difference in expected recovery | ₹68,147 | 14% |
+| Difference in avoided opt-out loss | ₹435,489 | **86%** |
 
-Antar is not, in any meaningful sense, recovering more money than a propensity ranker.
-It recovers ₹103,797 per 1,000 at-risk cycles against the ranker's ₹97,475 — a 6% edge, on a batch where it sends
-**a fifth as many messages**. That is a real and interesting efficiency result, and it is
-not where the million rupees comes from.
-
-The million rupees comes from **not incurring modelled harm**. And that harm is:
+The harm term is:
 
 ```
-expected_optout_loss = p_optout x amount x optout_loss_multiplier
+expected_optout_loss = optout_uplift x amount x optout_loss_multiplier
 ```
 
 where `decide.optout_loss_multiplier = 6.0`.
 
-**That 6.0 is an assumption.** It asserts that an induced cancellation costs six cycles
-of revenue — the failed cycle plus five more that would have been collected. It is a
-crude lifetime-value proxy. It was chosen before any result existed, which is the only
-thing that recommends it, and it scales 99.4% of the headline **linearly**: halve it and
-the headline roughly halves.
+**That 6.0 is an assumption.** It asserts that an induced cancellation costs six cycles of
+revenue. It is a crude lifetime-value proxy, chosen before any result existed — the only
+thing that recommends it — and it scales 86% of the headline **linearly**.
 
-**What is measured and what is assumed, stated plainly.**
+**Improved since the first version of this entry.** The split used to be 0.6% recovery /
+99.4% harm, because the harm term was priced at the *level* of the opt-out hazard rather
+than its uplift over an assumed-zero baseline (D28, D32). Correcting that moved recovery
+from a rounding error to 14% of the result.
 
 | Quantity | Status |
 |---|---|
-| `p_optout` given a contact | Simulated, from `SIMULATOR_CARD.md`'s response model |
-| Amount at risk | Simulated, calibrated against published figures |
+| Opt-out uplift given a contact | Measured contrast between two non-zero arms |
+| `BASELINE_INTRUSIVENESS = 0.40` | **Assumed.** Sets the control hazard. |
 | The 6x multiplier | **Assumed.** Not calibrated against anything. |
-| That Antar contacts fewer people to achieve it | Measured, and robust |
+| Amount at risk | Simulated, calibrated against published figures |
+| Recovery advantage at lower contact volume | **Measured, and independent of both assumptions** |
 
-**The claim that survives without the multiplier.** Antar contacts **156** candidates
-where the propensity ranker contacts **787**, and recovers slightly more while doing it.
-That comparison involves no multiplier at all, and it is the one to lead with when the
-6.0 is challenged — as it should be.
+**The claim that survives without any multiplier.** Antar recovers
+₹164,469 per 1,000 at-risk cycles against the
+ranker's ₹96,323 — 71% more — while sending
+338 messages against 787. No multiplier appears in that sentence.
 
-**Direction of the sensitivity.** The phase diagram's opt-out axis already varies the
-*probability* side of this term, and the boundary it locates (≈0.035) is where the whole
-advantage disappears. The multiplier is the other half of the same product and has not
-been varied. A specification curve over it is the obvious next piece of work and is not
-in this build.
+**Direction of the sensitivity.** The phase diagram varies the *probability* side of the
+harm product; the multiplier is the other half and has never been varied. A specification
+curve over it is the obvious next piece of work and is not in this build.

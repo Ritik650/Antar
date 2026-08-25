@@ -254,6 +254,52 @@ the anti-circularity harness deterministic and is not a claim about customers.
 goes in the README.** The point of committing this before the re-run is that the outcome
 is not available to negotiate with.
 
+#### Outcome — recorded 25 Aug 2026, after the re-run
+
+Scored against the four expectations above, which were committed before any code changed.
+**Two right, one right only after a second defect was found, one wrong.**
+
+| # | Prediction | Outcome |
+|---|---|---|
+| 1 | The harm-avoidance term shrinks | **Right.** ₹1,026,962 → ₹435,489 per 1,000 at-risk cycles, and its share of the headline fell from 99.4% to 86.5%. |
+| 2 | The headline falls | **Right, eventually.** ₹1,033,289 → ₹503,628, a 51% fall. But on the amendment *alone* it **rose** to ₹1,121,895 — see below. |
+| 3 | The contact comparison barely moves | **Wrong.** 156 → 338 contacts. It more than doubled. |
+| 4 | L17 changes in kind | **Right.** Control 0.0567 against treated 0.1346, a measured effect of **+0.0779** where the arm previously had no variance at all. |
+
+**Why #2 was initially wrong, and what that bought.** The amendment fixed the simulator's
+control hazard. `eval/policies.py::value_of` was still pricing harm as
+`truth.p_optout` — the *level*, not the uplift — which is identical to the uplift only
+while the baseline is zero. So the correction did not reach the number it was written to
+correct, and the headline moved the wrong way for an unrelated reason (the propensity
+model, refitted on a log where control customers now opt out, selected different
+customers). POSTMORTEM D32.
+
+**A prediction that failed is what surfaced it.** Had this amendment predicted nothing,
+₹1,121,895 would have been reported as an improvement.
+
+**Why #3 was wrong, and it matters more than the number.** The claim was that contact
+volume does not depend on how harm is priced, and that this made it the robust headline.
+That was simply false: the allocator selects on net value, net value contains the harm
+term, so pricing harm at its true (lower) incremental level makes more contacts
+worthwhile. Antar now contacts 338 rather than 156 — and recovers ₹164,469 per 1,000
+at-risk cycles against the ranker's ₹96,323, **71% more money on 43% of the contact
+volume**.
+
+That is a better result than the one being defended, and it was found by writing down a
+wrong prediction and checking it.
+
+**Consequential change to the model in production.** The corrected data changed which
+learner the *unamended* §6.2 rule selects: `x_learner` → `r_learner`, on a
+negative-region sign F1 of 0.469 against 0.246. The rule was not re-opened. See
+ADR-0016 and the note in `pipeline.UPLIFT_MODEL`, whose agreement with the bake-off
+artifact is now asserted by a test.
+
+**Still not fixed, deliberately:** the two arms remain asymmetric in
+`p_recover_untreated` (POSTMORTEM D33). Correcting it would move numbers in Antar's
+favour on a change nobody pre-registered, three days before submission. The direction of
+the resulting bias — Antar looks slightly *worse* than a consistent model would make it
+look — is stated there.
+
 #### What this does not fix
 
 Spontaneous cancellation — a customer who cancels on a Sunday afternoon for reasons no
