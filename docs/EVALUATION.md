@@ -382,6 +382,29 @@ misreading of its own direction of bias.
    movement is expected because the exploration log changes; a large move would indicate
    a further coupling nobody has identified.
 
+#### Outcome — recorded 25 Aug 2026, after the re-run
+
+**All four predictions correct.**
+
+| # | Prediction | Outcome |
+|---|---|---|
+| 1 | The negative-uplift share falls materially | **Right.** Median specification 0.095 → **0.04333**; clearance 83% → **45.7%**. External review predicted 0.043 and 46%. |
+| 2 | The claim may fail its own test | **Right, and it did.** 1 of 3 scenarios clears the 5% bar. **WITHDRAWN.** |
+| 3 | If withdrawn, it is withdrawn | **Done.** `artifacts/claims.json` records it; `tests/statistical/test_withdrawn_claims_are_not_stated.py` fails the build if any document asserts it, and separately fails if the README drops it silently. |
+| 4 | The three-policy comparison moves much less | **Right.** ₹503,628 → ₹488,797, a 2.9% move, against the 51% move the previous amendment caused. |
+
+**Prediction 4 was the one that could have embarrassed us**, and it held: the allocation
+result is downstream of harm pricing, which this amendment does not touch. Antar still
+recovers ₹167,137 per 1,000 at-risk cycles against the ranker's
+₹112,481 — 49% more — on 342 contacts against 787.
+
+**An unforeseen consequence, for the second time.** The unchanged §6.2 rule now selects
+`x_learner` again, having selected `r_learner` after the previous amendment. The winner
+has flipped three times across three corrections while the rule stayed fixed. That is a
+finding about the *stability* of learner selection, not about any learner: the identity of
+the winner is sensitive to simulator corrections in a way the LP's abstention behaviour is
+not. Recorded in `pipeline.UPLIFT_MODEL`.
+
 #### What this does not change
 
 The regime finding — capacity shadow prices at ₹0 in the base scenario, the two-regime

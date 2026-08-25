@@ -328,7 +328,18 @@ class ResponseModel:
             p_persuaded=p_persuaded,
             p_optout=p_optout,
             p_recover_treated=float(min(max(p_treated, 0.0), 1.0)),
-            p_recover_untreated=p_self_heal,
+            # Both arms discounted by their own survival probability.
+            #
+            # `p_self_heal` is P(the payment resolves itself | the mandate is alive) -
+            # it has no opt-out term in it, checked rather than assumed. So an untreated
+            # customer recovers only if they did not cancel first, exactly as a treated
+            # one does. This read `p_recover_untreated=p_self_heal`, which was harmless
+            # while the untreated hazard was zero and became an asymmetry the moment D28
+            # made it real: the treated arm paid a survival penalty the untreated arm did
+            # not. POSTMORTEM D38, docs/EVALUATION.md section 3.4.
+            p_recover_untreated=float(
+                min(max((1.0 - p_optout_baseline) * p_self_heal, 0.0), 1.0)
+            ),
             p_optout_baseline=p_optout_baseline,
         )
 

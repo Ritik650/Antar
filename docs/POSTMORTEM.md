@@ -1514,3 +1514,136 @@ to judge.** The check itself was right each time. What was wrong was the assumpt
 which data it would see — a clean checkout, an underpowered sample, a quick run. A guard
 needs to know not just what it is testing but *what situation it is in*, and that is
 apparently much easier to get wrong than the assertion itself.
+
+---
+
+## D38 · The arm asymmetry, and the reasoning that protected it
+
+**Found by:** external review, which quantified the effect before I had looked at it.
+**Severity:** critical — it biased the project's motivating finding toward the project's
+own thesis.
+**Status:** fixed. **The claim it was propping up did not survive.**
+
+**The defect.**
+
+```python
+p_treated   = (1 - p_optout) * (p_self_heal + (1 - p_self_heal) * p_persuaded)
+p_untreated = p_self_heal
+```
+
+The treated arm is discounted by its survival probability. The untreated arm is not.
+Harmless while the untreated hazard was hard-coded to zero, because `(1 - 0) = 1`. D28
+gave the control arm a real hazard **and did not propagate it here**, so from that commit
+the two arms were discounted on different terms.
+
+**The question that decides it, answered by reading rather than assuming.** Is
+`p_self_heal` already conditional on mandate survival? It is a function of
+`p_self_heal_base`, `SELF_HEAL_BY_CLASS[failure_class]`, and `balance_fraction` for
+`INSUFFICIENT_FUNDS`. **There is no opt-out term in it.** It is P(the payment resolves
+itself | the mandate is alive) — precisely the quantity that needs discounting by
+survival. Had it been conditional, the asymmetry would have been correct and this would
+have been two sentences in the simulator card.
+
+**The part worth being uncomfortable about.** D33 recorded this exact asymmetry as
+*known and deliberately unfixed*, on the stated grounds that correcting it "would move
+numbers **in Antar's favour**" and that doing so unpre-registered would be improper.
+
+**That reasoning was backwards.** A higher untreated baseline is what *creates* negative
+uplift. Removing the asymmetry raises the untreated arm, makes every uplift *less*
+negative, and shrinks the negative-uplift population — the thing the entire project is
+about. D33 correctly identified an asymmetry, correctly refused to fix it without
+pre-registration, and then reasoned about its direction in a way that made leaving it
+alone look conservative when it was the opposite.
+
+D33 also declared its own direction-of-bias with confidence: *"the current form
+understates Antar."* On the recovery comparison, true. On the finding that matters, false.
+**A confident statement with nothing behind it — the same failure this log documents 37
+times, arrived at while writing the log.**
+
+**The fix.** `p_untreated = (1 - p_optout_baseline) * p_self_heal`. Nothing else changes.
+Pre-registered as `docs/EVALUATION.md` §3.4 in a commit with no code, naming withdrawal
+of the claim as a possible outcome.
+
+**The result.** Negative-uplift share, adjudicated over three seeds against a
+pre-registered floor of 5% in at least 2 of 3 scenarios:
+
+| Scenario | Before | After | Clears 5%? |
+|---|---:|---:|:--:|
+| conservative | 0.3625 | 0.2309 | yes |
+| base | 0.0950 | **0.0267** | **no** |
+| aggressive | 0.0000 | 0.0002 | **no** |
+
+**One of three. The sleeping-dogs claim is WITHDRAWN**, recorded in
+`artifacts/claims.json` and enforced by
+`tests/statistical/test_withdrawn_claims_are_not_stated.py` — which fails the build if
+any document asserts it, and separately fails if the README quietly drops it instead of
+reporting the withdrawal.
+
+**What that machinery was for.** `claims.py`, `SIMULATOR_CARD.md` §10 and the whole
+pre-registration apparatus existed for exactly this case and had never once fired. The
+enforcement test did not exist until now — the mechanism was documented and never built,
+the same shape as D29. It was written *after* the verdict was known, which is the wrong
+order and is disclosed rather than hidden: what protects it is that the verdict was
+already committed to `artifacts/claims.json` by a script written days earlier.
+
+**What survives.** Antar's advantage was never conditional on uplift being negative. It
+comes from pricing the harm of a contact and abstaining where that exceeds the benefit — a
+population-level argument that holds whether the tail sits at −0.02 or −0.20. The
+three-policy comparison, the regime finding and the contact efficiency are downstream of
+harm pricing, not of the sign of the tail.
+
+**The process lesson, which is the real one.** Three review cycles went to guards,
+postmortems and provenance tests — well-defined, satisfying work — while this sat open at
+`response_model.py` line 331. It stayed open because fixing it meant discovering the
+headline was smaller than published. The postmortem count went 36 → 37 in that time. **The
+work that most needed doing was the work that was least pleasant to start, and no amount
+of process discipline substituted for simply doing it.**
+
+---
+
+## D39 · A test that failed when the hypothesis failed
+
+**Found by:** running the suite after D38 withdrew the sleeping-dogs claim.
+**Severity:** high, and structural — it was a standing incentive to keep a hypothesis
+true.
+**Status:** fixed.
+
+`test_negative_uplift_population_emerges_in_at_least_two_scenarios` opened with:
+
+```python
+assert verdict.supported, ...
+```
+
+It asserted the project's own motivating hypothesis. So the moment the pre-registered
+test withdrew the claim, the build went red — **not because anything was broken, but
+because the finding was unfavourable.**
+
+**It contradicted the protocol it claimed to enforce.** `scripts/run_claims.py` returns
+zero for a withdrawn claim, with a comment written days earlier saying exactly why:
+*"A withdrawn claim is not a build failure - it is a finding, and the artifact is what
+carries it. Returning non-zero here would tempt someone to 'fix' the claim."* The script
+got it right. The test did the thing the script's comment warned against.
+
+**Why this is worse than an ordinary bug.** Every other defect in this log cost accuracy.
+This one created *pressure*. A red suite three days before submission, whose only cause is
+that your hypothesis did not hold, is an argument for finding a reason the measurement is
+wrong. The correct fix was available and unpleasant; the incentive pointed the other way.
+
+**Fix.** The test now asserts the machinery ran and is internally coherent: a verdict
+exists, the qualifying set recomputes from the shares, and `supported` follows from the
+pre-registered rule applied to that set. Whether it comes back supported is the *finding*,
+carried by `artifacts/claims.json` and enforced against every document by
+`test_withdrawn_claims_are_not_stated.py`.
+
+`test_the_verdict_is_stable_across_seeds` had the same floor in its last line and lost it
+for the same reason. Stability across seeds is a real property; the count is the result.
+
+`test_conservative_is_the_hardest_scenario` was **kept**, because it asserts an *ordering*
+the parameterisation implies rather than a threshold anyone benefits from clearing. The
+D38 correction shrank every share and left the ordering intact, which is evidence the axes
+mean what `SIMULATOR_CARD.md` §8 says they mean.
+
+**The generalisation.** A test may assert that a measurement was *made correctly*. It may
+not assert *what the measurement found*. The first is a control; the second is a thumb on
+the scale, and it is invisible for exactly as long as the finding happens to be
+favourable.

@@ -198,6 +198,12 @@ def api(_: dict[str, str]) -> int:
     return run(PY, "-m", "uvicorn", "antar.api:app", "--host", "0.0.0.0", "--port", "8000")
 
 
+@target("roundtrip")
+def roundtrip(_: dict[str, str]) -> int:
+    """Real Razorpay test-mode round trip; writes artifacts/razorpay_roundtrip.json."""
+    return run(PY, "-m", "scripts.record_roundtrip")
+
+
 @target("seed-test-mode")
 def seed_test_mode(_: dict[str, str]) -> int:
     return run(PY, "-m", "scripts.seed_test_mode")

@@ -21,10 +21,15 @@ again, then discount.
 That sequence has a hidden assumption — **that contacting a customer can only help.**
 
 It cannot. Some customers were going to pay anyway; a reminder spends money and goodwill
-to buy nothing. Some were quietly lapsed and a reminder is what makes them notice, cancel
-the mandate, and take the whole subscription with them. In the uplift literature these
-are *sure things* and *sleeping dogs*, and every recovery system that ranks customers by
-"likelihood to recover" targets both of them enthusiastically.
+to buy nothing. Some may be quietly lapsed, and a reminder is what makes them notice,
+cancel the mandate, and take the whole subscription with them. In the uplift literature
+these are *sure things* and *sleeping dogs*, and every recovery system that ranks
+customers by "likelihood to recover" targets both of them enthusiastically.
+
+**On sleeping dogs specifically: our pre-registered test for that population did not pass,
+and the claim is withdrawn** — see below. What remains, and what this system is actually
+built on, is narrower and still true: contacting has a *cost* in induced cancellations,
+that cost is measurable, and a system that prices it abstains where a ranker does not.
 
 Antar asks a different question. Not *who is likely to pay?* but **who pays *because* we
 contacted them?** — and, just as importantly, *who cancels because we did?*
@@ -38,32 +43,31 @@ Three policies, same batch, same contact capacity, same simulator. All figures p
 
 | Policy | Contacts | Expected recovery | Expected opt-out loss | **Net** |
 |---|---:|---:|---:|---:|
-| Contact everyone | 787 | ₹99,292 | ₹557,833 | **−₹458,563** |
-| Propensity targeting | 787 | ₹96,323 | ₹516,556 | **−₹420,261** |
-| **Antar** | **338** | **₹164,469** | **₹81,068** | **+₹83,367** |
+| Contact everyone | 787 | ₹113,434 | ₹557,833 | **−₹444,421** |
+| Propensity targeting | 787 | ₹112,481 | ₹516,556 | **−₹404,103** |
+| **Antar** | **342** | **₹167,137** | **₹82,408** | **+₹84,695** |
 
-**Antar recovers ₹164,469 per 1,000 at-risk cycles against the ranker's
-₹96,323 — 71% more money — while sending 338 messages against 787.**
-Less than half the contact volume, substantially more recovered. That comparison involves
-no assumption about what a cancellation costs.
+**Antar recovers ₹167,137 per 1,000 at-risk cycles against the ranker's
+₹112,481 — 49% more — while sending 342 messages against 787.**
+Under half the contact volume, materially more recovered. Nothing in that sentence depends
+on how a cancellation is priced.
 
 **The headline, and what it is made of.** Antar minus propensity targeting is
-**₹503,628 per 1,000 at-risk cycles**:
+**₹488,797 per 1,000 at-risk cycles**:
 
-| Where the ₹503,628 comes from | Share |
+| Where the ₹488,797 comes from | Share |
 |---|---:|
-| Difference in expected recovery | ₹68,147 — **14%** |
-| Difference in avoided cancellation harm | ₹435,489 — **86%** |
+| Difference in expected recovery | ₹54,656 — **11%** |
+| Difference in avoided cancellation harm | ₹434,149 — **89%** |
 
 The harm term is priced at an *assumed* 6× cancellation cost — a config constant, not a
-measurement — so 86% of the headline scales linearly with an assumption
+measurement — so 89% of the headline scales linearly with an assumption
 ([L18](docs/LIMITATIONS.md)). The recovery row does not.
 
 Beating "contact everyone" is easy and proves nothing. The comparison that matters is the
 second row.
 
-*(Source: `artifacts/allocation_base.json`, reproduced by `python tasks.py evaluate`.
-Denominator is at-risk cycles, not candidates — POSTMORTEM D27.)*
+*(Source: `artifacts/allocation_base.json`, reproduced by `python tasks.py evaluate`.)*
 
 ---
 
@@ -123,24 +127,26 @@ show, not evidence the mapping is complete.
 
 ### Uplift (L3)
 
-Four learners, one pre-registered selection rule, selected **`r_learner`** (AUUC 0.871,
-negative-region sign F1 **0.469**, precision 0.684).
+Four learners, one pre-registered selection rule, selected **`x_learner`**.
 
-**The winner changed, and the rule did not.** Until the D28/D32 corrections this was
-`x_learner` at sign F1 0.246 — worse than a trivial "always abstain" predictor's 0.261,
-which we reported rather than hid ([ADR-0016](docs/DECISIONS.md), POSTMORTEM D15). Fixing
-the simulator changed the data underneath the bake-off, the *same unchanged rule* then
-selected `r_learner`, and its sign F1 of **0.469** now clears the abstain baseline
-comfortably. The rule was never re-opened; the results moved because a bug was fixed.
-`pipeline.UPLIFT_MODEL` is asserted equal to the bake-off's selection by a test, so the
-shipped model cannot drift from the procedure that chose it.
+**The winner has flipped three times, and the rule never changed.** `x_learner`
+originally, `r_learner` after the opt-out corrections, `x_learner` again after the arms
+were made symmetric. Each time the data moved under a fixed rule and the selection
+followed. Read that as a caution about how much weight the *identity* of the winning
+learner can bear — it is not stable to simulator corrections, while the allocator's
+abstention behaviour is. `pipeline.UPLIFT_MODEL` is asserted equal to the bake-off's
+selection by a test, so the shipped model cannot silently disagree with the procedure
+that chose it.
 
 ### Does the headline survive other analytic choices?
 
-**540 specifications.** Median negative-uplift share **9.5%** (IQR 6.0%–16.8%). **83%**
-clear the pre-registered 5% bar. Our pre-registered specification sits at the **21.7th
-percentile** — near the conservative end of the distribution, which is the direction you
-want to be wrong in.
+**540 specifications.** Median negative-uplift share **4.33%** (IQR
+2.33%–9.38%). Only **46%** clear the pre-registered 5% bar, and the
+pre-registered specification sits at the **28.7th percentile**.
+
+This is the curve that withdrew the claim. Before the arm-symmetry correction the median
+was 9.5% and 83% of specifications cleared the bar; the correction moved both. A
+specification curve is worth having precisely because it can deliver this answer.
 
 ### Where does the result stop holding?
 
@@ -176,8 +182,8 @@ number means the component was *costing* money:
 
 | Component | Δ net (with − without) | 95% CI | Verdict |
 |---|---:|---|---|
-| `downtime_crosscheck` | −₹710.33 | (−₹1,078.35, −₹424.54) | **DELETE** |
-| `changepoint_detector` | −₹887.72 | (−₹1,407.17, −₹368.28) | **DELETE** |
+| `downtime_crosscheck` | −₹723.30 | (−₹1,098.64, −₹433.05) | **DELETE** |
+| `changepoint_detector` | −₹910.96 | (−₹1,447.14, −₹374.78) | **DELETE** |
 
 Both intervals exclude zero, on the side that says these components were not merely
 unproven but actively harmful: their false alarms vetoed contacts the allocator correctly
@@ -210,13 +216,26 @@ default** and the deterministic template path is the default draft path. Nothing
 default configuration can send a message — `gate.dry_run` is true and no Razorpay client
 is wired in.
 
-To use real Razorpay test-mode data:
+### Against the real Razorpay sandbox
 
 ```bash
 export RAZORPAY_KEY_ID=rzp_test_...     # refuses to run against a live key
 export RAZORPAY_KEY_SECRET=...
-python tasks.py seed-test-mode
+
+python tasks.py roundtrip        # real API round trip -> artifacts/razorpay_roundtrip.json
+python tasks.py seed-test-mode   # seed subscriptions and mandates
 ```
+
+`roundtrip` executes the downtime feed, an order creation, an **idempotent replay of the
+same key**, a payment link with notifications forced off, and a deliberate 400 to capture
+the real error envelope. It records endpoint, status, latency and response *shape* — no
+amounts, no contact details, ids truncated — so the artifact is evidence the integration
+ran, not a dump of an account.
+
+**No mandate charge has ever been executed** ([L19](docs/LIMITATIONS.md)). That needs an
+authenticated e-mandate a script cannot create unattended, so the one endpoint this
+project's thesis is about is exercised against synthesised fixtures only. The error-code
+taxonomy comes from Razorpay's documentation, not from codes observed on the wire.
 
 ---
 
@@ -313,32 +332,53 @@ and it costs nothing at the time.
 
 ## Honest limitations
 
-### On "sleeping dogs", precisely
+### The motivating claim did not survive its own test
 
-The project's motivating idea is that some customers cancel *because* they were
-contacted. Here is exactly what this build can and cannot say about that, in three
-layers, because the honest version is a conditional and the headline version is not:
+This project was built on the *sleeping dogs* hypothesis: that a meaningful population of
+customers cancels **because** they were contacted, and that a system able to leave them
+alone is worth building.
 
-1. **They exist in the simulator's ground truth.** `SIMULATOR_CARD.md` generates
-   customers with negative treatment effects, and the median specification finds a
-   negative-uplift share of 9.5% across 540 analyses.
-2. **They are now identifiable, where before they were not.** Until the D28/D32
-   corrections no learner beat a trivial "always abstain" predictor on negative-region
-   sign F1 (0.261 against 0.246). `r_learner` now reaches **0.469** at 0.684 precision.
-   That is a real improvement and it still is not a solved problem: recall is 0.357, so
-   roughly two in three sleeping dogs are missed.
-3. **Abstaining is money-positive anyway.** The allocator does not need to identify
-   *which* customer is a sleeping dog. It needs the expected harm of a contact to exceed
-   its expected benefit, which is a population-level quantity, and that is what produces
-   338 contacts instead of 787.
+`docs/EVALUATION.md` pre-registered how that claim would be tested — a negative-uplift
+share of at least **5%** in at least **2 of 3** scenarios — before any
+of it was measured. Adjudicated over 3 seeds:
 
-Layer 3 is the result. Layers 1 and 2 are why the result is not stated as "we detect
-sleeping dogs" — because we do not, individually, and a system that claimed to would be
-claiming more than its own bake-off supports.
+| Scenario | Negative-uplift share | Clears 5%? |
+|---|---:|:--:|
+| conservative | 0.2309 | yes |
+| base | 0.0267 | **no** |
+| aggressive | 0.0002 | **no** |
+
+**One of three. The rule requires two. The claim is WITHDRAWN**, and
+`artifacts/claims.json` records that verdict.
+`tests/statistical/test_withdrawn_claims_are_not_stated.py` fails the build if any
+document asserts it anyway — including this one.
+
+**What withdrew it was our own correction, not new data.** The simulator discounted the
+treated arm by its opt-out hazard and the untreated arm by nothing. Harmless while the
+control hazard was hard-coded to zero; an asymmetry the moment that was fixed. Making
+both arms symmetric raised the untreated baseline, which made every uplift less negative,
+which shrank the negative-uplift population from **0.095** to **0.0267** in the base
+scenario (POSTMORTEM D38, `docs/EVALUATION.md` §3.4). The amendment was committed, with
+this outcome named as a possibility, **before** the code changed.
+
+**What this costs.** The headline motivation is gone. We cannot claim to have
+demonstrated sleeping dogs, and this README does not.
+
+**What survives, and why it is not nothing.** Antar's advantage never depended on uplift
+being *negative*. It comes from pricing the **harm** of a contact at all — the expected
+opt-out cost — and abstaining wherever that exceeds the expected benefit. That is a
+population-level economic argument, and it holds whether the worst-affected customers sit
+at −0.02 or −0.20. The three-policy comparison, the regime finding, and the contact
+efficiency below are all downstream of harm pricing, not of the sign of the tail.
+
+The honest summary: **a controller that allocates well under regulatory constraints and
+under an explicit harm price, which could not demonstrate the population its design was
+motivated by.** That is a smaller claim than the one this project started with, and it is
+the one the evidence supports.
 
 ---
 
-The full list is [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) — 18 entries. The
+The full list is [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) — 19 entries. The
 four that most affect how you should read this README:
 
 1. **It is a simulator.** Calibrated, documented, and still a simulator. Every rate on
@@ -360,7 +400,7 @@ four that most affect how you should read this README:
 
 ## What went wrong while building this
 
-[`docs/POSTMORTEM.md`](docs/POSTMORTEM.md) has 37 entries, each with the defect, the root
+[`docs/POSTMORTEM.md`](docs/POSTMORTEM.md) has 39 entries, each with the defect, the root
 cause, the fix, and — where it matters — the order in which things were discovered. It is
 the most useful document in the repository. Four of them:
 

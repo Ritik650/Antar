@@ -49,16 +49,16 @@ Evaluated on the **control arm (never used for fitting)** (661 events).
 
 ## 3. Uplift bake-off (L3)
 
-Selected by the pre-registered rule: **r_learner**
+Selected by the pre-registered rule: **x_learner**
 
-Trained on 1845 rows, validated on 787. Negative-uplift prevalence in validation: 0.66201.
+Trained on 1845 rows, validated on 787. Negative-uplift prevalence in validation: 0.10801.
 
 
-> r_learner: score +0.599 (AUUC 0.8708, negative-region F1 0.469, precision 0.684, recall 0.357). Runner-up x_learner by +0.883. Selected on validation only; the holdout has not been touched.
+> x_learner: score +0.203 (AUUC 0.8917, negative-region F1 0.168, precision 0.116, recall 0.306). Runner-up t_learner by +0.214. Selected on validation only; the holdout has not been touched.
 
 **Caveat.** Validation AUUC of the selected model is NOT an unbiased estimate of its performance: it won partly on merit and partly on noise, having been chosen on this same split. Only the control holdout is inferential. docs/EVALUATION.md 6.2.2.
 
-Disqualified by the pre-registered floor: `{'causal_forest': 'negative-region recall 0.054 is below the pre-registered floor of 0.1. A model that cannot find the sleeping-dogs population cannot support the claim the system is built on.'}`
+Disqualified by the pre-registered floor: `{'causal_forest': 'negative-region recall 0.071 is below the pre-registered floor of 0.1. A model that cannot find the sleeping-dogs population cannot support the claim the system is built on.'}`
 
 ## 4. Three-policy comparison, shadow prices, retention
 
@@ -66,20 +66,20 @@ Denominator is **at-risk cycles** (3432 in this batch), not candidates (3148). `
 
 | Policy | Contacts | Abstentions | Incremental Rs/1k | Opt-out loss Rs/1k | Net Rs/1k |
 |---|---|---|---|---|---|
-| contact_everyone | 787 | 2361 | 99291.51 | 557832.8 | -458563.35 |
-| propensity | 787 | 2361 | 96322.53 | 516556.39 | -420260.91 |
-| antar | 338 | 2810 | 164469.33 | 81067.58 | 83367.27 |
+| contact_everyone | 787 | 2361 | 113433.7 | 557832.8 | -444421.16 |
+| propensity | 787 | 2361 | 112480.9 | 516556.39 | -404102.54 |
+| antar | 342 | 2806 | 167136.91 | 82407.72 | 84694.6 |
 
-**Antar minus propensity targeting: Rs 503628.18 per 1,000 at-risk cycles.** That is the comparison that matters - beating 'contact everyone' is easy.
+**Antar minus propensity targeting: Rs 488797.14 per 1,000 at-risk cycles.** That is the comparison that matters - beating 'contact everyone' is easy.
 
 Where that difference comes from:
 
 | Component | Rs per 1,000 at-risk cycles | Share |
 |---|---|---|
-| Difference in expected recovery | 68146.8 | 13.5% |
-| Difference in avoided cancellation harm | 435488.81 | 86.5% |
+| Difference in expected recovery | 54656.01 | 11.2% |
+| Difference in avoided cancellation harm | 434148.67 | 88.8% |
 
-**The headline is 86% harm avoidance and 14% extra recovery.** The harm term is priced at an assumed 6x cancellation cost - a config constant, not a measurement - so it scales linearly with an assumption (`docs/LIMITATIONS.md` L18). What does not depend on that assumption at all: Antar recovers Rs 164,469 per 1,000 at-risk cycles against the ranker's Rs 96,323, while sending 338 messages against 787.
+**The headline is 89% harm avoidance and 11% extra recovery.** The harm term is priced at an assumed 6x cancellation cost - a config constant, not a measurement - so it scales linearly with an assumption (`docs/LIMITATIONS.md` L18). What does not depend on that assumption at all: Antar recovers Rs 167,137 per 1,000 at-risk cycles against the ranker's Rs 112,481, while sending 342 messages against 787.
 
 Constraint prices:
 
@@ -95,30 +95,30 @@ Component retention (pre-registered rule, `docs/EVALUATION.md` 12.2):
 
 | Component | Delta net (paise) | 95% CI (paise) | Verdict |
 |---|---|---|---|
-| downtime_crosscheck | -71033 | (-107835, -42454) | **DELETE** |
-| changepoint_detector | -88772 | (-140717, -36828) | **DELETE** |
+| downtime_crosscheck | -72330 | (-109864, -43305) | **DELETE** |
+| changepoint_detector | -91096 | (-144714, -37478) | **DELETE** |
 
-- `downtime_crosscheck`: Removing it *improves* net incremental recovery by Rs 710. DELETE.
-- `changepoint_detector`: Removing it *improves* net incremental recovery by Rs 888. DELETE.
+- `downtime_crosscheck`: Removing it *improves* net incremental recovery by Rs 723. DELETE.
+- `changepoint_detector`: Removing it *improves* net incremental recovery by Rs 911. DELETE.
 
 ## 5. The same question, asked every defensible way
 
 - Specifications evaluated: **540**
-- Median negative-uplift share: **0.095** (IQR 0.06 to 0.16833, range 0.01667 to 0.30333)
-- Share clearing the pre-registered 0.05 bar: **0.8315**
-- The pre-registered specification sits at percentile **21.7** of the curve
+- Median negative-uplift share: **0.04333** (IQR 0.02333 to 0.09375, range 0.00333 to 0.195)
+- Share clearing the pre-registered 0.05 bar: **0.4574**
+- The pre-registered specification sits at percentile **28.7** of the curve
 
 Variance in the headline explained by each analytic choice:
 
 | Choice | Variance share |
 |---|---|
-| action | 0.05444 |
-| negative_definition | 0.02763 |
-| reference_instant | 0.01132 |
-| seed | 0.0048 |
-| measurement_window_days | 0.00297 |
+| action | 0.03664 |
+| negative_definition | 0.02214 |
+| reference_instant | 0.00717 |
+| seed | 0.00218 |
+| measurement_window_days | 0.0015 |
 
-> Across 540 analytic specifications, the base negative-uplift share has a median of 9.50% (IQR 6.00%-16.83%), and 83% of specifications clear the pre-registered 5% bar. The pre-registered specification sits at the 21.7th percentile of that distribution.
+> Across 540 analytic specifications, only 46% clear the pre-registered 5% bar (median 4.33%). Per docs/EVALUATION.md 9.5 the base-scenario claim is reported as **unsupported**: a result that survives only its own analytic choices is not a result.
 
 ## 6. Where the result holds, and where it stops
 
@@ -126,7 +126,7 @@ Variance in the headline explained by each analytic choice:
 - `x_mean_self_heal`: 0.1 to 0.6 in 11 steps
 - `y_mean_optout_sensitivity`: 0.05 to 0.4 in 8 steps
 
-**Antar is ahead in every cell of the pre-registered grid in both panels** (Antar beats propensity targeting in 100% of the grid for a merchant with every channel and 100% for one with only SMS), so the indifference boundary lies at or below the bottom edge of the committed opt-out range (0.05) - outside the space we pre-registered, which is itself the finding. The extension did not locate it either: no opt-out level in the extended range is a decisive win at every self-heal level, so the boundary is below the extension floor and this grid does not say where. Counting only cells outside the indifference band, Antar wins 51% of the multi-channel grid and 52% of the SMS-only one. The two panels are within a few points of each other, so the channel mix does not change how often the advantage is decisive. The magnitudes differ too - median advantage Rs 345,134 vs Rs 391,393 per 1,000 cycles, a 13% difference.
+**Antar is ahead in every cell of the pre-registered grid in both panels** (Antar beats propensity targeting in 100% of the grid for a merchant with every channel and 100% for one with only SMS), so the indifference boundary lies at or below the bottom edge of the committed opt-out range (0.05) - outside the space we pre-registered, which is itself the finding. The extension did not locate it either: no opt-out level in the extended range is a decisive win at every self-heal level, so the boundary is below the extension floor and this grid does not say where. Counting only cells outside the indifference band, Antar wins 51% of the multi-channel grid and 51% of the SMS-only one. The two panels are within a few points of each other, so the channel mix does not change how often the advantage is decisive. The magnitudes differ too - median advantage Rs 339,812 vs Rs 387,950 per 1,000 cycles, a 14% difference.
 
 A point estimate from a simulator is worth very little. A boundary condition
 derived from one is a genuine contribution, which is why this section exists.
@@ -134,13 +134,13 @@ derived from one is a genuine contribution, which is why this section exists.
 ## 7. End-to-end batch and the audit ledger
 
 - Events: **3432**, decided **3432**
-- Contacted **542**, abstained **2883**, holdout **697**, refused by the gate **7**
-- Simulated recoveries: **463**, opt-outs **225**
-- Ledger entries: **14277**
-- Ledger head: `e5ebd4003c02a629857c37eac5967583...`
+- Contacted **536**, abstained **2882**, holdout **697**, refused by the gate **14**
+- Simulated recoveries: **469**, opt-outs **222**
+- Ledger entries: **14278**
+- Ledger head: `db7456eff402f3035755c3b1c97344d0...`
 - Chain verifies: **True**
 - Replay self-consistent: **True**
-- Uplift model: `r_learner-n541`, policy `pol-89656a22a956`
+- Uplift model: `x_learner-n541`, policy `pol-89656a22a956`
 
 The ledger head is the hash of the last entry. Publishing it is what makes a
 truncation detectable from outside - see ADR-0024.

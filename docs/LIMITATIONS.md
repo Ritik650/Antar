@@ -436,3 +436,32 @@ ranker's ₹96,323 — 71% more — while sending
 **Direction of the sensitivity.** The phase diagram varies the *probability* side of the
 harm product; the multiplier is the other half and has never been varied. A specification
 curve over it is the obvious next piece of work and is not in this build.
+
+
+---
+
+## L19 · No mandate charge has ever been executed against Razorpay
+
+`python tasks.py roundtrip` executes a real test-mode round trip — downtime feed, order
+creation, an idempotent replay of the same key, a payment link, and a deliberate 400 to
+capture the real error envelope — and writes `artifacts/razorpay_roundtrip.json`.
+
+**What that does not cover, and it is the interesting half.** No `charge_mandate` call has
+ever been made. A test-mode mandate charge requires an authenticated subscription with a
+customer who has completed an e-mandate flow, and creating one is not something a script
+can do unattended. So the endpoint Antar's whole thesis is about — the retry of a failed
+recurring debit — is exercised only against synthesised fixtures (ADR-0007).
+
+**What this means for the error taxonomy.** `antar/signals/razorpay_errors.py` maps
+error codes to failure classes, and those mappings came from Razorpay's published
+documentation rather than from codes observed on the wire. The round trip captures the
+*envelope* — that `code`, `source`, `step` and `reason` are the field names, and what a
+real 400 looks like — but not the population of codes a live merchant would see. The
+`UNKNOWN` rate of 0.0 reported in detection is a simulator property for exactly this
+reason.
+
+**Honest position.** The integration is real and the round trip proves the client, the
+auth, the idempotency header and the error parsing all work against Razorpay. The
+*recovery action itself* has never run against their sandbox. A reviewer should read the
+recovery numbers as simulator output and the integration as tested-but-narrow, and the
+gap between those two statements is this entry.
