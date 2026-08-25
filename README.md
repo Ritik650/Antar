@@ -330,7 +330,7 @@ layers, because the honest version is a conditional and the headline version is 
 3. **Abstaining is money-positive anyway.** The allocator does not need to identify
    *which* customer is a sleeping dog. It needs the expected harm of a contact to exceed
    its expected benefit, which is a population-level quantity, and that is what produces
-   156 contacts instead of 787.
+   338 contacts instead of 787.
 
 Layer 3 is the result. Layers 1 and 2 are why the result is not stated as "we detect
 sleeping dogs" — because we do not, individually, and a system that claimed to would be

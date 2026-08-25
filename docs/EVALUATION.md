@@ -309,6 +309,92 @@ stays in L17.
 
 ---
 
+---
+
+### 3.4 Arm symmetry in `p_recover_untreated` — **amended 25 Aug 2026, before the re-run**
+
+**Committed before the code changes and before any number moves.** The outcome is not
+known at the time of writing, and it may withdraw this project's headline claim.
+
+#### The defect
+
+`GroundTruth` computes the two arms with different discounting:
+
+```python
+p_treated   = (1 - p_optout) * (p_self_heal + (1 - p_self_heal) * p_persuaded)
+p_untreated = p_self_heal
+```
+
+The treated arm is multiplied by its survival probability. The untreated arm is not.
+
+Before D28 that was harmless, because the untreated hazard was hard-coded to zero and
+`(1 - 0) = 1`. D28 gave the control arm a real hazard and **did not propagate it here**,
+so since that commit the two arms have been discounted on different terms — the treated
+arm paying an opt-out penalty the untreated arm does not.
+
+#### Is `p_self_heal` already conditional on mandate survival?
+
+**No, and this was checked rather than assumed.** `self_heal_probability` is a function
+of `latents.p_self_heal_base`, `SELF_HEAL_BY_CLASS[failure_class]`, and — for
+`INSUFFICIENT_FUNDS` — `latents.balance_fraction(next_cycle_at)`. There is no opt-out
+term anywhere in it. It is the probability the payment resolves itself *given the mandate
+is alive*, which is exactly the quantity that needs discounting by survival.
+
+Had it been conditional, the asymmetry would have been correct and this amendment would
+have been two sentences in `SIMULATOR_CARD.md` instead. It is not.
+
+#### The amendment
+
+```python
+p_untreated = (1 - p_optout_baseline) * p_self_heal
+```
+
+Nothing else changes. The same factorisation, applied to both arms.
+
+#### Which way this cuts, stated before running it
+
+**Against us.** Lowering the untreated baseline makes every uplift *less negative*, so
+the negative-uplift population shrinks. That population is the entire thesis of this
+project.
+
+`docs/POSTMORTEM.md` D33 recorded this asymmetry as known and deliberately unfixed, with
+the reasoning that correcting it "would move numbers **in Antar's favour**". **That
+reasoning was wrong**, and the error is worth naming: a smaller untreated baseline raises
+measured uplift, which makes *contacting* look better and makes the **sleeping-dog
+population smaller**. The headline the project actually rests on is the existence of
+negative uplift, not the size of the recovery advantage. D33 defended the asymmetry on a
+misreading of its own direction of bias.
+
+#### Pre-committed expectations, to be reported whichever way they fall
+
+1. **The negative-uplift share falls**, materially. External review quantifies the median
+   specification at 0.095 → **0.043** and specification clearance at 83% → **46%**.
+2. **The pre-registered sleeping-dogs claim may fail its own test.** `claims.py` requires
+   a negative-uplift share of at least 5% in at least 2 of 3 scenarios. If base falls to
+   ~0.043 it no longer qualifies, and with `aggressive` already at 0.0000 only
+   `conservative` would remain. **That is one scenario, and the claim is then WITHDRAWN.**
+3. **If it is withdrawn, it is withdrawn.** `SIMULATOR_CARD.md` §10 and
+   `antar/eval/claims.py` already specify that a withdrawn claim may not be stated in any
+   artifact, and `scripts/run_claims.py` writes that verdict. This is the case that
+   machinery was built for, and the README will say the claim did not survive.
+4. **The three-policy comparison should move much less.** The allocator prices harm from
+   `optout_uplift`, which this does not touch, and recovery from the fitted model. Some
+   movement is expected because the exploration log changes; a large move would indicate
+   a further coupling nobody has identified.
+
+#### What this does not change
+
+The regime finding — capacity shadow prices at ₹0 in the base scenario, the two-regime
+split — is a statement about *which constraint binds*, not about negative uplift. It
+should survive. The contact-efficiency comparison likewise involves no uplift sign.
+
+**If the sleeping-dogs claim does not survive this, the honest project is the one that
+reports a system which allocates well under regulatory constraints and could not
+demonstrate the sleeping-dog population its design was motivated by.** That is a smaller
+claim and a true one.
+
+---
+
 ### 6.2 Selection rule — **amended 23 Aug 2026, before the bake-off ran**
 
 **The amendment, and why it had to happen before the run.** The original rule selected on
