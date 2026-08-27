@@ -1732,3 +1732,81 @@ clone with no artifacts, a batch too small to measure, a quick run whose numbers
 design, a file deliberately absent from the repository. Every one of those was a real
 state, and every one produced a red build from a correct assertion pointed at the wrong
 situation.
+
+---
+
+## D41 · The simulator card went on asserting the claim its own registry had withdrawn
+
+**Found by:** wiring the console's walkthrough screens to read `claims.json` and
+`phase_diagram.json` directly, and noticing the card said something else.
+**Severity:** high. A committed, pushed document stating a refuted finding.
+**Status:** fixed.
+
+Three things were simultaneously true in the repository:
+
+  * `artifacts/claims.json` recorded the sleeping-dogs claim as **withdrawn** — base share
+    2.67% against a 5% bar, one qualifying scenario of the two required;
+  * `docs/SIMULATOR_CARD.md` §6.3.1 reported base **5.8%**, annotated *"clears the 5% bar
+    by 0.8 points"*;
+  * §6.3.2 concluded, in bold, *"The base-scenario result is a finding, not a coin flip"*,
+    over a table reading median 9.50% and 83% clearance against the artifact's 4.33% and
+    46%.
+
+§15 had drifted the same way: **264 cells stated against 176 committed**, a decisive-win
+share of 83%/75% against a measured 51%/51%, a median advantage overstated roughly
+threefold, and a boundary quoted at opt-out 0.035 that the committed artifact's own
+`interpretation` field says the grid cannot locate.
+
+**Why nothing fired.** Two guards were in scope and neither covered it.
+
+  * `test_results_are_reproducible.py` enforces provenance on **the README**, and only on
+    the README. The card was never in its scope.
+  * `test_withdrawn_claims_are_not_stated.py` excludes the card from
+    `ASSERTING_DOCUMENTS`, on the reasoning that the card *defines* withdrawal in §10 and
+    so must be able to discuss the claim. That reasoning is right for
+    `docs/POSTMORTEM.md`, which records what was tried, and wrong for the card, which
+    states what is true. Its patterns would not have matched anyway: they look for
+    phrasings like "we detect sleeping dogs", and what the card actually said was a
+    bolded conclusion containing none of those words.
+
+So this is **D28's shape for the fifth time — a guard applied to a scope it was not
+designed for** — with a second failure stacked on it: the exclusion that let the drift
+through was justified by an argument that sounded like discipline.
+
+**Fix.** §6.3.1, §6.3.2 and §15 rewritten from the artifacts, with the superseded figures
+named in place rather than deleted, and a changelog entry appended for D38 that should
+have been written when D38 was.
+
+`tests/statistical/test_the_cards_match_their_artifacts.py` reads each figure from its
+artifact, formats it the way the card formats it, and asserts that string appears in the
+row that claims it. **It contains no expected values** — a number typed into a test is the
+same defect one level up — so it cannot be satisfied by editing the test. It was verified
+by reintroducing all four stale figures and confirming four failures, then reverting.
+
+`docs/SIMULATOR_CARD.md` is now in `ASSERTING_DOCUMENTS` as well.
+
+**What this cost.** Nothing, this time, because it was caught before the panel. It is
+recorded at this length because the review record already notes that verification on this
+project has repeatedly come from outside rather than from its own guards, and this is the
+first entry in that sequence where an internal change — building a screen that reads the
+artifact — surfaced a documentation defect that four external review cycles had not.
+
+---
+
+## D42 · A two-command workflow whose two commands used different ports
+
+**Found by:** running the screenshot flow the docstring describes.
+**Severity:** low.
+**Status:** fixed.
+
+`scripts/capture_console.py` defaulted to `http://localhost:8599`. `python tasks.py
+console` serves Streamlit's default 8501, and `docker-compose.yml` publishes 8501. Nothing
+in the repository has ever served 8599, so the documented sequence — start the console,
+then capture it — failed with *"could not reach the console"* every time it was run as
+written.
+
+The script is careful in the way that matters: it refuses to write an image if the page
+did not render, rather than saving a screenshot of nothing. That care is why the defect
+was harmless and also why it survived — the failure looked like a deliberate refusal.
+
+**Fix.** The default is 8501, with a comment naming the two places that serve it.

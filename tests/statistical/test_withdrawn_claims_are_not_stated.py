@@ -31,7 +31,19 @@ REQUIRE_ARTIFACTS = os.environ.get("ANTAR_REQUIRE_ARTIFACTS") == "1"
 # `docs/EVALUATION.md` and this project's ADRs are deliberately excluded: they are the
 # record of what was tried and why, and a postmortem that could not mention a withdrawn
 # claim could not explain how it came to be withdrawn.
-ASSERTING_DOCUMENTS = ("README.md", "artifacts/RESULTS.md", "docs/MODEL_CARD.md")
+ASSERTING_DOCUMENTS = (
+    "README.md",
+    "artifacts/RESULTS.md",
+    "docs/MODEL_CARD.md",
+    # The card was excluded here on the reasoning that it *defines* withdrawal, so it
+    # has to be able to discuss the claim. That reasoning was wrong in the same way the
+    # postmortem exclusion is right: the postmortem records what was tried, the card
+    # states what is true. Excluded, it went on asserting the claim in §6.3 for three
+    # review cycles after `claims.json` withdrew it. See
+    # `test_the_cards_match_their_artifacts.py`, which checks the card's numbers rather
+    # than its phrasings and is the guard that would actually have caught it.
+    "docs/SIMULATOR_CARD.md",
+)
 
 # Phrasings that assert the sleeping-dogs population exists in reportable quantity.
 # Deliberately narrow: the aim is to catch a *claim*, not every use of the words.

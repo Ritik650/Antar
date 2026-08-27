@@ -280,19 +280,34 @@ reviewer browsing the repo finds it. The gate itself lives in `antar/eval/claims
 runner: `make evaluate` writes `artifacts/claims.json`, and the README refuses to state a
 claim the verdict does not support.
 
-### 6.3.1 The measured result — read the caveats with the number
+### 6.3.1 The measured result — the claim this section was written to support is WITHDRAWN
 
 | Scenario | Share of customers whose **best available action** still has negative uplift |
 |---|---|
-| `conservative` | **36.5%** |
-| `base` | **5.8%** — clears the 5% bar by 0.8 points, ranging 5.3–6.2% over five seeds. Marginal, and reported as marginal |
-| `aggressive` | **0.12%** — effectively none |
+| `conservative` | **23.09%** — clears the 5% bar comfortably |
+| `base` | **2.67%** — does *not* clear it, ranging 2.53–2.93% over three seeds |
+| `aggressive` | **0.02%** — effectively none |
 
-Measured over five seeds with the scan pinned to a fixed instant (`claims.SCAN_REFERENCE`).
-It was not always pinned — see POSTMORTEM D13, where the base figure moved across a
-midnight and crossed the threshold on its own.
+**One scenario of three. The pre-registered rule in §6.3 requires two.** Per §10 the
+consequence is stated in the table itself: the sleeping-dogs finding is withdrawn from
+all artifacts. `artifacts/claims.json` records the verdict, and
+`tests/statistical/test_withdrawn_claims_are_not_stated.py` fails the build if any
+document asserts the claim anyway — or if the README drops it silently, which is the
+more tempting failure.
 
-### 6.3.2 The specification curve — is the base result a finding or a coin flip?
+The numbers above are lower than the ones this card carried until POSTMORTEM D38. The
+response model discounted the *treated* arm by its opt-out hazard and discounted the
+untreated arm by nothing, so every customer's treated outcome was penalised against an
+unpenalised counterfactual and the negative-uplift population was inflated by
+construction. The asymmetry had been logged as known-and-unfixed on the reasoning that
+correcting it "would move numbers in Antar's favour" — **backwards**, and that inverted
+note is what protected the defect across three review cycles.
+
+Measured over three seeds with the scan pinned to a fixed instant
+(`claims.SCAN_REFERENCE`). It was not always pinned — see POSTMORTEM D13, where the base
+figure moved across a midnight and crossed the threshold on its own.
+
+### 6.3.2 The specification curve — the finding does not survive it either
 
 Our own reported figure moved 5.13% → 4.67% → 5.83% during this build, from analytic
 choices alone. Rather than apologise for each move, `docs/EVALUATION.md` §9.5
@@ -301,28 +316,32 @@ pre-registered a sweep over **every** defensible analytic choice. All 540 of the
 | | |
 |---|---|
 | Specifications | **540** (6 reference instants × 5 seeds × 3 measurement windows × 3 definitions of "negative" × 2 action sets) |
-| Median share | **9.50%** (IQR 6.00%–16.83%, range 1.67%–30.33%) |
-| **Clearing the 5% bar** | **83%** of specifications |
-| Pre-registered specification | 5.67%, at the **21.7th percentile** of its own distribution |
+| Median share | **4.33%** (IQR 2.33%–9.38%, range 0.33%–19.50%) |
+| **Clearing the 5% bar** | **46%** of specifications |
+| Pre-registered specification | 2.83%, at the **28.7th percentile** of its own distribution |
 
-**The base-scenario result is a finding, not a coin flip.** 83% of the analytic choices we
-could defensibly have made clear the bar, and the majority rule in §9.5 is satisfied.
+**The base-scenario result is a coin flip, and it lost.** Fewer than half the analytic
+choices we could defensibly have made clear the bar, and the majority rule in §9.5 is not
+satisfied. Before D38 this table read 9.50% median and 83% clearing, and this paragraph
+said the opposite; both are corrected here rather than deleted, because the movement is
+the finding.
 
-**We did not pick a flattering specification.** The pre-registered choice sits in the
-bottom quartile of the distribution it generated — it is one of the *least* favourable
-specifications to our own claim. That is not a virtue we planned; it falls out of having
+**We did not pick a flattering specification.** The pre-registered choice sits at the
+28.7th percentile of the distribution it generated — less favourable to our own claim
+than 71% of the alternatives. That is not a virtue we planned; it falls out of having
 chosen `best_available` (maximise over channels, most generous to treatment) and the
-`strict` definition before seeing any of this.
+`strict` definition before seeing any of this. It is also the reason the claim failed: a
+specification chosen to be unflattering was unflattering.
 
 Which choices actually moved the answer, most to least:
 
 | Dimension | Spread (sd of level means) | What it says |
 |---|---|---|
-| **Action set** | 0.054 | `best_available` 6.3% vs `reference_sms` **17.2%**. Much the largest effect. A merchant with one SMS integration — i.e. most merchants — sees roughly three times the harmed population we report |
-| Definition of "negative" | 0.028 | strict 14.7% → margin 12.6% → conservative_ci 8.1%. Monotone, as it must be |
-| Reference instant | 0.011 | 10.5%–13.6%. The D13 axis. Real but modest once pinned |
-| Seed | 0.005 | 10.9%–12.3%. Sampling noise is **not** what moved our headline |
-| Measurement window | 0.003 | 11.5%–12.2%. Essentially irrelevant |
+| **Action set** | 0.037 | `best_available` 2.70% vs `reference_sms` **10.03%**. Much the largest effect. A merchant with one SMS integration — i.e. most merchants — sees roughly four times the harmed population we report, and would clear the bar on this axis alone |
+| Definition of "negative" | 0.022 | strict 8.76% → margin 6.92% → conservative_ci 3.42%. Monotone, as it must be |
+| Reference instant | 0.007 | 5.60%–7.68%. The D13 axis. Real but modest once pinned |
+| Seed | 0.002 | 6.16%–6.76%. Sampling noise is **not** what moved our headline |
+| Measurement window | 0.002 | 6.22%–6.57%. Essentially irrelevant |
 
 The last two rows matter for the postmortem: the 1.2-point wobble during the build was
 **not** seed noise. It was a bug (D6) and an unpinned instant (D13), both now fixed and
@@ -331,20 +350,25 @@ both now guarded.
 Regenerate with `python tasks.py evaluate`; the artifact is
 `artifacts/specification_curve_base.json`.
 
-Two things a reader should take from this rather than from the headline:
+Three things a reader should take from this rather than from the headline:
 
-1. **The finding is regime-dependent.** It dominates under conservative assumptions,
-   is marginal under reference assumptions, and is absent under optimistic ones. The
-   defensible claim is exactly that sentence, and nothing stronger.
+1. **The claim is withdrawn, and what remains is narrower.** Under the registered action
+   set the negative-uplift population is not large enough to report. It is large under
+   `reference_sms` and under the `conservative` scenario, which is a statement about
+   *which merchants* rather than a finding about customers in general, and it is not
+   what this project set out to claim.
 2. **The gate did not pass on the first run.** It failed, five genuine defects were found
-   and fixed, and it then passed. The full before-and-after, including which fixes moved
-   the result toward the finding and which moved it away, is disclosed at the top of
-   `tests/statistical/test_anti_circularity.py` and in `docs/POSTMORTEM.md` D1–D3, D6 and
-   D13. That ordering is uncomfortable and is published rather than buried.
-3. **A threshold this soft should not be the headline.** `docs/EVALUATION.md` §9.4
-   pre-registers a phase diagram over `mean_self_heal` × `mean_optout_sensitivity`,
-   reporting the boundary where uplift allocation stops beating propensity targeting.
-   A boundary is a statement about mechanism; a 0.8-point threshold crossing is not.
+   and fixed, and it then passed — and then D38 unwound the pass. The full
+   before-and-after, including which fixes moved the result toward the finding and which
+   moved it away, is disclosed at the top of
+   `tests/statistical/test_anti_circularity.py` and in `docs/POSTMORTEM.md` D1–D3, D6,
+   D13 and D38. That ordering is uncomfortable and is published rather than buried.
+3. **A threshold this soft should never have been the headline.** `docs/EVALUATION.md`
+   §9.4 pre-registers a phase diagram over `mean_self_heal` × `mean_optout_sensitivity`,
+   reporting the boundary where uplift allocation stops beating propensity targeting. A
+   boundary is a statement about mechanism; a threshold crossing is not. The result the
+   project reports is the one in §15 and in the README, which needs no assumption about
+   what a cancellation costs and did not depend on this claim.
 
 ### 6.4 The honest caveat
 
@@ -578,6 +602,7 @@ commands do not reproduce, it is a defect — report it.
 | 2026-08-22 | **POSTMORTEM D6:** the anti-circularity scan's "balance peak" was computed as `replace(day=min(salary_day, 28))`, which for customers paid on the 29th or 30th is the trough. Replaced with a search (`CustomerLatents.next_balance_peak`). Moved every scenario's negative-uplift share **down**. | — |
 | 2026-08-22 | **POSTMORTEM D7:** `CustomerContext.tenure_months` now comes from the latents instead of a second independent draw. The two had been uncorrelated, silently turning the only observable driver of persuasion into noise. §4.1 updated to mark tenure observable-by-design. | — |
 | 2026-08-22 | §6.3.1 added: the measured negative-uplift shares, with the marginality of the base result and the fact that the gate initially failed both stated in the card rather than only in the test. | — |
+| 2026-08-28 | **POSTMORTEM D38:** the response model discounted the treated arm by the opt-out hazard and the untreated arm by nothing. Corrected to `p_recover_untreated = (1 - p_optout_baseline) x p_self_heal`. Negative-uplift shares fell to conservative 23.09% / base 2.67% / aggressive 0.02%, specification clearance from 83% to 46%, and **the sleeping-dogs claim was withdrawn** under the §6.3 rule. §6.3.1 and §6.3.2 rewritten to the corrected values. | — |
 
 *(Append an entry for every parameter change, and never edit a previous entry.)*
 
@@ -585,71 +610,93 @@ commands do not reproduce, it is a defect — report it.
 
 ## 15. The phase diagram — where this class of system pays for itself
 
-`docs/EVALUATION.md` §9.4, pre-registered before any cell was computed. 264 cells:
-11 self-heal levels × 12 opt-out levels × 2 channel-mix panels, each a full
-generate → detect → allocate cycle. Metric: **net expected rupees per 1,000 at-risk
-cycles, P3 (Antar) minus P2 (propensity targeting)**.
+`docs/EVALUATION.md` §9.4, pre-registered before any cell was computed.
+176 cells: 11 self-heal levels × 8 opt-out levels ×
+2 channel-mix panels, each a full generate → detect → allocate cycle. Metric: **net
+expected rupees per 1,000 at-risk cycles, P3 (Antar) minus P2 (propensity targeting)**.
 
 ### The map (`best_available` panel)
 
+`+` = Antar ahead of propensity targeting in that cell.
+
 ```
         self-heal ->
-        0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60
- 0.005*   +    +    +    .    .    .    .    .    .    .    .
- 0.010*   +    +    +    +    +    +    .    .    .    .    .
- 0.020*   .    +    .    .    .    .    .    .    .    .    .
- 0.035*   +    +    +    +    +    +    +    +    +    +    +
- 0.050    +    +    +    +    +    +    +    +    +    +    +
- 0.100    +    +    +    +    +    +    +    +    +    +    +
-   ...    (all + through 0.400)
+         0.1 0.15  0.2 0.25  0.3 0.35  0.4 0.45  0.5 0.55  0.6
+ 0.05     +    +    +    +    +    +    +    +    +    +    +
+ 0.1      +    +    +    +    +    +    +    +    +    +    +
+ 0.15     +    +    +    +    +    +    +    +    +    +    +
+ 0.2      +    +    +    +    +    +    +    +    +    +    +
+ 0.25     +    +    +    +    +    +    +    +    +    +    +
+ 0.3      +    +    +    +    +    +    +    +    +    +    +
+ 0.35     +    +    +    +    +    +    +    +    +    +    +
+ 0.4      +    +    +    +    +    +    +    +    +    +    +
 ```
-`*` = disclosed post-hoc extension below the pre-registered range.
+
+Rendered from `artifacts/phase_diagram.json`. The figure with the magnitudes and the
+indifference band is `artifacts/figures/02_phase_diagram.png`; this map only shows the
+sign, because a hand-transcribed grid is how the previous version of this section went
+stale.
 
 ### What it says
 
 | | `best_available` | `reference_sms` |
 |---|---|---|
 | Ahead in every pre-registered cell | yes | yes |
-| Decisive (outside the indifference band) | **83%** | **75%** |
-| Decisive at every self-heal level from | opt-out **0.035** | opt-out **0.035** |
-| Median advantage per 1,000 cycles | ₹971,262 | ₹1,346,912 |
-| Contact capacity binds up to | opt-out **0.05** | opt-out **0.05** |
+| Ahead, as a share of cells | **100%** | **100%** |
+| Decisive (outside the indifference band) | **51%** | **51%** |
+| Decisive at every self-heal level from | **not located by this grid** | **not located by this grid** |
+| Median advantage per 1,000 cycles | ₹339,812 | ₹387,950 |
+| Contact capacity binds up to | opt-out **0.1** | opt-out **0.05** |
+| Capacity binds in | **16%** of cells | **12%** of cells |
 
 **Three findings, in order of usefulness.**
 
-1. **The boundary is at an opt-out sensitivity of ~0.035, not somewhere in the middle
-   of the grid.** Above it, uplift allocation is decisively better than propensity
-   targeting everywhere, at every self-heal rate. Below it the two become
-   indistinguishable. A merchant does not know which side they are on without measuring
-   their own post-notification cancellation rate — and that measurement, not this
-   simulator, is what would tell them.
+1. **The boundary is not in this grid, and that is the result.** Antar is ahead in every
+   cell of both panels, so the indifference boundary lies at or below the bottom edge of
+   the pre-registered opt-out range (0.05) — outside the space we committed to. We
+   cannot say where it is, and this section says so rather than quoting a number the
+   grid does not contain. An earlier version of this card placed it at 0.035 on the
+   strength of a post-hoc extension below the range; that extension is not in the
+   committed artifact, and the claim went with it.
 
-2. **The scarce resource changes across the boundary.** Contact capacity binds only at
-   opt-out ≤ 0.05; above that every capacity shadow price is **zero**, because Antar
-   declines slots it is entitled to use. Below it, capacity binds in every cell. So the
-   same merchant is running two different businesses depending on which side they sit:
-   one where outbound capacity is the constraint, one where customer tolerance is. See
+   A merchant still does not know which side they are on without measuring their own
+   post-notification cancellation rate — and that measurement, not this simulator, is
+   what would tell them.
+
+2. **The scarce resource changes across the grid.** Contact capacity binds only at
+   opt-out ≤ 0.1 in the multi-channel panel, which
+   is 16% of cells; above that every capacity shadow price
+   is **zero**, because Antar declines slots it is entitled to use. So the same merchant
+   is running two different businesses depending on which side they sit: one where
+   outbound capacity is the constraint, one where customer tolerance is. See
    `docs/LIMITATIONS.md` L14.
 
-3. **Channel mix changes the magnitude, not the sign.** An SMS-only merchant gains
-   *more* from uplift allocation (₹1.35M vs ₹0.97M per 1,000), because a propensity
-   ranker restricted to one channel has fewer ways to be accidentally right. Below the
-   boundary the multi-channel merchant already sees decisive gains in some cells while
-   the SMS-only one sees none.
+3. **Channel mix changes the magnitude a little, and the sign not at all.** An SMS-only
+   merchant gains somewhat more from uplift allocation
+   (₹387,950 vs
+   ₹339,812 per 1,000, a
+   14%
+   difference), because a propensity ranker restricted to one channel has fewer ways to
+   be accidentally right. The two panels are decisive in
+   51% and 51% of cells
+   respectively, so the channel mix does not change how *often* the advantage is
+   decisive. An earlier version of this section claimed a much larger gap on both
+   counts; it was reading a superseded run.
 
 ### What is wrong with it
 
-- **The sub-boundary region is noisy.** The `0.020` row of `best_available` is decisive
-  in 1 of 11 cells while `0.010` is decisive in 6 — non-monotone, and a property of
-  250 customers per cell rather than of the mechanism. The boundary should be read as
-  "somewhere in 0.02–0.035", not as a sharp line.
-- **The extension below 0.05 is post-hoc.** It was added after the pre-registered sweep
-  came back unanimous. It is labelled `*` in every rendering and `extended` in the
-  artifact, and no claim rests on it without saying so.
+- **Roughly half the cells are inside the indifference band.** Antar is ahead everywhere
+  but decisively ahead in 51% of cells, on 250 customers per
+  cell. "Ahead in every cell" is a weaker statement than it sounds, and the band is
+  reported for that reason rather than hidden.
+- **The committed run does not extend below the pre-registered range.** Locating the
+  boundary needs `python -m scripts.make_phase_diagram --customers 250 --extend`, which
+  adds rows below 0.05. Any claim about where the boundary sits requires that run and
+  must be labelled post-hoc, because the extension is outside what §9.4 registered.
 - **Every rupee figure here is expected value under the ground-truth response model**,
   not a realised outcome against the randomised control. That is the right choice for
-  locating a boundary — sampling noise across 264 cells would blur it — and the wrong
-  one for a headline. The inferential number comes from the holdout at M8.
+  locating a boundary — sampling noise across 176 cells would blur it —
+  and the wrong one for a headline. The inferential number comes from the holdout at M8.
 
-Regenerate with `python -m scripts.make_phase_diagram --customers 250 --extend`.
+Regenerate with `python -m scripts.make_phase_diagram --customers 250`.
 Artifact: `artifacts/phase_diagram.json`.

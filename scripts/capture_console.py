@@ -26,7 +26,10 @@ OUT = Path(antar.__file__).parent.parent / "docs" / "img"
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--url", default="http://localhost:8599")
+    # 8501 is Streamlit's default, which is what `python tasks.py console` and
+    # docker-compose.yml both serve on. This defaulted to 8599, which nothing has
+    # ever served, so the documented two-command flow could not work.
+    parser.add_argument("--url", default="http://localhost:8501")
     parser.add_argument("--wait-ms", type=int, default=9000)
     args = parser.parse_args()
 
