@@ -33,6 +33,8 @@ import pytest
 
 from antar.config import artifacts_dir, repo_root
 
+from .quick_run import artifacts_are_from_a_quick_run
+
 README = repo_root() / "README.md"
 
 # Numbers that are structural rather than measured: version numbers, section counts,
@@ -40,10 +42,32 @@ README = repo_root() / "README.md"
 # policies". Each entry is here because it is *not* a claim about a result.
 STRUCTURAL = {
     # Layer and milestone labels, counts of things in the repo rather than measurements.
-    "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
-    "16", "17", "18", "24",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "24",
     # Years, ceilings and clock hours quoted from regulation, not measured by us.
-    "2026", "03", "15000", "21", "0", "1000",
+    "2026",
+    "03",
+    "15000",
+    "21",
+    "0",
+    "1000",
     # AFA ceiling in rupees, and the TRAI window hours.
     "15,000",
 }
@@ -145,25 +169,11 @@ def expand(tokens: set[str]) -> set[str]:
     return out
 
 
-def artifacts_are_from_a_quick_run() -> bool:
-    """Did the artifacts on disk come from `evaluate QUICK=1`?
-
-    QUICK mode is smaller batches on the same code path, and `run_evaluation` says in
-    its own banner that the numbers will differ from the full run. The README quotes the
-    **full** run, so checking it against quick artifacts compares two things that are
-    not supposed to agree - which is what this test did on CI's N4 job, where it failed
-    on every correctly-generated number. POSTMORTEM D37.
-
-    Provenance is only meaningful against a full run. Internal consistency and magnitude
-    hold at any scale, and those tests keep running.
-    """
-    marker = artifacts_dir() / "evaluation.json"
-    if not marker.exists():
-        return False
-    try:
-        return bool(json.loads(marker.read_text(encoding="utf-8")).get("quick"))
-    except json.JSONDecodeError:
-        return False
+# `artifacts_are_from_a_quick_run` used to live here, as a private helper. It was
+# private for no reason, so the second guard that needed it - the one checking
+# docs/SIMULATOR_CARD.md against its artifacts - was written without it and failed
+# on N4 exactly as this test once did. One definition now, in `quick_run`, imported
+# by both. POSTMORTEM D37, then D43.
 
 
 @pytest.fixture(scope="module")
@@ -254,8 +264,7 @@ def test_the_readme_says_the_numbers_are_simulated(artifact_numbers):
     assert "SIMULATOR_CARD" in text
     # In the first screen, not buried at the bottom.
     assert "simulated" in text[:1500].lower(), (
-        "the simulation caveat is below the fold; a number travels further than its "
-        "caveat"
+        "the simulation caveat is below the fold; a number travels further than its caveat"
     )
 
 
@@ -335,9 +344,16 @@ def test_the_repo_map_names_directories_that_exist():
 
 
 WORDS = {
-    "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20,
-    "twenty-one": 21, "twenty-two": 22, "twenty-three": 23, "twenty-four": 24,
-    "twenty-five": 25, "twenty-six": 26,
+    "seventeen": 17,
+    "eighteen": 18,
+    "nineteen": 19,
+    "twenty": 20,
+    "twenty-one": 21,
+    "twenty-two": 22,
+    "twenty-three": 23,
+    "twenty-four": 24,
+    "twenty-five": 25,
+    "twenty-six": 26,
 }
 
 
@@ -362,8 +378,7 @@ def test_the_readme_states_the_right_number_of_postmortem_entries():
     stated = _stated(r"POSTMORTEM\.md\) has ([\w-]+) entries")
     assert stated is not None, "the README no longer states a postmortem count"
     assert stated == _headings("POSTMORTEM.md", "D"), (
-        f"the README says {stated} postmortem entries; there are "
-        f"{_headings('POSTMORTEM.md', 'D')}"
+        f"the README says {stated} postmortem entries; there are {_headings('POSTMORTEM.md', 'D')}"
     )
 
 
@@ -456,7 +471,8 @@ def test_the_provenance_rule_is_worded_identically_everywhere():
     ]
     assert not missing, (
         f"these files describe the provenance guard without the canonical wording "
-        f"{PROVENANCE_RULE!r}:\n  " + "\n  ".join(missing)
+        f"{PROVENANCE_RULE!r}:\n  "
+        + "\n  ".join(missing)
         + "\n\nThe postmortem claims the rule is stated identically everywhere. This is "
         "what makes that claim true rather than asserted."
     )
@@ -484,6 +500,4 @@ def test_the_superseded_wording_is_gone():
             if phrase in text:
                 offenders.append(f"{path.relative_to(repo_root())}  ({phrase!r})")
 
-    assert not offenders, (
-        "the wording D40 removed has come back:\n  " + "\n  ".join(offenders)
-    )
+    assert not offenders, "the wording D40 removed has come back:\n  " + "\n  ".join(offenders)

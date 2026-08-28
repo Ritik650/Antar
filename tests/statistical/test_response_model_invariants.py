@@ -69,7 +69,9 @@ def test_persuadability_is_actually_the_ceiling(scenario_name):
                     latents, contact(channel, when), amount_paise=49900, attempt=1
                 )
                 if p > latents.persuadability + 1e-9:
-                    violations.append((latents.customer_id, channel.value, p, latents.persuadability))
+                    violations.append(
+                        (latents.customer_id, channel.value, p, latents.persuadability)
+                    )
     assert not violations, f"{len(violations)} customers exceed their own ceiling: {violations[:3]}"
 
 
@@ -283,9 +285,9 @@ def test_voice_is_more_intrusive_than_email():
     model = ResponseModel(scenario, SEED)
     latents = LatentStore(scenario, SEED).get("cust_000004")
     when = clock.now() + timedelta(hours=25)
-    assert model.optout_probability(latents, contact(Channel.VOICE, when)) > model.optout_probability(
-        latents, contact(Channel.EMAIL, when)
-    )
+    assert model.optout_probability(
+        latents, contact(Channel.VOICE, when)
+    ) > model.optout_probability(latents, contact(Channel.EMAIL, when))
 
 
 def test_a_silent_retry_still_carries_the_full_optout_hazard():
@@ -314,7 +316,9 @@ def test_repeated_attempts_have_diminishing_returns():
     latents = LatentStore(scenario, SEED).get("cust_000006")
     when = clock.now() + timedelta(hours=25)
     values = [
-        model.persuasion_probability(latents, contact(Channel.SMS, when), amount_paise=49900, attempt=a)
+        model.persuasion_probability(
+            latents, contact(Channel.SMS, when), amount_paise=49900, attempt=a
+        )
         for a in (1, 2, 3, 4)
     ]
     assert values == sorted(values, reverse=True)

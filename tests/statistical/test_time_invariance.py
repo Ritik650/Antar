@@ -70,9 +70,7 @@ def _holdout_assignment() -> Any:
 def _specification_evaluation() -> float:
     from antar.eval.specification_curve import PRE_REGISTERED, Specification, evaluate_specification
 
-    return evaluate_specification(
-        Specification(scenario="base", **PRE_REGISTERED), n_customers=200
-    )
+    return evaluate_specification(Specification(scenario="base", **PRE_REGISTERED), n_customers=200)
 
 
 def _experiment_log() -> Any:

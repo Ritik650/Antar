@@ -61,7 +61,9 @@ def run_experiment(n: int = N) -> tuple[np.ndarray, np.ndarray]:
         # Alternate assignment: a perfectly balanced randomisation, so the test
         # measures the response model rather than an assignment mechanism.
         is_treated = index % 2 == 0
-        intervention = make_intervention(event_id, base + timedelta(hours=25)) if is_treated else None
+        intervention = (
+            make_intervention(event_id, base + timedelta(hours=25)) if is_treated else None
+        )
         outcome, _ = model.sample(
             latents,
             event_id=event_id,
@@ -78,9 +80,7 @@ def run_experiment(n: int = N) -> tuple[np.ndarray, np.ndarray]:
 def difference_in_means(treated: np.ndarray, control: np.ndarray) -> tuple[float, float, float]:
     """Estimate and a 95% normal-approximation interval for two proportions."""
     diff = float(treated.mean() - control.mean())
-    se = math.sqrt(
-        treated.var(ddof=1) / len(treated) + control.var(ddof=1) / len(control)
-    )
+    se = math.sqrt(treated.var(ddof=1) / len(treated) + control.var(ddof=1) / len(control))
     return diff, diff - 1.96 * se, diff + 1.96 * se
 
 

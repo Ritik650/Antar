@@ -30,7 +30,9 @@ pytestmark = pytest.mark.statistical
 
 def test_a_clear_win_is_kept():
     verdict = decide(
-        "downtime_crosscheck", delta_net_paise=500_000, ci_low_paise=120_000,
+        "downtime_crosscheck",
+        delta_net_paise=500_000,
+        ci_low_paise=120_000,
         ci_high_paise=880_000,
     )
     assert verdict.keep
@@ -39,7 +41,9 @@ def test_a_clear_win_is_kept():
 
 def test_a_clear_loss_is_deleted():
     verdict = decide(
-        "changepoint_detector", delta_net_paise=-300_000, ci_low_paise=-540_000,
+        "changepoint_detector",
+        delta_net_paise=-300_000,
+        ci_low_paise=-540_000,
         ci_high_paise=-60_000,
     )
     assert not verdict.keep
@@ -54,7 +58,9 @@ def test_ambiguity_resolves_to_deletion_not_retention():
     outcome of any honest ablation.
     """
     verdict = decide(
-        "downtime_crosscheck", delta_net_paise=40_000, ci_low_paise=-210_000,
+        "downtime_crosscheck",
+        delta_net_paise=40_000,
+        ci_low_paise=-210_000,
         ci_high_paise=290_000,
     )
     assert not verdict.keep, "an ambiguous interval must not be enough to keep a component"
@@ -64,7 +70,9 @@ def test_ambiguity_resolves_to_deletion_not_retention():
 def test_a_positive_point_estimate_alone_is_not_enough():
     """Point estimates are how components survive ablations they should not."""
     assert not decide(
-        "changepoint_detector", delta_net_paise=1_000_000, ci_low_paise=-50_000,
+        "changepoint_detector",
+        delta_net_paise=1_000_000,
+        ci_low_paise=-50_000,
         ci_high_paise=2_050_000,
     ).keep
 
@@ -111,9 +119,9 @@ def test_the_rule_is_committed_in_the_evaluation_protocol():
     """The code and the pre-registration must not drift apart."""
     from pathlib import Path
 
-    protocol = (
-        Path(__file__).resolve().parents[2] / "docs" / "EVALUATION.md"
-    ).read_text(encoding="utf-8")
+    protocol = (Path(__file__).resolve().parents[2] / "docs" / "EVALUATION.md").read_text(
+        encoding="utf-8"
+    )
     assert "12.2 Component retention rule" in protocol
     # The asymmetry is the load-bearing half of the rule: if this sentence goes, the
     # commitment has quietly become keep-by-default.
@@ -159,8 +167,7 @@ def test_the_runtime_configuration_matches_the_recorded_verdict():
                 f"({verdict.rationale}) but {flag}={enabled}"
             )
     assert not mismatches, (
-        "runtime configuration disagrees with the retention verdict:\n  "
-        + "\n  ".join(mismatches)
+        "runtime configuration disagrees with the retention verdict:\n  " + "\n  ".join(mismatches)
     )
 
 
@@ -214,7 +221,9 @@ def test_the_permissive_default_cannot_outlive_the_measurement():
                 json.dumps(
                     {
                         "downtime_crosscheck": decide(
-                            "downtime_crosscheck", delta_net_paise=-1, ci_low_paise=-9,
+                            "downtime_crosscheck",
+                            delta_net_paise=-1,
+                            ci_low_paise=-9,
                             ci_high_paise=-1,
                         ).as_dict()
                     }

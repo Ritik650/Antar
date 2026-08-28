@@ -326,7 +326,9 @@ def test_no_canary_reaches_a_diagnosis():
     batch = cached_batch()
     result = run_detection(batch, batch.events[:150])
     for diagnosis in result.diagnoses:
-        assert_no_canary(diagnosis.model_dump(mode="json"), context=f"Diagnosis {diagnosis.event_id}")
+        assert_no_canary(
+            diagnosis.model_dump(mode="json"), context=f"Diagnosis {diagnosis.event_id}"
+        )
 
 
 def test_no_canary_reaches_the_detection_feature_frame():

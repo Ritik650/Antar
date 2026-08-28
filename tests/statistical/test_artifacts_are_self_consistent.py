@@ -81,9 +81,10 @@ def test_the_headline_delta_has_the_sign_the_table_implies():
     notices and the one that most damages a claim."""
     data = load("allocation_base.json")
     by_policy = {row["policy"]: row for row in data["policies"]}
-    expected_sign = by_policy["antar"]["net_per_1000_at_risk_rupees"] > by_policy[
-        "propensity"
-    ]["net_per_1000_at_risk_rupees"]
+    expected_sign = (
+        by_policy["antar"]["net_per_1000_at_risk_rupees"]
+        > by_policy["propensity"]["net_per_1000_at_risk_rupees"]
+    )
     recorded_sign = data["antar_minus_propensity_per_1000_rupees"] > 0
     assert recorded_sign == expected_sign
 
@@ -98,8 +99,7 @@ def test_each_policys_net_is_its_own_components():
             - row["expected_optout_loss_rupees"]
         )
         assert row["net_rupees"] == pytest.approx(derived, abs=1.0), (
-            f"{row['policy']}: net {row['net_rupees']} does not equal its parts "
-            f"({derived})"
+            f"{row['policy']}: net {row['net_rupees']} does not equal its parts ({derived})"
         )
 
 
@@ -235,16 +235,16 @@ def test_the_headline_decomposes_into_recovery_and_harm():
     antar, ranker = by_policy["antar"], by_policy["propensity"]
 
     recovery_gap = (
-        antar["incremental_per_1000_at_risk_rupees"]
-        - ranker["incremental_per_1000_at_risk_rupees"]
+        antar["incremental_per_1000_at_risk_rupees"] - ranker["incremental_per_1000_at_risk_rupees"]
     )
     harm_gap = (
-        ranker["optout_loss_per_1000_at_risk_rupees"]
-        - antar["optout_loss_per_1000_at_risk_rupees"]
+        ranker["optout_loss_per_1000_at_risk_rupees"] - antar["optout_loss_per_1000_at_risk_rupees"]
     )
     cost_gap = (
-        ranker["channel_cost_rupees"] - antar["channel_cost_rupees"]
-    ) * 1000 / antar["at_risk_events"]
+        (ranker["channel_cost_rupees"] - antar["channel_cost_rupees"])
+        * 1000
+        / antar["at_risk_events"]
+    )
 
     assert recovery_gap + harm_gap + cost_gap == pytest.approx(
         data["antar_minus_propensity_per_1000_rupees"], abs=1.0

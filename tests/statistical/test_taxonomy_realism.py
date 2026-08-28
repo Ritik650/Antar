@@ -114,8 +114,7 @@ def test_a_meaningful_share_of_generated_events_carries_an_ambiguous_code():
     ambiguous = failure_emission.ambiguous_reasons()
     share = sum(1 for e in batch.events if e.error_reason in ambiguous) / len(batch.events)
     assert share > 0.10, (
-        f"only {share:.1%} of events carry an ambiguous code; detection would be "
-        "close to a lookup"
+        f"only {share:.1%} of events carry an ambiguous code; detection would be close to a lookup"
     )
 
 
@@ -124,4 +123,6 @@ def test_the_catalogue_is_fully_exercised():
     directory that claims to cover what we consume."""
     emitted = {reason for table in failure_emission.EMISSION.values() for reason in table}
     unreachable = rz.DOCUMENTED_REASONS - emitted
-    assert not unreachable, f"documented reasons the generator can never emit: {sorted(unreachable)}"
+    assert not unreachable, (
+        f"documented reasons the generator can never emit: {sorted(unreachable)}"
+    )

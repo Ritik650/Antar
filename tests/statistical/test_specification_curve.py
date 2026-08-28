@@ -97,7 +97,11 @@ def test_stricter_definitions_of_negative_give_smaller_populations():
         for d in ("strict", "margin", "conservative_ci")
     ]
     assert shares[0] >= shares[1] >= shares[2], shares
-    assert NEGATIVE_THRESHOLD["strict"] > NEGATIVE_THRESHOLD["margin"] > NEGATIVE_THRESHOLD["conservative_ci"]
+    assert (
+        NEGATIVE_THRESHOLD["strict"]
+        > NEGATIVE_THRESHOLD["margin"]
+        > NEGATIVE_THRESHOLD["conservative_ci"]
+    )
 
 
 def test_the_generous_action_gives_the_smaller_population():

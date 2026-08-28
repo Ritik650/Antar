@@ -1810,3 +1810,58 @@ did not render, rather than saving a screenshot of nothing. That care is why the
 was harmless and also why it survived — the failure looked like a deliberate refusal.
 
 **Fix.** The default is 8501, with a comment naming the two places that serve it.
+
+---
+
+## D43 · D37, repeated in the commit whose own entry is about repeating D37
+
+**Found by:** CI's N4 job, on the push that added D41.
+**Severity:** low in effect, high as evidence.
+**Status:** fixed.
+
+D41's guard — `test_the_cards_match_their_artifacts.py`, which compares
+`docs/SIMULATOR_CARD.md` against the artifacts it quotes — turned N4 red on four checks:
+
+```
+row '`aggressive`' does not state '0.06%'      card says 0.02%
+row 'Median share' does not state '6.50%'      card says 4.33%
+row 'Decisive ...' does not state '80%'        card says 51%
+panels[best_available] locates the boundary at 0.15; the row does not say so
+```
+
+Every one of those is a **correctly generated number**. N4 runs
+`python tasks.py evaluate QUICK=1`, which `run_evaluation` announces in its own banner as
+*"smaller batches. The numbers will differ from the full run"*. The card quotes the full
+run. The guard compared two things that are not supposed to agree.
+
+**This is D37 exactly.** D37 is the entry where the provenance guard did this to the
+README, on this same job, for this same reason. Its fix added
+`artifacts_are_from_a_quick_run()` and a skip — and put the function *inside*
+`test_results_are_reproducible.py` as a private helper, where the next author of the next
+guard would not find it.
+
+So the lesson had been learned, written down, and made unreachable. The second guard was
+written without the branch, in the same commit as an entry whose subject is *guards
+applied to states they were not designed for*, by someone who had read the D37 docstring
+earlier the same session.
+
+**Fix.** The predicate and a `requires_full_run(what)` helper now live in
+`tests/statistical/quick_run.py`, imported by both guards. Splitting the card checks by
+what they actually compare:
+
+  * **values** — the negative-uplift shares, the specification curve, the phase-diagram
+    table, the boundary row — skip on a quick run, naming the reason;
+  * **shape and wording** — the cell count and the README's stated postmortem entry
+    count — keep running, because they are true at any batch size.
+
+That split matters. N4's comment says anything that skips there is a check that silently
+found nothing to look at, and a guard which skipped *entirely* on the only job that runs
+it would be decoration. Verified both ways: with `quick` set, 5 skip and 2 run; on the
+full artifacts, all 7 pass.
+
+**What to take from it.** D41 argued that this project's recurring defect is a guard
+pointed at a state it was not designed for, and listed four instances. This is the fifth,
+committed alongside the argument. The pattern is not carelessness about the lesson — the
+lesson was in the docstring — it is that **a lesson stored where only one caller can
+reach it protects only that caller**. D40's fix made a *sentence* live in one place for
+exactly this reason; this one does the same for a *predicate*.

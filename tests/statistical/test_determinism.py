@@ -23,9 +23,21 @@ def stream_digest(batch) -> str:
     """A hash over the whole event stream, field for field."""
     payload = [
         [
-            e.event_id, e.merchant_id, e.customer_id, e.loss_class.value, e.subscription_id,
-            e.cycle_number, e.amount_paise, e.merchant_category.value, e.method.value, e.issuer,
-            e.occurred_at.isoformat(), e.error_code, e.error_reason, e.error_source, e.error_step,
+            e.event_id,
+            e.merchant_id,
+            e.customer_id,
+            e.loss_class.value,
+            e.subscription_id,
+            e.cycle_number,
+            e.amount_paise,
+            e.merchant_category.value,
+            e.method.value,
+            e.issuer,
+            e.occurred_at.isoformat(),
+            e.error_code,
+            e.error_reason,
+            e.error_source,
+            e.error_step,
         ]
         for e in batch.events
     ]

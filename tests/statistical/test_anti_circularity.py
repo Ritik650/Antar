@@ -174,7 +174,9 @@ def test_negative_uplift_is_not_the_whole_population(shares):
     """A simulator where contacting always hurts would be as useless as one where it
     always helps, and would make the allocator's job trivial."""
     for name, share in shares.items():
-        assert share < 0.60, f"{name}: {share:.2%} negative uplift is not a population, it is a rule"
+        assert share < 0.60, (
+            f"{name}: {share:.2%} negative uplift is not a population, it is a rule"
+        )
 
 
 def test_conservative_is_the_hardest_scenario(shares):
@@ -232,7 +234,9 @@ def test_the_verdict_is_stable_across_seeds():
     """
     qualifying_sets = []
     for seed in SEEDS:
-        shares = {name: negative_uplift_share(name, seed=seed, n_customers=800) for name in REPORTED}
+        shares = {
+            name: negative_uplift_share(name, seed=seed, n_customers=800) for name in REPORTED
+        }
         qualifying_sets.append(
             tuple(sorted(n for n, s in shares.items() if s >= NON_TRIVIAL_SHARE))
         )

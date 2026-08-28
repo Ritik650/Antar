@@ -29,6 +29,19 @@ that claims it. A number typed into a test is the same defect one level up.
 That makes the failure mode loud and the fix obvious: regenerate the artifact, or correct
 the row. It cannot be satisfied by editing this file, because there is nothing here to
 edit.
+
+## Which checks run on a quick evaluation, and why not all of them
+
+The first version of this file compared every figure unconditionally and turned CI's N4
+job red on four **correctly generated** numbers, because N4 runs `evaluate QUICK=1` and
+the card quotes the full run. That is D37 repeated — see POSTMORTEM D43 — and the fix is
+to split the checks by what they compare:
+
+  * **Values** — the shares, the curve, the phase-diagram table, the boundary row — call
+    `requires_full_run` and skip on a quick evaluation.
+  * **Shape and wording** — the cell count, the README's stated entry count — do not.
+    They are true at any batch size, and N4 is the only job that runs this file, so a
+    guard that skipped in its entirety there would be decoration.
 """
 
 from __future__ import annotations
@@ -40,6 +53,8 @@ import re
 import pytest
 
 from antar.config import artifacts_dir, repo_root
+
+from .quick_run import requires_full_run
 
 REQUIRE_ARTIFACTS = os.environ.get("ANTAR_REQUIRE_ARTIFACTS") == "1"
 
@@ -97,6 +112,7 @@ def assert_states(label: str, expected: str, why: str) -> None:
 
 def test_the_card_reports_the_negative_uplift_shares_the_registry_recorded():
     """§6.3.1's table against `claims.json`, scenario by scenario."""
+    requires_full_run("the card")
     shares = artifact("claims.json")["sleeping_dogs"]["evidence"]["share_by_scenario"]
     for scenario, share in shares.items():
         assert_states(
@@ -114,6 +130,7 @@ def test_the_card_does_not_assert_a_claim_its_own_registry_withdrew():
     which contains none of the words `test_withdrawn_claims_are_not_stated.py` looks
     for.
     """
+    requires_full_run("the card")
     verdict = artifact("claims.json")["sleeping_dogs"]
     text = card()
     if verdict["supported"]:
@@ -140,6 +157,7 @@ def test_the_card_does_not_assert_a_claim_its_own_registry_withdrew():
 
 
 def test_the_card_reports_the_specification_curve_the_artifact_produced():
+    requires_full_run("the card")
     summary = artifact("specification_curve_base.json")["summary"]
 
     assert_states("Median share", f"{summary['median']:.2%}", "summary.median")
@@ -175,6 +193,7 @@ def test_the_card_reports_the_phase_diagram_the_artifact_produced():
     against a measured 51%/51%, and a median advantage overstated roughly threefold.
     Nothing failed, because nothing was looking.
     """
+    requires_full_run("the card")
     phase = artifact("phase_diagram.json")
     panels = phase["summary"]["panels"]
 
@@ -205,6 +224,7 @@ def test_the_card_does_not_quote_a_boundary_the_grid_never_located():
     This is the D35/D36 shape - a generated or transcribed sentence with no branch for
     "unknown" - applied to a document instead of to a template.
     """
+    requires_full_run("the card")
     panels = artifact("phase_diagram.json")["summary"]["panels"]
     located = {
         name: panel["decisive_boundary_optout"]
